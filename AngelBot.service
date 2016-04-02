@@ -1,0 +1,10 @@
+[Unit]
+Description=AngelBot Discord
+
+[Service]
+ExecStart=/usr/bin/python /home/gizmo/AngelBot/AngelBot.py
+ExecStop=/bin/bash -c "cd /home/gizmo/AngelBot/ && git pull"
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
