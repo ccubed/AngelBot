@@ -1,12 +1,25 @@
-from urllib.request import urlopen
+import urllib.request
+import urllib.parse
+import json
 
 
 class DBParser:
     def __init__(self):
-        pass
+        self.apiurl = "http://api.xivdb.com"
 
     def searchall(self, name):
-        pass
+        data = {'string': name}
+        data = urllib.parse.urlencode(data)
+        url = self.apiurl + '/search?' + data
+        response = urllib.request.urlopen(url)
+        jd = response.read().decode('utf-8')
+        jd = json.loads(jd)
+        message = "Matched..."
+        for key in jd.keys():
+            if jd[key]['total'] > 0:
+                message += "{0} {1}".format(jd[key]['total'], key)
+        message += "Ask for a specific category or add more words."
+        return message
 
     def searchone(self, name, itype):
         pass
