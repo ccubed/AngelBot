@@ -16,16 +16,16 @@ class DBParser:
                            'BTN': 'Botanist', 'FSH': 'Fisher', 'MIN': 'Miner'}
 
     def searchall(self, name):
-        data = {'string': name.replace(' ', '+')}
+        data = {'string': name}
         data = urllib.parse.urlencode(data)
         url = self.apiurl + '/search?' + data
         response = urllib.request.urlopen(url)
         jd = response.read().decode('utf-8')
         jd = json.loads(jd)
-        message = "Matched..."
+        message = "Matched...\n"
         for key in jd.keys():
             if jd[key]['total'] > 0:
-                message += "{0} {1}".format(jd[key]['total'], key)
+                message += "{0} {1}\n".format(jd[key]['total'], key)
         message += "Ask for a specific category or add more words."
         return message
 
@@ -42,38 +42,38 @@ class DBParser:
         if jd[key]['total'] == 0:
             return "No results for {0} within {1}.".format(name, key)
         elif jd[key]['total'] == 1:
-            if key is 'items':
-                return self.parseitem(jd[key]['results'][0]['id'])
-            elif key is 'quests':
-                return self.parsequest(jd[key]['results'][0]['id'])
-            elif key is 'achievements':
-                return self.parseachievement(jd[key]['results'][0]['id'])
-            elif key is 'recipes':
-                return self.parserecipe(jd[key]['results'][0]['id'])
-            elif key is 'instances':
-                return self.parseinstance(jd[key]['results'][0]['id'])
-            elif key is 'actions':
-                return self.parseaction(jd[key]['results'][0]['id'])
-            elif key is 'places':
-                return self.parseplace(jd[key]['results'][0]['id'])
-            elif key is 'shops':
-                return self.parseshop(jd[key]['results'][0]['id'])
-            elif key is 'gathering':
-                return self.parsegather(jd[key]['results'][0]['id'])
-            elif key is 'npcs':
-                return self.parsenpc(jd[key]['results'][0]['id'])
-            elif key is 'enemies':
-                return self.parseenemy(jd[key]['results'][0]['id'])
-            elif key is 'emotes':
-                return self.parseemote(jd[key]['results'][0]['id'])
-            elif key is 'status':
-                return self.parsestatus(jd[key]['results'][0]['id'])
-            elif key is 'titles':
-                return self.parsetitle(jd[key]['results'][0]['id'])
-            elif key is 'minions':
-                return self.parseminion(jd[key]['results'][0]['id'])
-            elif key is 'mounts':
-                return self.parsemount(jd[key]['results'][0]['id'])
+            if key == 'items':
+                return self.parseitem(str(jd[key]['results'][0]['id']))
+            elif key == 'quests':
+                return self.parsequest(str(jd[key]['results'][0]['id']))
+            elif key == 'achievements':
+                return self.parseachievement(str(jd[key]['results'][0]['id']))
+            elif key == 'recipes':
+                return self.parserecipe(str(jd[key]['results'][0]['id']))
+            elif key == 'instances':
+                return self.parseinstance(str(jd[key]['results'][0]['id']))
+            elif key == 'actions':
+                return self.parseaction(str(jd[key]['results'][0]['id']))
+            elif key == 'places':
+                return self.parseplace(str(jd[key]['results'][0]['id']))
+            elif key == 'shops':
+                return self.parseshop(str(jd[key]['results'][0]['id']))
+            elif key == 'gathering':
+                return self.parsegather(str(jd[key]['results'][0]['id']))
+            elif key == 'npcs':
+                return self.parsenpc(str(jd[key]['results'][0]['id']))
+            elif key == 'enemies':
+                return self.parseenemy(str(jd[key]['results'][0]['id']))
+            elif key == 'emotes':
+                return self.parseemote(str(jd[key]['results'][0]['id']))
+            elif key == 'status':
+                return self.parsestatus(str(jd[key]['results'][0]['id']))
+            elif key == 'titles':
+                return self.parsetitle(str(jd[key]['results'][0]['id']))
+            elif key == 'minions':
+                return self.parseminion(str(jd[key]['results'][0]['id']))
+            elif key == 'mounts':
+                return self.parsemount(str(jd[key]['results'][0]['id']))
         elif jd[key]['total'] <= 5:
             message = "Matched more than one result. Try searching by ID.\n"
             for items in jd[key]['results']:
@@ -83,7 +83,7 @@ class DBParser:
             return "Returned {0} results. Add more words to search.".format(jd[key]['total'])
 
     def searchid(self, name):
-        data = {'string': name.replace(' ', '+')}
+        data = {'string': name}
         data = urllib.parse.urlencode(data)
         url = self.apiurl + '/search?' + data
         response = urllib.request.urlopen(url)
@@ -125,7 +125,7 @@ class DBParser:
         message = "{0}\nClass: {1} Recipe Level: {2}\n".format(jd['name'], jd['classjob']['name'], jd['level'])
         message += "Materials Required:\n"
         for item in jd['_tree']:
-            message += "   {0} {1} (ID:{2})".format(item['quantity'], item['name'], item['id'])
+            message += "   {0} {1} (ID:{2})\n".format(item['quantity'], item['name'], item['id'])
         message += jd['url_xivdb']
         return message
 
@@ -133,7 +133,7 @@ class DBParser:
         return "I don't parse dungeons. There isn't really any useful information on XIVDB about dungeons."
 
     def parseaction(self, name):
-        url = self.apiurl + "/recipe/" + name
+        url = self.apiurl + "/action/" + name
         response = urllib.request.urlopen(url)
         jd = response.read().decode('utf-8')
         jd = json.loads(jd)
@@ -183,7 +183,7 @@ class DBParser:
         return "I don't parse titles. There isn't really any useful information on XIVDB about titles."
 
     def parseminion(self, name):
-        url = self.apiurl + "/status/" + name
+        url = self.apiurl + "/minion/" + name
         response = urllib.request.urlopen(url)
         jd = response.read().decode('utf-8')
         jd = json.loads(jd)
@@ -202,7 +202,7 @@ class DBParser:
 
     def parsehdim(self, name):
         if name.isnumeric():
-            return self.parserecipe(name)
+            return self.parserecipe(str(name))
         else:
             jd = self.searchid(name)
             if jd['recipes']['total'] > 1:
@@ -210,33 +210,21 @@ class DBParser:
             elif jd['recipes']['total'] == 0:
                 return "{0} didn't match a recipe.".format(name)
             else:
-                return self.parserecipe(jd['recipes']['results'][0]['id'])
+                return self.parserecipe(str(jd['recipes']['results'][0]['id']))
 
     def parsewdif(self, name):
         jd = self.searchid(name)
-        if jd['recipes']['total'] > 1:
-            message = "{0} matched multiple items. Telling you how to make them.".format(name)
-            for item in jd['recipes']['results']:
-                url = self.apiurl + "/recipe/" + item['id']
-                response = urllib.request.urlopen(url)
-                jd = response.read().decode('utf-8')
-                jd = json.loads(jd)
-                message += "{0} ({1} LV.{2})\n".format(jd['name'], jd['classjob']['abbr'], jd['level'])
-                list = []
-                for item in jd['_tree']:
-                    list.append("{0} {1}".format(item['quantity'], item['name']))
-                message += ','.join(list)
-                message += "\n"
-            return message
+        types = []
+        for key in jd.keys():
+            if jd[key]['total'] > 0:
+                types.append(key)
+        if len(types) > 1:
+            return "Matched several items. Please narrow down your search. Perhaps search by ID?"
+        elif len(types) == 1:
+            if types[0] == 'items':
+            elif types[0] == 'gathering':
+            elif types[0] == 'quests':
+            else:
+                return "We found your match, but it's a type that doesn't currently have location data on XIVDB."
         else:
-            url = self.apiurl + "/recipe/" + jd['recipes']['results'][0]
-            response = urllib.request.urlopen(url)
-            jd = response.read().decode('utf-8')
-            jd = json.loads(jd)
-            message = "{0} ({1} LV.{2})\n".format(jd['name'], jd['classjob']['abbr'], jd['level'])
-            list = []
-            for item in jd['_tree']:
-                list.append("{0} {1}".format(item['quantity'], item['name']))
-            message += ','.join(list)
-            message += "\n"
-            return message
+            return "No matches for that search."
