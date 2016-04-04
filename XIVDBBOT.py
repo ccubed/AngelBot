@@ -31,7 +31,7 @@ class DBParser:
 
     def searchone(self, name, itype):
         key = itype.lower() if itype.endswith('s') else itype.lower() + 's'
-        if key is 'gatherings':
+        if key == 'gatherings':
             key = 'gathering'
         data = {'string': name, 'one': key}
         data = urllib.parse.urlencode(data)
@@ -97,9 +97,9 @@ class DBParser:
         jd = response.read().decode('utf-8')
         jd = json.loads(jd)
         message = "{0}\n{1} {2} {3} {4}\n{5}".format(jd['name'], 'Unique' if jd['is_unique'] else 'Common',
-                                                     'Tradeable' if jd['is_tradable'] else 'Untradable',
-                                                     'Desynth' if jd['is_desynthesizable'] else 'No_Desynth',
-                                                     'Dyeable' if jd['is_dyeable'] else 'Undyeable', jd['url_xivdb'])
+                                                     'Tradeable' if 'is_tradable' in jd else 'Untradable',
+                                                     'Desynth' if 'is_desynthesizable' in jd else 'No_Desynth',
+                                                     'Dyeable' if 'is_dyable' in jd else 'Undyeable', jd['url_xivdb'])
         return message
 
     def parsequest(self, name):
@@ -109,7 +109,7 @@ class DBParser:
         jd = json.loads(jd)
         message = "{0}\n".format(jd['name'])
         if jd['classjob_category_1']['name'] in self.shortnames:
-            message += "Related Class: {0}\n".format(shortnames[jd['classjob_category_1']['name']])
+            message += "Related Class: {0}\n".format(self.shortnames[jd['classjob_category_1']['name']])
         message += "Start this quest with {0} in {1} at {2}x {3}y\n".format(jd['npc_start']['name'],
                                                                             jd['npc_start']['placename']['name'],
                                                                             jd['npc_start']['position']['x'],
@@ -144,7 +144,14 @@ class DBParser:
         return "I don't parse places. There isn't really any useful information on XIVDB about places."
 
     def parseshop(self, name):
-        return "This doesn't seem to be in the api currently."
+        url = self.apiurl + "/shop/" + name
+        response = urllib.request.urlopen(url)
+        jd = response.read().decode('utf-8')
+        jd = json.loads(jd)
+        message = "{0} (ID: {1})\nThis shops sells ->\n".format(jd['npc_name'], jd['id'])
+        for item in jd['items']:
+            message += "   {0} (ID: {1}) for {2}gil\n".format(item['item']['name'], item['item']['id'], item['item']['price_mid'])
+        return message
 
     def parsegather(self, name):
         url = self.apiurl + "/gathering/" + name
@@ -167,7 +174,20 @@ class DBParser:
         return message
 
     def parseenemy(self, name):
-        return "Eveb if an enemy is parsed, since the change to XIVDB version 2 all the position data on enemies went away."
+        url = self.apiurl + "/enemy/" + name
+        response = urllib.request.urlopen(url)
+        jd = response.read().decode('utf-8')
+        jd = json.loads(jd)
+        message = "{0}\n".format(jd['name'])
+        if 'region_name' in jd:
+            message += "Region: {0}\n".format(jd['region_name'])
+        else:
+            message += "Region: No data\n"
+        if 'placename' in jd:
+            message += "Found near: {0}".format(jd['placename']['name'])
+        else:
+            message += "Found near: No location data"
+        return message
 
     def parseemote(self, name):
         return "I don't parse emotes. There isn't really any useful information on XIVDB about emotes."
@@ -214,17 +234,83 @@ class DBParser:
 
     def parsewdif(self, name):
         jd = self.searchid(name)
-        types = []
-        for key in jd.keys():
-            if jd[key]['total'] > 0:
-                types.append(key)
-        if len(types) > 1:
-            return "Matched several items. Please narrow down your search. Perhaps search by ID?"
-        elif len(types) == 1:
-            if types[0] == 'items':
-            elif types[0] == 'gathering':
-            elif types[0] == 'quests':
-            else:
-                return "We found your match, but it's a type that doesn't currently have location data on XIVDB."
+        if 'items' in jd:
+            achievements = []
+            if 'achievements' in jd:
+                if jd['achievements']['total']:
+                    for item in jd['achievements']['results']:
+                        achievements.append([item['name'], item['id']])
+            instances = []
+            if 'instances' in jd:
+                if jd['instances']['total']:
+                    for item in jd['instances']['results']:
+                        instances.append(item['name'])
+            quests = []
+            if 'quests' in jd:
+                if jd['quests']['total']:
+                    for item in jd['quests']['results']:
+                        quests.append([item['name'], item['id']])
+            shops = []
+            if 'shops' in jd:
+                if jd['shops']['total']:
+                    for item in jd['shops']['results']:
+                        for npc in item['npcs']:
+                            shops.append(
+                                [npc['name'], npc['placename']['name'], npc['position']['x'], npc['position']['y']])
+            craftable = []
+            if 'craftable' in jd:
+                if jd['craftable']['total']:
+                    for item in jd['craftable']['results']:
+                        craftable.append([item['name'], item['id'], item['classjob']['name'], item['level']])
+            enemies = []
+            if 'enemies' in jd:
+                if jd['enemies']['total']:
+                    for item in jd['enemies']['results']:
+                        temp = [item['name'], item['id']]
+                        if 'zones' in item:
+                            for zone in item['zones']:
+                                if 'region' in zone:
+                                    temp.append(zone['region']['name'])
+                                if 'placename' in zone:
+                                    temp.append(zone['placename']['name'])
+                        enemies.append(temp)
+            gathering = []
+            if 'gathering' in jd:
+                if jd['gathering']['total']:
+                    for item in jd['gathering']['results']:
+                        for node in item['nodes']:
+                            gathering.append([item['region']['name'], item['zone']['name'], item['placename']['name']])
+            message = []
+            if len(achievements):
+                message.append("Obtained from Achievements ->\n")
+                for item in achievements:
+                    message.append("   {0} (ID: {1})\n".format(item[0], item[1]))
+            if len(instances):
+                message.append("Obtained from Dungeons ->\n")
+                for item in instances:
+                    message.append("   {0}\n".format(item))
+            if len(quests):
+                message.append("Obtained from Quests ->\n")
+                for item in quests:
+                    message.append("   {0} (ID: {1})\n".format(item[0], item[1]))
+            if len(shops):
+                message.append("Obtained from Shops ->\n")
+                for item in shops:
+                    message.append("   {0} in {1} at {2}x {3}y\n".format(item[0], item[1], item[2], item[3]))
+            if len(craftable):
+                message.append("Can be Crafted ->\n")
+                for item in craftable:
+                    message.append("   {0} (ID: {1}) {2} Lv.{3}\n".format(item[0], item[1], item[2], item[3]))
+            if len(enemies):
+                message.append("Dropped from Enemies ->\n")
+                for item in enemies:
+                    message.append(
+                        "{0} (ID: {1}) in {2}{3}".format(item[0], item[1], item[2] if len(item) > 2 else "",
+                                                         item[3] if len(item) > 3 else ""))
+            if len(gathering):
+                message.append("Can be Gathered ->\n")
+                for item in gathering:
+                    message.append("{0} - {1} - {2}".format(item[0], item[1], item[2]))
+            return message
         else:
-            return "No matches for that search."
+            return ["No match found."]

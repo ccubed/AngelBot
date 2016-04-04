@@ -38,10 +38,13 @@ class AngelBot(discord.Client):
             await self.send_message(message.channel, self.XIVDB.searchone(message.content[8:], 'minions'))
         elif message.content.startswith('$achievement'):
             await self.send_message(message.channel, self.XIVDB.searchone(message.content[13:], 'achievements'))
+        elif message.content.startswith('$shop'):
+            await self.send_message(message.author, self.XIVDB.searchone(message.content[6:], 'shops'))
         elif message.content.startswith('$hdim'):
             await self.send_message(message.channel, self.XIVDB.parsehdim(message.content[6:]))
         elif message.content.startswith('$wdif'):
-            await self.send_message(message.channel, self.XIVDB.parsewdif(message.content[6:]))
+            messages = self.XIVDB.parsewdif(message.content[6:])
+            await self.send_message(message.author, messages)
 
     async def on_ready(self):
         print('Logged in')
