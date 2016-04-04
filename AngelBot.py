@@ -50,8 +50,8 @@ class AngelBot(discord.Client):
             await self.send_message(message.channel, self.XIVDB.parsehdim(message.content[6:]))
         elif message.content.startswith('$wdif'):
             messages = self.XIVDB.parsewdif(message.content[6:])
-            for message in messages:
-                await self.send_message(message.author, message)
+            for item in messages:
+                await self.send_message(message.author, item)
 
     async def on_ready(self):
         return

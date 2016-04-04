@@ -112,8 +112,8 @@ class DBParser:
             message += "Related Class: {0}\n".format(self.shortnames[jd['classjob_category_1']['name']])
         message += "Start this quest with {0} in {1} at {2}x {3}y\n".format(jd['npc_start']['name'],
                                                                             jd['npc_start']['placename']['name'],
-                                                                            jd['npc_start']['position']['x'],
-                                                                            jd['npc_start']['position']['y'])
+                                                                            jd['npc_start']['position']['x'] if jd['npc_start']['position'] != '' else '0',
+                                                                            jd['npc_start']['position']['y'] if jd['npc_start']['position'] != '' else '0')
         if 'pre_quest' in jd:
             message += "Prerequisite Quests ->\n"
             for item in jd['pre_quest']:
