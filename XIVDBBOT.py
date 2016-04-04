@@ -278,8 +278,7 @@ class DBParser:
             if 'gathering' in jd:
                 if jd['gathering']['total']:
                     for item in jd['gathering']['results']:
-                        for node in item['nodes']:
-                            gathering.append([item['region']['name'], item['zone']['name'], item['placename']['name']])
+                        gathering.append('{0} Lv.{1} (Node ID: {2})'.format(item['type_name'], item['level'], item['id']))
             message = []
             if len(achievements):
                 message.append("Obtained from Achievements ->\n")
@@ -310,7 +309,7 @@ class DBParser:
             if len(gathering):
                 message.append("Can be Gathered ->\n")
                 for item in gathering:
-                    message.append("{0} - {1} - {2}".format(item[0], item[1], item[2]))
+                    message.append(item)
             return message
         else:
             return ["No match found."]
