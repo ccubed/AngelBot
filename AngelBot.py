@@ -14,7 +14,7 @@ class AngelBot(discord.Client):
     async def on_message(self, message):
         if message.author == self.user:
             return
-        elif message.content.startswith('http://discord.gg'):
+        elif message.content.startswith('https://discord.gg'):
             await self.accept_invite(message.content)
         elif message.content.startswith('@help'):
             await self.send_message(message.author,
