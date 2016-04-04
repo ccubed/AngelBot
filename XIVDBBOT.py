@@ -114,6 +114,10 @@ class DBParser:
                                                                             jd['npc_start']['placename']['name'],
                                                                             jd['npc_start']['position']['x'],
                                                                             jd['npc_start']['position']['y'])
+        if 'pre_quest' in jd:
+            message += "Prerequisite Quests ->\n"
+            for item in jd['pre_quest']:
+                message += "{0} (ID: {1})".format(item['name'], item['id'])
         message += jd['url_xivdb']
         return message
 

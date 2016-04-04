@@ -50,12 +50,10 @@ class AngelBot(discord.Client):
             await self.send_message(message.channel, self.XIVDB.parsehdim(message.content[6:]))
         elif message.content.startswith('$wdif'):
             messages = self.XIVDB.parsewdif(message.content[6:])
-            async for message in messages:
-                await self.send_message(message.author, message)
+            await self.send_message(message.author, messages)
 
     async def on_ready(self):
-        for server in self.servers:
-            await self.send_message(server, "AngelBot is online. For help type @help.")
+        return
 
 bot = AngelBot()
 logging.basicConfig(level=logging.DEBUG)
