@@ -54,7 +54,7 @@ class AngelBot(discord.Client):
                 await self.send_message(message.author, message)
 
     async def on_ready(self):
-        async for server in self.servers:
+        for server in self.servers:
             await self.send_message(server, "AngelBot is online. For help type @help.")
 
 bot = AngelBot()
