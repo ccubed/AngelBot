@@ -10,6 +10,7 @@ class AngelBot(discord.Client):
     def __init__(self):
         super().__init__()
         self.XIVDB = DBParser()
+        self.user = "Username"  # Change this to the bot's username
 
     async def on_message(self, message):
         if message.author == self.user:
@@ -18,16 +19,17 @@ class AngelBot(discord.Client):
             await self.accept_invite(message.content)
         elif message.content.startswith('@help'):
             await self.send_message(message.author,
-                              "Help for AngelBot\n\nThis bot has several modules. To get help on the individual modules please use the following commands. You can also use @leave to make the bot leave the server.\n   @xivdb - Commands relating to XIVDB")
+                                    "Help for AngelBot\n\nThis bot has several modules. To get help on the individual modules please use the following commands. You can also use @leave to make the bot leave the server.\n   @xivdb - Commands relating to XIVDB")
         elif message.content.startswith('@xivdb'):
-            await self.send_message(message.author, "XIVDB Commands ->\n$search <name or ID> - Search for something on XIVDB\n$item <name or ID> - Search for an item. Items are weapons, armor, etc.\n$quest <name or ID> - Search for a quest.\n$recipe <name or ID> - Search for a crafting recipe.\n$action <name or ID> - Search for a skill.\n$mats <name or ID> - Search for the location details on a gatherable material.\n$npc <name or ID> - Search for details on an NPC.\n$effect <name or ID> - Search for information on a status effect.\n$minion <name or ID> - Search for information on a minion.\n$achievement <name or ID> - Search for information on an achievement.\n$hdim <name or ID> - How do I make...Search for instructions on making a thing.\n$wdif <name> - Where do I find...Search for the locations of items.")
+            await self.send_message(message.author,
+                                    "XIVDB Commands ->\n$search <name or ID> - Search for something on XIVDB\n$item <name or ID> - Search for an item. Items are weapons, armor, etc.\n$quest <name or ID> - Search for a quest.\n$recipe <name or ID> - Search for a crafting recipe.\n$action <name or ID> - Search for a skill.\n$mats <name or ID> - Search for the location details on a gatherable material.\n$npc <name or ID> - Search for details on an NPC.\n$effect <name or ID> - Search for information on a status effect.\n$minion <name or ID> - Search for information on a minion.\n$achievement <name or ID> - Search for information on an achievement.\n$hdim <name or ID> - How do I make...Search for instructions on making a thing.\n$wdif <name> - Where do I find...Search for the locations of items.")
         elif message.content.startswith('@leave'):
             if message.server != 'None' and self.permissions_for(message.author).kick_members:
                 await self.leave_server(message.server)
         elif message.content.startswith('$search'):
             await self.send_message(message.channel, self.XIVDB.searchall(message.content[8:]))
         elif message.content.startswith('$item'):
-            await self.send_message(message.channel, self.XIVDB.searchone(message.content[6:],'items'))
+            await self.send_message(message.channel, self.XIVDB.searchone(message.content[6:], 'items'))
         elif message.content.startswith('$quest'):
             await self.send_message(message.channel, self.XIVDB.searchone(message.content[7:], 'quests'))
         elif message.content.startswith('$recipe'):
@@ -55,6 +57,7 @@ class AngelBot(discord.Client):
 
     async def on_ready(self):
         return
+
 
 bot = AngelBot()
 logging.basicConfig(level=logging.DEBUG)
