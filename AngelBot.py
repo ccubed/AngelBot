@@ -15,7 +15,7 @@ class AngelBot(discord.Client):
         if message.author == self.user:
             return
         elif self.user in message.mentions:
-            await self.send_message(message.channel, cbot.ask(message.content))
+            await self.send_message(message.channel, self.cbot.ask(message.content))
         elif message.content.startswith('https://discord.gg'):
             await self.accept_invite(message.content)
         elif message.content.lower().startswith('@help'):
