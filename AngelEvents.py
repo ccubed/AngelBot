@@ -97,7 +97,7 @@ class Events():
                                                 person['role'] if 'role' in person or 'N/A')
             return message
 
-    def signup(self, id, name, role, cls):
+    def signup(self, id, name, role, cls, dcuser):
         event = 0
         for item in self.events:
             if item['id'] == id:
@@ -108,7 +108,7 @@ class Events():
             return "This event already has enough {0}".format(role)
         else:
             event['party'][role] -= 1
-            event['signups'][name] = {'role': role, 'class': cls}
+            event['signups'][name] = {'role': role, 'class': cls, 'dcuserobj': dcuser}
             return "Signed you up as a {0} for event {1}".format(role, event['raid'])
 
     def events(self):

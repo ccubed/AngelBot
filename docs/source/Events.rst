@@ -36,6 +36,11 @@ $join [id] as [role] with [class]
 
     Example: $join 1 as DPS with Ninja
 
+$join [id]
+    For other events, this will allow you to join an event that is not a raid, trial or roulette.
+
+    Example: $join 1
+
 $wn [id]
      Who's needed for this [id]. Will return a breakdown of what roles are still needed.
 
