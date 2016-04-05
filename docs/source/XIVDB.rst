@@ -4,7 +4,7 @@ XIVDB
 Introduction
 ============
 
-This a parser built on top of XIVDB. It parses pretty much all the data available on the and returns a url on some, but to be honest some of the data is just useless. It doesn't parse emotes and dungeons, for instance, because there's no useful information there.
+This a parser built on top of XIVDB. It parses pretty much all the data available and returns a url on some, but to be honest some of the data is just useless. It doesn't parse emotes and dungeons, for instance, because there's no useful information there.
 
 Commands
 ========
@@ -13,45 +13,57 @@ $search [term]
 
 $item [name or id]
     Retrieve the details of an item. Name is the name of an item you wish to search for. ID, if you have it, is the numeric ID assigned to the item by XIVDB.
+
     Example: Maple Lumber
 
 $quest [name or id]
     Retrieve the details of a quest. Name is the name of a quest you wish to search for. ID, if you have it, is the numeric ID assigned to the quest by XIVDB.
+
     Example: Original Sins
 
 $recipe [name or id]
     Retrieve the details of a crafting recipe. Name is the name of the craftable item from your crafting log. ID, if you have it, is the numeric ID assigned to the recipe by XIVDB.
+
     Example: Maple Clogs
 
 $action [name or id]
     Retrieve the details of a skill. Name is the name of the skill you want to find. ID, if you have it, is the numeric ID assigned to the skill by XIVDB.
+
     Example: Convalescence
 
 $mats [name or id]
     Retrieve the details of a material you gather. Name is the name of the item you want to gather. ID, if you have it, is the Numeric ID assigned to the material by XIVDB.
+
     Example: Iron Ore
 
 $npc [name or id]
     Retrieve the details of an NPC. Name is the name of the npc you want to find. ID, if you have it, is the Numeric ID assigned to the NPC by XIVDB.
+
     Note: This method is pretty much impossible to use. XIVDB has one entry for every time an NPC changes positions. For example, there are ~100 alphinauds. I suggest using $quest instead.
-    Example: Alphinaud
+
+    Example: 1016591
 
 $effect [name or id]
     Retrieve the details of a status effect. Name is the name of the status effect you want details on. ID, if you have it, is the Numeric ID assigned to it by XIVDB.
+
     Example: Electroconductivity
 
 $minion [name or id]
     Retrieve the details of a minion. Name is the name of the minion you want details on. ID, if you have it, is the Numeric ID assigned to it by XIVDB.
+
     Example: Cherry Bomb
 
 $achievement [name or id]
     Retrieve the details of an achievement. Name is the name of the achievement you want details on. ID, if you have it, is the Numeric ID assigned to it by XIVDB.
+
     Example: To the Dungeons IV
 
 $hdim [name or id]
     Return the recipe for thing. Name is the thing you want to make. ID, if you have it, is the Numeric ID assigned by XIVDB. This is a utility function. It's equivalent to $recipe.
+
     Example: Maple Clogs
 
 $wdif [name or id]
     Where do I find thing. Name is what you want to find. ID, if you have it, is the Numeric ID assigned by XIVDB. This will tell you all the ways you can find thing.
+
     Example: Curtana
