@@ -50,8 +50,11 @@ class AngelBot(discord.Client):
             await self.send_message(message.channel, self.XIVDB.parsehdim(message.content[6:]))
         elif message.content.lower().startswith('$wdif'):
             messages = self.XIVDB.parsewdif(message.content[6:])
-            for item in messages:
-                await self.send_message(message.author, item)
+            if len(messages):
+                for item in messages:
+                    await self.send_message(message.author, item)
+            else:
+                await self.send_message(message.author, "Sorry, I found that item but there's no data for where to find it.")
 
     async def on_ready(self):
         return
