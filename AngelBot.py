@@ -20,13 +20,7 @@ class AngelBot(discord.Client):
             await self.accept_invite(message.content)
         elif message.content.lower().startswith('@help'):
             await self.send_message(message.author,
-                                    "Help for AngelBot\n\nThis bot has several modules. To get help on the individual modules please use the following commands. You can also use @leave to make the bot leave the server.\n   @xivdb - Commands relating to XIVDB")
-        elif message.content.lower().startswith('@xivdb'):
-            await self.send_message(message.author,
-                                    "XIVDB Commands ->\n$search <name or ID> - Search for something on XIVDB\n$item <name or ID> - Search for an item. Items are weapons, armor, etc.\n$quest <name or ID> - Search for a quest.\n$recipe <name or ID> - Search for a crafting recipe.\n$action <name or ID> - Search for a skill.\n$mats <name or ID> - Search for the location details on a gatherable material.\n$npc <name or ID> - Search for details on an NPC.\n$effect <name or ID> - Search for information on a status effect.\n$minion <name or ID> - Search for information on a minion.\n$achievement <name or ID> - Search for information on an achievement.\n$hdim <name or ID> - How do I make...Search for instructions on making a thing.\n$wdif <name> - Where do I find...Search for the locations of items.")
-        elif message.content.startswith('@event'):
-            await self.send_message(message.author,
-                                    "Events System ->\n$events - Overview of upcoming events\n$raid <name> at <date> for <stage> - Recruit a raid party. Name is the raid. IE: Alexander Midas Savage. Date is either a date in YYYY-MM-DD HH:MM Format or a word like tomorrow. For Stage is optional but allows you to specify which stage inside a raid. IE: For 5 for A5S.\n$roulette <Name> at <date> - Recruit a roulette party. See above for date details. Name should be Level 50, Level 60, Expert or Leveling.\n$trial <name> at <date> for <mode> - Recruit a primal party. Name is the primal, not the name of the dungeon. IE: Shiva or Ifrit or Ravana. It can be partial, like Mog for King Moogle. See above for Date. Mode should be Normal, Hard or Extreme.\n$other <name> at <date> - Register an event such as a wedding or FC meeting that doesn't fall under the other categories.\n$join <id> as <role> with <class> - Join event <id> as <role> where role is Healer, Tank or DPS with <class> where class should be the class you intend to use such as BRD or Bard, etc. If the event is an other type you can just use use $join <id>.")
+                                    "You can get help for this bot online from the manual.\nThis bot written by Cooper.\nhttp://angelbot.rtfd.org/")
         elif message.content.lower().startswith('@leave'):
             if message.server != 'None' and self.permissions_for(message.author).kick_members:
                 await self.leave_server(message.server)
