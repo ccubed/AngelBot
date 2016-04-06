@@ -11,7 +11,8 @@ Contents:
 .. toctree::
    XIVDB
    Events
-   :maxdepth: 2
+   Music
+   :maxdepth: 0
 
 
 
