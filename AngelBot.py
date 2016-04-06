@@ -94,7 +94,7 @@ class AngelBot(discord.Client):
         elif message.content.lower().startswith('$who'):
             await self.send_message(message.channel, self.planner.whosgoing(message.content[5:]))
         elif message.content.lower().startswith('$yt'):
-            if self.stream.is_done():
+            if self.stream.is_done() or self.stream == 0:
                 self.stream = await self.voice.create_ytdl_player(message.content[4:], after=self.check_next_song())
                 self.stream.start()
             else:
