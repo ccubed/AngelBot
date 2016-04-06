@@ -32,7 +32,7 @@ class AngelBot(discord.Client):
         elif message.content.lower().startswith('@leave'):
             if message.server != 'None':
                 for role in message.author.roles:
-                    if role.permissions.kick_members():
+                    if role.permissions.kick_members:
                         await self.leave_server(message.server)
                         return
         elif message.content.lower().startswith('$events'):
@@ -89,7 +89,7 @@ class AngelBot(discord.Client):
                     return
                 if message.server != 'None':
                     for role in message.author.roles:
-                        if role.permissions.kick_members():
+                        if role.permissions.kick_members:
                             if not self.stream.is_done() and self.stream != 0:
                                 self.stream.stop()
                             else:
@@ -104,7 +104,7 @@ class AngelBot(discord.Client):
                     return
                 if message.server != 'None':
                     for role in message.author.roles:
-                        if role.permissions.kick_members():
+                        if role.permissions.kick_members:
                             if not self.stream.is_done() and self.stream != 0:
                                 self.stream.resume()
                             else:
@@ -116,7 +116,7 @@ class AngelBot(discord.Client):
             if message.channel == self.message_channel:
                 if self.playlist.qsize():
                     for role in message.author.roles:
-                        if role.permissions.kick_members():
+                        if role.permissions.kick_members:
                             self.stream.stop()
                             self.loop.call_soon_threadsafe(self.play_next.set)
                             return
@@ -139,7 +139,7 @@ class AngelBot(discord.Client):
                         await self.send_message(message.channel, "That's not a voice channel.")
                 elif self.voice is not None:
                     for role in message.author.roles:
-                        if role.permissions.kick_members():
+                        if role.permissions.kick_members:
                             await self.voice.disconnect()
                             cname = message.content[7:]
                             channel = discord.utils.get(message.server.channels, name=cname,
@@ -182,7 +182,7 @@ class AngelBot(discord.Client):
             nurl = await self.playlist.get()
             self.stream = await self.voice.create_ytdl_player(nurl, after=self.toggle_next)
             self.stream.start()
-            await self.send_message(server, "Now Playing: {0}".format(self.stream.title))
+            await self.send_message(self.message_channel, "Now Playing: {0}".format(self.stream.title))
             await self.play_next.wait()
 
     async def on_ready(self):

@@ -14,7 +14,11 @@ class DBParser:
                            'ALC': 'Alchemist', 'ARM': 'Armorer', 'BSM': 'Blacksmith', 'CRP': 'Carpenter',
                            'CUL': 'Culinerian', 'GSM': 'Goldsmith', 'LTW': 'Leatherworker', 'WVR': 'Weaver',
                            'BTN': 'Botanist', 'FSH': 'Fisher', 'MIN': 'Miner'}
-        self.commands = [['$search', self.searchall, 0], ['$item', self.searchitem, 0], ['$quest', self.searchquest, 0], ['$recipe', self.searchrecipe, 0], ['$action', self.searchaction, 0], ['$mats', self.searchmats, 0], ['$npc', self.searchnpc, 0], ['$effect', self.searchstatus, 0], ['$minion', self.searchminion, 0], ['$achievement', self.searchachievement, 0], ['$hdim', self.parsehdim, 0], ['$wdif', self.parsewdif, 1]]
+        self.commands = [['$search', self.searchall, 0], ['$item', self.searchitem, 0], ['$quest', self.searchquest, 0],
+                         ['$recipe', self.searchrecipe, 0], ['$action', self.searchaction, 0],
+                         ['$mats', self.searchmats, 0], ['$npc', self.searchnpc, 0], ['$effect', self.searchstatus, 0],
+                         ['$minion', self.searchminion, 0], ['$achievement', self.searchachievement, 0],
+                         ['$hdim', self.parsehdim, 0], ['$wdif', self.parsewdif, 1]]
 
     def searchall(self, name):
         data = {'string': name}
@@ -388,37 +392,36 @@ class DBParser:
                     for item in jd['gathering']['results']:
                         gathering.append(
                             '{0} Lv.{1} (Node ID: {2})'.format(item['type_name'], item['level'], item['id']))
-            message = []
+            message = ""
             if len(achievements):
-                message.append("Obtained from Achievements ->\n")
+                message += "Obtained from Achievements ->\n"
                 for item in achievements:
-                    message.append("   {0} (ID: {1})\n".format(item[0], item[1]))
+                    message += "   {0} (ID: {1})\n".format(item[0], item[1])
             if len(instances):
-                message.append("Obtained from Dungeons ->\n")
+                message += "Obtained from Dungeons ->\n"
                 for item in instances:
-                    message.append("   {0}\n".format(item))
+                    message += "   {0}\n".format(item)
             if len(quests):
-                message.append("Obtained from Quests ->\n")
+                message += "Obtained from Quests ->\n"
                 for item in quests:
-                    message.append("   {0} (ID: {1})\n".format(item[0], item[1]))
+                    message += "   {0} (ID: {1})\n".format(item[0], item[1])
             if len(shops):
-                message.append("Obtained from Shops ->\n")
+                message += "Obtained from Shops ->\n"
                 for item in shops:
-                    message.append("   {0} in {1} at {2}x {3}y\n".format(item[0], item[1], item[2], item[3]))
+                    message += "   {0} in {1} at {2}x {3}y\n".format(item[0], item[1], item[2], item[3])
             if len(craftable):
-                message.append("Can be Crafted ->\n")
+                message += "Can be Crafted ->\n"
                 for item in craftable:
-                    message.append("   {0} (ID: {1}) {2} Lv.{3}\n".format(item[0], item[1], item[2], item[3]))
+                    message += "   {0} (ID: {1}) {2} Lv.{3}\n".format(item[0], item[1], item[2], item[3])
             if len(enemies):
-                message.append("Dropped from Enemies ->\n")
+                message += "Dropped from Enemies ->\n"
                 for item in enemies:
-                    message.append(
-                        "{0} (ID: {1}) in {2}{3}".format(item[0], item[1], item[2] if len(item) > 2 else "",
-                                                         item[3] if len(item) > 3 else ""))
+                    message += "{0} (ID: {1}) in {2}{3}".format(item[0], item[1], item[2] if len(item) > 2 else "",
+                                                                item[3] if len(item) > 3 else "")
             if len(gathering):
-                message.append("Can be Gathered ->\n")
+                message += "Can be Gathered ->\n"
                 for item in gathering:
-                    message.append(item)
+                    message += item + "\n"
             if len(message):
                 return message
             else:
