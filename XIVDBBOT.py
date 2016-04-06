@@ -141,7 +141,7 @@ class DBParser:
         else:
             return "Returned {0} results. Add more words to search.".format(jd['npcs']['total'])
 
-    def searcheffect(self, name):
+    def searchstatus(self, name):
         data = {'string': name, 'one': 'status'}
         url = self.apiurl + '/search?' + urllib.parse.urlencode(data)
         response = urllib.request.urlopen(url)
