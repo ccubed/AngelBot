@@ -17,11 +17,14 @@ class AngelBot(discord.Client):
         self.stream = 0
         self.playlist = Queue()
 
-    async def check_next_song(self):
+    def check_next_song(self):
         if self.playlist.qsize():
             nurl = self.playlist.get_nowait()
-            self.stream = await self.voice.create_ytdl_player(nurl, after=self.check_next_song)
-            self.stream.start()
+            self.loop.call_soon_threadsafe(self._play_next_url, url=nurl)
+
+    async def _play_next_url(self, url):
+        self.stream = await self.voice.create_ytdl_player(url)
+        self.stream.start()
 
     async def on_message(self, message):
         if message.author == self.user:
