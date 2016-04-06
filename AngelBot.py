@@ -118,7 +118,8 @@ class AngelBot(discord.Client):
                 await self.send_message(message.author, "Already connected to a voice channel.")
 
     async def on_ready(self):
-        return
+        if self.is_voice_connected():
+            await self.voice.disconnect()
 
 
 bot = AngelBot()
