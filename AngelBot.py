@@ -4,12 +4,17 @@ import random
 import logging
 from cleverbot import Cleverbot
 from XIVDBBOT import *
+from AngelEvents import *
+from MusicDJ import *
+
 
 class AngelBot(discord.Client):
     def __init__(self):
         super().__init__()
         self.XIVDB = DBParser()
         self.cbot = Cleverbot()
+        self.planner = Events()
+        self.music = AngelMusic(self)
 
     async def on_message(self, message):
         if message.author == self.user:
@@ -54,7 +59,38 @@ class AngelBot(discord.Client):
                 for item in messages:
                     await self.send_message(message.author, item)
             else:
-                await self.send_message(message.author, "Sorry, I found that item but there's no data for where to find it.")
+                await self.send_message(message.author,
+                                        "Sorry, I found that item but there's no data for where to find it.")
+        elif message.content.lower().startswith('$events'):
+            await self.send_message(message.channel, self.planner.listevents(
+                message.server if message.server != 'None' else message.channel))
+        elif message.content.lower().startswith('$raid'):
+            await self.send_message(message.channel, self.planner.create('raid', message.content[6:].lower(),
+                                                                         message.server if message.server != 'None' else message.channel))
+        elif message.content.lower().startswith('$trial'):
+            await self.send_message(message.channel, self.planner.create('trial', message.content[7:].lower(),
+                                                                         message.server if message.server != 'None' else message.channel))
+        elif message.content.lower().startswith('$roulette'):
+            await self.send_message(message.channel, self.planner.create('roulette', message.content[10:].lower(),
+                                                                         message.server if message.server != 'None' else message.channel))
+        elif message.content.lower().startswith('$other'):
+            await self.send_message(message.channel, self.planner.create('raid', message.content[7:].lower(),
+                                                                         message.server if message.server != 'None' else message.channel))
+        elif message.content.lower().startswith('$join'):
+            content = message.content[6:]
+            await self.send_message(message.channel,
+                                    self.planner.signup(content.split('as')[0].strip(), message.author.name,
+                                                        content.split('with')[0].split('as')[1].strip(),
+                                                        content.split('with')[1].strip(), message.author))
+        elif message.content.lower().startswith('$wn'):
+            await self.send_message(message.channel, self.planner.whatsneeded(message.content[4:]))
+        elif message.content.lower().startswith('$who'):
+            await self.send_message(message.channel, self.planner.whosgoing(message.content[5:]))
+        elif message.content.lower().startswith('$yt'):
+            await self.music.ytplay(message.content[4:])
+            self.music.play()
+        elif message.content.lower().startswith('$stop'):
+            self.music.stop()
 
     async def on_ready(self):
         return

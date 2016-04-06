@@ -36,7 +36,7 @@ class Events():
             raid = cstring.split('at')[0].strip()
             date = cstring.split('at')[1].strip()
             self.events.append(
-                {'id': self.nextid, 'raid': raid 'time': date, 'tobject': parser.parse(date), 'server': server,
+                {'id': self.nextid, 'raid': raid, 'time': date, 'tobject': parser.parse(date), 'server': server,
                  'party': parties['light'], 'signups': {}})
             msg = "Created Event {0} which happens at {1}".format(self.nextid, date)
             self.nextid += 1
@@ -93,8 +93,8 @@ class Events():
             else:
                 message += "{0}\n".format(event['raid'])
             for person in event['signups']:
-                message += "{0}-{1}-{2}".format(person['name'], person['class'] if 'class' in person or 'N/A',
-                                                person['role'] if 'role' in person or 'N/A')
+                message += "{0}-{1}-{2}".format(person, event['signups'][person]['class'] if 'class' in event['signups'][person] else 'N/A',
+                                                event['signups'][person]['role'] if 'role' in event['signups'][person] else 'N/A')
             return message
 
     def signup(self, id, name, role, cls, dcuser):
@@ -111,15 +111,19 @@ class Events():
             event['signups'][name] = {'role': role, 'class': cls, 'dcuserobj': dcuser}
             return "Signed you up as a {0} for event {1}".format(role, event['raid'])
 
-    def events(self):
+    def listevents(self, server):
         message = "Current Events ->\n"
-        for item in self.events:
-            if 'savage' in item:
-                message += "Event {0} is on {1} for {2}{3}".format(item['id'], item['time'], item['raid'],
-                                                                   '\bSavage' if item['savage'] else '')
-            elif 'mode' in item:
-                message += "Event {0} is on {1} for {2} {3}".format(item['id'], item['time'], item['raid'],
-                                                                    item['mode'])
-            else:
-                message += "Event {0} is on {1} for {2}".format(item['id'], item['time'], item['raid'])
+        if len(self.events):
+            for item in self.events:
+                if item['server'] == server:
+                    if 'savage' in item:
+                        message += "Event {0} is on {1} for {2}{3}".format(item['id'], item['time'], item['raid'],
+                                                                           '\bSavage' if item['savage'] else '')
+                    elif 'mode' in item:
+                        message += "Event {0} is on {1} for {2} {3}".format(item['id'], item['time'], item['raid'],
+                                                                            item['mode'])
+                    else:
+                        message += "Event {0} is on {1} for {2}".format(item['id'], item['time'], item['raid'])
+        else:
+            message += "None currently."
         return message
