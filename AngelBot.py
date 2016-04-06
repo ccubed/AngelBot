@@ -2,7 +2,7 @@ import discord
 import asyncio
 import random
 import logging
-import queue
+from queue import *
 from cleverbot import Cleverbot
 from XIVDBBOT import *
 from AngelEvents import *
