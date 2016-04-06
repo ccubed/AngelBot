@@ -12,10 +12,13 @@ $vjoin [channel]
     Join the bot to a voice channel called [channel]. Once joined it can't be moved unless you have the permissions to kick people from the server.
 
 $yt [url]
-    Play a youtube link's audio only. [url] is the full url including the https and youtube.com part.
+    Play a youtube link's audio only. [url] is the full url including the https and youtube.com part. If there is already something playing, it will add it to the queue.
 
 $play
     If stopped and there is time left on the stream, resume.
 
 $stop
     If playing stop the stream.
+
+$next
+    If there is a song in the queue and you can kick members, will skip current song and move to next.
