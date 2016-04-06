@@ -14,7 +14,8 @@ class AngelBot(discord.Client):
         self.XIVDB = DBParser()
         self.cbot = Cleverbot()
         self.planner = Events()
-        self.music = AngelMusic(self)
+        self.stream = 0
+        self.playlist = []
 
     async def on_message(self, message):
         if message.author == self.user:
@@ -87,17 +88,26 @@ class AngelBot(discord.Client):
         elif message.content.lower().startswith('$who'):
             await self.send_message(message.channel, self.planner.whosgoing(message.content[5:]))
         elif message.content.lower().startswith('$yt'):
-            await self.music.ytplay(message.content[4:])
-            self.music.play()
+            self.stream = await self.voice.create_ytdl_player(message.content[4:])
+            self.stream.start()
         elif message.content.lower().startswith('$stop'):
-            self.music.stop()
-        elif message.content.lower().startswith('$vdbug'):
-            await self.music.join(self)
-            if self.music.voice.is_connected():
-                await self.send_message(message.author, "Yeah, we conencted.")
+            if message.server != 'None' and self.permissions_for(message.author).kick_members:
+                if not self.stream.is_done() and self.stream != 0:
+                    self.stream.stop()
+                else:
+                    await self.send_message(message.channel, "There isn't anything playing.")
+        elif message.content.lower().startswith('$play'):
+            if message.server != 'None' and self.permissions_for(message.author).kick_members:
+                if not self.stream.is_done() and self.stream != 0:
+                    self.stream.resume()
+                else:
+                    await self.send_message(message.channel, "There isn't anything playing.")
+        elif message.content.lower().startswith('$vjoin'):
+            await self.join_voice_channel(message.content[7:])
+            if self.is_voice_connected():
+                await self.send_message(message.channel, "We connected to that channel.")
             else:
-                await self.send_message(message.author, self.music.error)
-
+                await self.send_message(message.channel, "Unable to establish voice connection.")
 
     async def on_ready(self):
         return
