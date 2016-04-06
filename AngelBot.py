@@ -20,7 +20,7 @@ class AngelBot(discord.Client):
     async def check_next_song(self):
         if self.playlist.qsize():
             nurl = self.playlist.get_nowait()
-            self.stream = await self.voice.create_ytdl_player(nurl)
+            self.stream = await self.voice.create_ytdl_player(nurl, after=self.check_next_song)
             self.stream.start()
 
     async def on_message(self, message):
@@ -95,11 +95,11 @@ class AngelBot(discord.Client):
             await self.send_message(message.channel, self.planner.whosgoing(message.content[5:]))
         elif message.content.lower().startswith('$yt'):
             if self.stream == 0:
-                self.stream = await self.voice.create_ytdl_player(message.content[4:], after=self.check_next_song())
+                self.stream = await self.voice.create_ytdl_player(message.content[4:], after=self.check_next_song)
                 self.stream.start()
             else:
                 if self.stream.is_done():
-                    self.stream = await self.voice.create_ytdl_player(message.content[4:], after=self.check_next_song())
+                    self.stream = await self.voice.create_ytdl_player(message.content[4:], after=self.check_next_song)
                     self.stream.start()
                 else:
                     self.playlist.put_nowait(message.content[4:])
