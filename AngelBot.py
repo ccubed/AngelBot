@@ -102,16 +102,20 @@ class AngelBot(discord.Client):
                 else:
                     await self.send_message(message.channel, "There isn't anything playing.")
         elif message.content.lower().startswith('$vjoin'):
-            cname = message.content[7:]
-            channel = discord.utils.get(message.server.channels, name=cname, type=ChannelType.voice)
-            if channel is not None:
-                await self.join_voice_channel(channel)
-                if self.is_voice_connected():
-                    await self.send_message(message.channel, "We connected to that channel.")
+            if self.is_voice_connected() and self.permissions_for(message.author).kick_members:
+                await self.voice.disconnect()
+                cname = message.content[7:]
+                channel = discord.utils.get(message.server.channels, name=cname, type=discord.ChannelType.voice)
+                if channel is not None:
+                    await self.join_voice_channel(channel)
+                    if self.is_voice_connected():
+                        await self.send_message(message.channel, "Connected to Voice Channel {0}.".format(cname))
+                    else:
+                        await self.send_message(message.channel, "Unable to establish voice connection.")
                 else:
-                    await self.send_message(message.channel, "Unable to establish voice connection.")
+                    await self.send_message(message.channel, "That's not a voice channel.")
             else:
-                await self.send_message(message.channel, "That's not a voice channel.")
+                await self.send_message(message.author, "Already connected to a voice channel.")
 
     async def on_ready(self):
         return
