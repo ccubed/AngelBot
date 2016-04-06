@@ -94,14 +94,18 @@ class AngelBot(discord.Client):
         elif message.content.lower().startswith('$who'):
             await self.send_message(message.channel, self.planner.whosgoing(message.content[5:]))
         elif message.content.lower().startswith('$yt'):
-            if self.stream.is_done() or self.stream == 0:
+            if self.stream == 0:
                 self.stream = await self.voice.create_ytdl_player(message.content[4:], after=self.check_next_song())
                 self.stream.start()
             else:
-                self.playlist.put_nowait(message.content[4:])
-                await self.send_message(message.channel,
-                                        "Added your url to the queue. There are {0} songs in the queue.".format(
-                                            self.playlist.qsize()))
+                if self.stream.is_done():
+                    self.stream = await self.voice.create_ytdl_player(message.content[4:], after=self.check_next_song())
+                    self.stream.start()
+                else:
+                    self.playlist.put_nowait(message.content[4:])
+                    await self.send_message(message.channel,
+                                            "Added your url to the queue. There are {0} songs in the queue.".format(
+                                                self.playlist.qsize()))
         elif message.content.lower().startswith('$stop'):
             if message.server != 'None' and self.permissions_for(message.author).kick_members:
                 if not self.stream.is_done() and self.stream != 0:
@@ -120,7 +124,8 @@ class AngelBot(discord.Client):
                 await self.send_message(message.author, "No permission to resume play.")
         elif message.content.lower().startswith('$next'):
             if self.playlist.qsize() and self.permissions_for(message.author).kick_members:
-                self.stream = await self.voice.create_ytdl_player(self.playlist.get_nowait(), after=self.check_next_song())
+                self.stream = await self.voice.create_ytdl_player(self.playlist.get_nowait(),
+                                                                  after=self.check_next_song())
                 self.stream.start()
             else:
                 await self.send_message(message.channel, "There aren't any more songs in the queue.")
