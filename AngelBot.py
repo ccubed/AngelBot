@@ -5,7 +5,6 @@ import logging
 from cleverbot import Cleverbot
 from XIVDBBOT import *
 from AngelEvents import *
-from MusicDJ import *
 
 
 class AngelBot(discord.Client):
