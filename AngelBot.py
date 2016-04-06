@@ -95,12 +95,16 @@ class AngelBot(discord.Client):
                     self.stream.stop()
                 else:
                     await self.send_message(message.channel, "There isn't anything playing.")
+            else:
+                await self.send_message(message.author, "No permission to stop play.")
         elif message.content.lower().startswith('$play'):
             if message.server != 'None' and self.permissions_for(message.author).kick_members:
                 if not self.stream.is_done() and self.stream != 0:
                     self.stream.resume()
                 else:
                     await self.send_message(message.channel, "There isn't anything playing.")
+            else:
+                await self.send_message(message.author, "No permission to resume play.")
         elif message.content.lower().startswith('$vjoin'):
             if self.voice is not None and self.permissions_for(message.author).kick_members or self.voice is None:
                 if self.voice is not None:

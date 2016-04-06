@@ -39,8 +39,8 @@
       <file leaf-file-name="AngelBot.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/AngelBot.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="336">
-              <caret line="118" column="120" selection-start-line="118" selection-start-column="120" selection-end-line="118" selection-end-column="120" />
+            <state relative-caret-position="208">
+              <caret line="98" column="86" selection-start-line="98" selection-start-column="86" selection-end-line="98" selection-end-column="86" />
               <folding>
                 <element signature="e#0#14#0" expanded="true" />
               </folding>
@@ -893,8 +893,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/AngelBot.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="336">
-          <caret line="118" column="120" selection-start-line="118" selection-start-column="120" selection-end-line="118" selection-end-column="120" />
+        <state relative-caret-position="208">
+          <caret line="98" column="86" selection-start-line="98" selection-start-column="86" selection-end-line="98" selection-end-column="86" />
           <folding>
             <element signature="e#0#14#0" expanded="true" />
           </folding>
