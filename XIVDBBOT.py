@@ -419,6 +419,9 @@ class DBParser:
                 message.append("Can be Gathered ->\n")
                 for item in gathering:
                     message.append(item)
-            return message
+            if len(message):
+                return message
+            else:
+                return "Item found but no location information is recorded."
         else:
             return ["No match found."]
