@@ -15,16 +15,8 @@ class AngelBot(discord.Client):
         self.cbot = Cleverbot()
         self.planner = Events()
         self.stream = 0
-        self.playlist = Queue()
-
-    def check_next_song(self):
-        if self.playlist.qsize():
-            nurl = self.playlist.get_nowait()
-            self.loop.call_soon_threadsafe(self._play_next_url, url=nurl)
-
-    async def _play_next_url(self, url):
-        self.stream = await self.voice.create_ytdl_player(url)
-        self.stream.start()
+        self.playlist = asyncio.Queue()
+        self.play_next = asyncio.Event()
 
     async def on_message(self, message):
         if message.author == self.user:
@@ -98,18 +90,21 @@ class AngelBot(discord.Client):
             await self.send_message(message.channel, self.planner.whosgoing(message.content[5:]))
         elif message.content.lower().startswith('$yt'):
             if self.stream == 0:
-                self.stream = await self.voice.create_ytdl_player(message.content[4:], after=self.check_next_song)
-                self.stream.start()
+                await self.playlist.put(message.content[4:])
+                self.loop.create_task(self._play_urls(server=message.server))
             else:
                 if self.stream.is_done():
-                    self.stream = await self.voice.create_ytdl_player(message.content[4:], after=self.check_next_song)
-                    self.stream.start()
+                    await self.playlist.put(message.content[4:])
+                    self.loop.create_task(self._play_urls(server=message.server))
                 else:
-                    self.playlist.put_nowait(message.content[4:])
+                    await self.playlist.put(message.content[4:])
                     await self.send_message(message.channel,
                                             "Added your url to the queue. There are {0} songs in the queue.".format(
                                                 self.playlist.qsize()))
         elif message.content.lower().startswith('$stop'):
+            if self.stream == 0:
+                await self.send_message(message.channel, "Nothing playing.")
+                return
             if message.server != 'None' and self.permissions_for(message.author).kick_members:
                 if not self.stream.is_done() and self.stream != 0:
                     self.stream.stop()
@@ -118,6 +113,9 @@ class AngelBot(discord.Client):
             else:
                 await self.send_message(message.author, "No permission to stop play.")
         elif message.content.lower().startswith('$play'):
+            if self.stream == 0:
+                await self.send_message(message.channel, "Nothing playing.")
+                return
             if message.server != 'None' and self.permissions_for(message.author).kick_members:
                 if not self.stream.is_done() and self.stream != 0:
                     self.stream.resume()
@@ -127,9 +125,8 @@ class AngelBot(discord.Client):
                 await self.send_message(message.author, "No permission to resume play.")
         elif message.content.lower().startswith('$next'):
             if self.playlist.qsize() and self.permissions_for(message.author).kick_members:
-                self.stream = await self.voice.create_ytdl_player(self.playlist.get_nowait(),
-                                                                  after=self.check_next_song())
-                self.stream.start()
+                self.stream.stop()
+                self.loop.call_soon_threadsafe(self.play_next.set)
             else:
                 await self.send_message(message.channel, "There aren't any more songs in the queue.")
         elif message.content.lower().startswith('$vjoin'):
@@ -148,6 +145,24 @@ class AngelBot(discord.Client):
                     await self.send_message(message.channel, "That's not a voice channel.")
             else:
                 await self.send_message(message.author, "Already on voice channel {0}.".format(self.voice.channel.name))
+
+    def toggle_next(self):
+        self.loop.call_soon_threadsafe(self.play_next.set)
+
+    async def _play_urls(self, server):
+        while self.playlist.qsize():
+            if self.voice is None:
+                self.stream.stop()
+                self.playlist.empty()
+                await self.send_message(server,
+                                        "I lost connection to voice. Please give me a channel to join again.")
+                return
+            self.play_next.clear()
+            nurl = await self.playlist.get()
+            self.stream = await self.voice.create_ytdl_player(nurl, after=self.toggle_next)
+            self.stream.start()
+            await self.send_message(server, "Now Playing: {0}".format(self.stream.title))
+            await self.play_next.wait()
 
     async def on_ready(self):
         return
