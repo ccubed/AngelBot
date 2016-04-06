@@ -91,6 +91,13 @@ class AngelBot(discord.Client):
             self.music.play()
         elif message.content.lower().startswith('$stop'):
             self.music.stop()
+        elif message.content.lower().startswith('$vdbug'):
+            await self.music.join(self)
+            if self.music.voice.is_connected():
+                await self.send_message(message.author, "Yeah, we conencted.")
+            else:
+                await self.send_message(message.author, self.music.error)
+
 
     async def on_ready(self):
         return
