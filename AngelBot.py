@@ -1,8 +1,6 @@
 import discord
 import asyncio
-import random
 import logging
-from queue import *
 from cleverbot import Cleverbot
 from XIVDBBOT import *
 from AngelEvents import *
@@ -14,9 +12,6 @@ class AngelBot(discord.Client):
         self.XIVDB = DBParser()
         self.cbot = Cleverbot()
         self.planner = Events()
-        self.stream = 0
-        self.playlist = asyncio.Queue()
-        self.play_next = asyncio.Event()
         self.message_channel = 0
 
     async def on_message(self, message):
@@ -162,10 +157,10 @@ class AngelBot(discord.Client):
                 for command in self.XIVDB.commands:
                     if message.content.lower().startswith(command[0]):
                         if command[2]:
-                            await self.send_message(message.author, command[1](message.content[len(command[0])+1:]))
+                            await self.send_message(message.author, command[1](message.content[len(command[0]) + 1:]))
                         else:
-                            await self.send_message(self.message_channel, command[1](message.content[len(command[0])+1:]))
-
+                            await self.send_message(self.message_channel,
+                                                    command[1](message.content[len(command[0]) + 1:]))
 
     def toggle_next(self):
         self.loop.call_soon_threadsafe(self.play_next.set)
