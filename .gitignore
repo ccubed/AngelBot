@@ -63,3 +63,6 @@ target/
 
 #Anilist Specifics
 AnilistGlobals.py
+
+# pycharm
+.idea/*
