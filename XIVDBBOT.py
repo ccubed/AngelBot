@@ -1,6 +1,3 @@
-import urllib.request
-import urllib.parse
-import json
 import requests
 
 
@@ -70,22 +67,21 @@ class DBParser:
         else:
             return "Returned {0} results. Add more words to search.".format(response.json()['quests']['total'])
 
-    def searchrecipe(self, name):
-        data = {'string': name, 'one': 'recipes'}
-        url = self.apiurl + '/search?' + urllib.parse.urlencode(data)
-        response = urllib.request.urlopen(url)
-        jd = json.loads(response.read().decode('utf-8'))
-        if jd['recipes']['total'] == 0:
-            return "No results for {0} in recipes.".format(name)
-        elif jd['recipes']['total'] == 1:
-            return self.parserecipe(str(jd['recipes']['results'][0]['id']))
-        elif jd['recipes']['total'] <= 5:
+    def searchrecipe(self, message):
+        data = {'string': message.content[8:], 'one': 'recipes'}
+        url = self.apiurl + '/search'
+        response = requests.get(url, params=data)
+        if response.json()['recipes']['total'] == 0:
+            return "No results for {0} in recipes.".format(message.content[8:])
+        elif response.json()['recipes']['total'] == 1:
+            return self.parserecipe(str(response.json()['recipes']['results'][0]['id']))
+        elif response.json()['recipes']['total'] <= 5:
             message = "Matched more than one recipe. Try searching by ID.\n"
-            for recipes in jd['recipes']['results']:
+            for recipes in response.json()['recipes']['results']:
                 message += "{0} (ID: {1})\n".format(recipes['name'], recipes['id'])
             return message
         else:
-            return "Returned {0} results. Add more words to search.".format(jd['recipes']['total'])
+            return "Returned {0} results. Add more words to search.".format(response.json()['recipes']['total'])
 
     def searchaction(self, name):
         data = {'string': name, 'one': 'actions'}
