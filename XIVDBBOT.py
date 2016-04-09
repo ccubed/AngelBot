@@ -1,6 +1,7 @@
 import urllib.request
 import urllib.parse
 import json
+import requests
 
 
 class DBParser:
@@ -20,62 +21,54 @@ class DBParser:
                          ['$minion', self.searchminion, 0], ['$achievement', self.searchachievement, 0],
                          ['$hdim', self.parsehdim, 0], ['$wdif', self.parsewdif, 1]]
 
-    def searchall(self, name):
-        data = {'string': name}
-        data = urllib.parse.urlencode(data)
-        url = self.apiurl + '/search?' + data
-        response = urllib.request.urlopen(url)
-        jd = response.read().decode('utf-8')
-        jd = json.loads(jd)
-        message = "Matched...\n"
-        for key in jd.keys():
-            if jd[key]['total'] > 0:
-                message += "{0} {1}\n".format(jd[key]['total'], key)
+    def searchall(self, message):
+        data = {'string': message.content[7:]}
+        url = self.apiurl + '/search'
+        response = requests.get(url, params=data)
+        msg = "Matched...\n"
+        for key in response.json():
+            if response.json()[key]['total'] > 0:
+                message += "{0} {1}\n".format(response.json()[key]['total'], key)
         message += "Ask for a specific category or add more words."
-        return message
+        return msg
 
     def searchid(self, name):
         data = {'string': name}
-        data = urllib.parse.urlencode(data)
-        url = self.apiurl + '/search?' + data
-        response = urllib.request.urlopen(url)
-        jd = response.read().decode('utf-8')
-        jd = json.loads(jd)
-        return jd
+        url = self.apiurl + '/search'
+        response = requests.get(url, params=data)
+        return response.json()
 
-    def searchitem(self, name):
-        data = {'string': name, 'one': 'items'}
-        url = self.apiurl + '/search?' + urllib.parse.urlencode(data)
-        response = urllib.request.urlopen(url)
-        jd = json.loads(response.read().decode('utf-8'))
-        if jd['items']['total'] == 0:
-            return "No results for {0} in items.".format(name)
-        elif jd['items']['total'] == 1:
-            return self.parseitem(str(jd['items']['results'][0]['id']))
-        elif jd['items']['total'] <= 5:
+    def searchitem(self, message):
+        data = {'string': message.content[6:], 'one': 'items'}
+        url = self.apiurl + '/search'
+        response = requests.get(url, params=data)
+        if response.json()['items']['total'] == 0:
+            return "No results for {0} in items.".format(message.content[6:])
+        elif response.json()['items']['total'] == 1:
+            return self.parseitem(str(response.json()['items']['results'][0]['id']))
+        elif response.json()['items']['total'] <= 5:
             message = "Matched more than one item. Try searching by ID.\n"
-            for items in jd['items']['results']:
+            for items in response.json()['items']['results']:
                 message += "{0} (ID: {1})\n".format(items['name'], items['id'])
             return message
         else:
-            return "Returned {0} results. Add more words to search.".format(jd['items']['total'])
+            return "Returned {0} results. Add more words to search.".format(response.json()['items']['total'])
 
-    def searchquest(self, name):
-        data = {'string': name, 'one': 'quests'}
-        url = self.apiurl + '/search?' + urllib.parse.urlencode(data)
-        response = urllib.request.urlopen(url)
-        jd = json.loads(response.read().decode('utf-8'))
-        if jd['quests']['total'] == 0:
-            return "No results for {0} in quests.".format(name)
-        elif jd['quests']['total'] == 1:
-            return self.parsequest(str(jd['quests']['results'][0]['id']))
-        elif jd['quests']['total'] <= 5:
+    def searchquest(self, message):
+        data = {'string': message.content[7:], 'one': 'quests'}
+        url = self.apiurl + '/search'
+        response = requests.get(url, params=data)
+        if response.json()['quests']['total'] == 0:
+            return "No results for {0} in quests.".format(message.content[7:])
+        elif response.json()['quests']['total'] == 1:
+            return self.parsequest(str(response.json()['quests']['results'][0]['id']))
+        elif response.json()['quests']['total'] <= 5:
             message = "Matched more than one quest. Try searching by ID.\n"
-            for quests in jd['quests']['results']:
+            for quests in response.json()['quests']['results']:
                 message += "{0} (ID: {1})\n".format(quests['name'], quests['id'])
             return message
         else:
-            return "Returned {0} results. Add more words to search.".format(jd['quests']['total'])
+            return "Returned {0} results. Add more words to search.".format(response.json()['quests']['total'])
 
     def searchrecipe(self, name):
         data = {'string': name, 'one': 'recipes'}
@@ -427,4 +420,4 @@ class DBParser:
             else:
                 return "Item found but no location information is recorded."
         else:
-            return ["No match found."]
+            return "No match found."
