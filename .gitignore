@@ -61,8 +61,12 @@ target/
 #Ipython Notebook
 .ipynb_checkpoints
 
-#Anilist Specifics
+#API secrets
 AnilistGlobals.py
+DiscordGlobals.py
+
+#Server secrets
+global_config.json
 
 # pycharm
 .idea/*
