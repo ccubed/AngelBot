@@ -15,7 +15,9 @@ class AngelBot(discord.Client):
         super().__init__()
         self.reporting = GithubApi()
         # Load config
-        self.config = json.load(open("Global_config.json", mode="r"))
+        file = open("Global_config.json", mode="r")
+        self.config = json.load(file)
+        file.close()
         # Import modules
         if 'modules' in self.config:
             for mod in self.config['modules']:
