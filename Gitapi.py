@@ -12,7 +12,7 @@ class GithubApi:
     def createissue(self, title, body):
         url = self.apiurl + "/repos/ccubed/AngelBot/issues"
         payload = {'title': title, 'body': body, lables: ['AngelBot']}
-        headers = {'Authorization': 'token ' + self.config['Creator']}
+        headers = {'Authorization': 'token ' + self.config['GitToken']}
         response = requests.post(url, data=payload, headers=headers)
         if response.status_code == 201:
             return response.json()['url']
