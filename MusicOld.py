@@ -1,6 +1,7 @@
 # Here you would process your message.content
 # Self.play_next is an asyncio.event
 # Self is a discord.client
+# Self.message_channel is a discord channel. It was the first version of channel locking.
 if message.content.lower().startswith('$yt'):
     if message.channel == self.message_channel:
         if self.stream == 0:
