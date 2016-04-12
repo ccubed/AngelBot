@@ -43,7 +43,7 @@ class AngelBot(discord.Client):
                     for command in self.references['Admin'].commands:
                         if message.content.lower().startswith("@" + command[0]):
                             if command[0] == "server":
-                                await ret = command[1](message)
+                                ret = await command[1](message)
                             else:
                                 ret = command[1](message)
                             if isinstance(ret, str):
@@ -102,7 +102,7 @@ class AngelBot(discord.Client):
                             for command in self.references['Admin'].commands:
                                 if message.content.lower().startswith("@" + command[0]):
                                     if command[0] == "leave":
-                                        await ret = command[1](message)
+                                        ret = await command[1](message)
                                     else:
                                         ret = command[1](message)
                                     if isinstance(ret, str):
@@ -139,7 +139,7 @@ class AngelBot(discord.Client):
                                     await self.send_message(message.author, "Only the coder can hotload code.")
                                 else:
                                     if command[0] == "debug":
-                                        await ret = command[1](message)
+                                        ret = await command[1](message)
                                     else:
                                         ret = command[1](message)
                                     if isinstance(ret, str):
@@ -171,7 +171,7 @@ class AngelBot(discord.Client):
                                 await self.send_message(message.channel, "Only the coder can hotload code.")
                             else:
                                 if command[0] == "debug":
-                                    await ret = command[1](message)
+                                    ret = await command[1](message)
                                 else:
                                     ret = command[1](message)
                                 if isinstance(ret, str):
