@@ -212,6 +212,8 @@ log.setLevel(logging.DEBUG)
 handler = logging.FileHandler(filename="angel.log", encoding="utf-8", mode="a")
 log.addHandler(handler)
 
+print("Well we got past the logger.")
+
 # Run the bot.
 bot.run(bot.config['Discord']['discord_bot_token'])
 
