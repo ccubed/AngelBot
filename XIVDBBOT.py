@@ -12,11 +12,11 @@ class DBParser:
                            'ALC': 'Alchemist', 'ARM': 'Armorer', 'BSM': 'Blacksmith', 'CRP': 'Carpenter',
                            'CUL': 'Culinerian', 'GSM': 'Goldsmith', 'LTW': 'Leatherworker', 'WVR': 'Weaver',
                            'BTN': 'Botanist', 'FSH': 'Fisher', 'MIN': 'Miner'}
-        self.commands = [['$search', self.searchall, 0], ['$item', self.searchitem, 0], ['$quest', self.searchquest, 0],
-                         ['$recipe', self.searchrecipe, 0], ['$action', self.searchaction, 0],
-                         ['$mats', self.searchmats, 0], ['$npc', self.searchnpc, 0], ['$effect', self.searchstatus, 0],
-                         ['$minion', self.searchminion, 0], ['$achievement', self.searchachievement, 0],
-                         ['$hdim', self.parsehdim, 0], ['$wdif', self.parsewdif, 1]]
+        self.commands = [['search', self.searchall], ['item', self.searchitem], ['quest', self.searchquest],
+                         ['recipe', self.searchrecipe], ['action', self.searchaction],
+                         ['mats', self.searchmats], ['npc', self.searchnpc], ['effect', self.searchstatus],
+                         ['minion', self.searchminion], ['achievement', self.searchachievement],
+                         ['hdim', self.parsehdim], ['wdif', self.parsewdif]]
 
     def searchall(self, message):
         data = {'string': message.content[7:]}
@@ -83,113 +83,106 @@ class DBParser:
         else:
             return "Returned {0} results. Add more words to search.".format(response.json()['recipes']['total'])
 
-    def searchaction(self, name):
-        data = {'string': name, 'one': 'actions'}
-        url = self.apiurl + '/search?' + urllib.parse.urlencode(data)
-        response = urllib.request.urlopen(url)
-        jd = json.loads(response.read().decode('utf-8'))
-        if jd['actions']['total'] == 0:
-            return "No results for {0} in actions.".format(name)
-        elif jd['actions']['total'] == 1:
-            return self.parseaction(str(jd['actions']['results'][0]['id']))
-        elif jd['actions']['total'] <= 5:
+    def searchaction(self, message):
+        data = {'string': message.content[8:], 'one': 'actions'}
+        url = self.apiurl + '/search'
+        response = requests.get(url, params=data)
+        if response.json()['actions']['total'] == 0:
+            return "No results for {0} in actions.".format(message.content[8:])
+        elif response.json()['actions']['total'] == 1:
+            return self.parseaction(str(response.json()['actions']['results'][0]['id']))
+        elif response.json()['actions']['total'] <= 5:
             message = "Matched more than one action. Try searching by ID.\n"
-            for actions in jd['actions']['results']:
+            for actions in response.json()['actions']['results']:
                 message += "{0} (ID: {1})\n".format(actions['name'], actions['id'])
             return message
         else:
-            return "Returned {0} results. Add more words to search.".format(jd['actions']['total'])
+            return "Returned {0} results. Add more words to search.".format(response.json()['actions']['total'])
 
-    def searchmats(self, name):
-        data = {'string': name, 'one': 'gathering'}
-        url = self.apiurl + '/search?' + urllib.parse.urlencode(data)
-        response = urllib.request.urlopen(url)
-        jd = json.loads(response.read().decode('utf-8'))
-        if jd['gathering']['total'] == 0:
-            return "No results for {0} in gathering.".format(name)
-        elif jd['gathering']['total'] == 1:
-            return self.parsegather(str(jd['gathering']['results'][0]['id']))
-        elif jd['gathering']['total'] <= 5:
+    def searchmats(self, message):
+        data = {'string': message.content[6:], 'one': 'gathering'}
+        url = self.apiurl + '/search'
+        response = requests.get(url, params=data)
+        if response.json()['gathering']['total'] == 0:
+            return "No results for {0} in gathering.".format(message.content[8:])
+        elif response.json()['gathering']['total'] == 1:
+            return self.parsegather(str(response.json()['gathering']['results'][0]['id']))
+        elif response.json()['gathering']['total'] <= 5:
             message = "Matched more than one material. Try searching by ID.\n"
-            for gathering in jd['gathering']['results']:
+            for gathering in response.json()['gathering']['results']:
                 message += "{0} (ID: {1})\n".format(gathering['name'], gathering['id'])
             return message
         else:
-            return "Returned {0} results. Add more words to search.".format(jd['gathering']['total'])
+            return "Returned {0} results. Add more words to search.".format(response.json()['gathering']['total'])
 
-    def searchnpc(self, name):
-        data = {'string': name, 'one': 'npcs'}
-        url = self.apiurl + '/search?' + urllib.parse.urlencode(data)
-        response = urllib.request.urlopen(url)
-        jd = json.loads(response.read().decode('utf-8'))
-        if jd['npcs']['total'] == 0:
-            return "No results for {0} in npcs.".format(name)
-        elif jd['npcs']['total'] == 1:
-            return self.parsenpc(str(jd['npcs']['results'][0]['id']))
-        elif jd['npcs']['total'] <= 5:
+    def searchnpc(self, message):
+        data = {'string': message.content[5:], 'one': 'npcs'}
+        url = self.apiurl + '/search'
+        response = requests.get(url, params=data)
+        if response.json()['npcs']['total'] == 0:
+            return "No results for {0} in npcs.".format(message.content[5:])
+        elif response.json()['npcs']['total'] == 1:
+            return self.parsenpc(str(response.json()['npcs']['results'][0]['id']))
+        elif response.json()['npcs']['total'] <= 5:
             message = "Matched more than one npc. Try searching by ID.\n"
-            for npcs in jd['npcs']['results']:
+            for npcs in response.json()['npcs']['results']:
                 message += "{0} (ID: {1})\n".format(npcs['name'], npcs['id'])
             return message
         else:
-            return "Returned {0} results. Add more words to search.".format(jd['npcs']['total'])
+            return "Returned {0} results. Add more words to search.".format(response.json()['npcs']['total'])
 
-    def searchstatus(self, name):
-        data = {'string': name, 'one': 'status'}
-        url = self.apiurl + '/search?' + urllib.parse.urlencode(data)
-        response = urllib.request.urlopen(url)
-        jd = json.loads(response.read().decode('utf-8'))
-        if jd['status']['total'] == 0:
-            return "No results for {0} in status.".format(name)
-        elif jd['status']['total'] == 1:
-            return self.parsestatus(str(jd['status']['results'][0]['id']))
-        elif jd['status']['total'] <= 5:
+    def searchstatus(self, message):
+        data = {'string': message.content[8:], 'one': 'status'}
+        url = self.apiurl + '/search'
+        response = requests.get(url, params=data)
+        if response.json()['status']['total'] == 0:
+            return "No results for {0} in status.".format(message.content[8:])
+        elif response.json()['status']['total'] == 1:
+            return self.parsestatus(str(response.json()['status']['results'][0]['id']))
+        elif response.json()['status']['total'] <= 5:
             message = "Matched more than one status effect. Try searching by ID.\n"
-            for status in jd['status']['results']:
+            for status in response.json()['status']['results']:
                 message += "{0} (ID: {1})\n".format(status['name'], status['id'])
             return message
         else:
-            return "Returned {0} results. Add more words to search.".format(jd['status']['total'])
+            return "Returned {0} results. Add more words to search.".format(response.json()['status']['total'])
 
-    def searchminion(self, name):
-        data = {'string': name, 'one': 'minions'}
-        url = self.apiurl + '/search?' + urllib.parse.urlencode(data)
-        response = urllib.request.urlopen(url)
-        jd = json.loads(response.read().decode('utf-8'))
-        if jd['minions']['total'] == 0:
-            return "No results for {0} in minions.".format(name)
-        elif jd['minions']['total'] == 1:
-            return self.parseminion(str(jd['minions']['results'][0]['id']))
-        elif jd['minions']['total'] <= 5:
+    def searchminion(self, message):
+        data = {'string': message.content[8:], 'one': 'minions'}
+        url = self.apiurl + '/search'
+        response = requests.get(url, params=data)
+        if response.json()['minions']['total'] == 0:
+            return "No results for {0} in minions.".format(message.content[8:])
+        elif response.json()['minions']['total'] == 1:
+            return self.parseminion(str(response.json()['minions']['results'][0]['id']))
+        elif response.json()['minions']['total'] <= 5:
             message = "Matched more than one minion. Try searching by ID.\n"
-            for minions in jd['minions']['results']:
+            for minions in response.json()['minions']['results']:
                 message += "{0} (ID: {1})\n".format(minions['name'], minions['id'])
             return message
         else:
-            return "Returned {0} results. Add more words to search.".format(jd['minion']['total'])
+            return "Returned {0} results. Add more words to search.".format(response.json()['minion']['total'])
 
-    def searchachievement(self, name):
-        data = {'string': name, 'one': 'achievements'}
-        url = self.apiurl + '/search?' + urllib.parse.urlencode(data)
-        response = urllib.request.urlopen(url)
-        jd = json.loads(response.read().decode('utf-8'))
-        if jd['achievements']['total'] == 0:
-            return "No results for {0} in achievements.".format(name)
-        elif jd['achievements']['total'] == 1:
-            return self.parserecipe(str(jd['achievements']['results'][0]['id']))
-        elif jd['achievements']['total'] <= 5:
+    def searchachievement(self, message):
+        data = {'string': message.content[13:], 'one': 'achievements'}
+        url = self.apiurl + '/search'
+        response = requests.get(url, params=data)
+        if response.json()['achievements']['total'] == 0:
+            return "No results for {0} in achievements.".format(message.content[13:])
+        elif response.json()['achievements']['total'] == 1:
+            return self.parserecipe(str(response.json()['achievements']['results'][0]['id']))
+        elif response.json()['achievements']['total'] <= 5:
             message = "Matched more than one achievement. Try searching by ID.\n"
-            for achievements in jd['achievements']['results']:
+            for achievements in response.json()['achievements']['results']:
                 message += "{0} (ID: {1})\n".format(achievements['name'], achievements['id'])
             return message
         else:
-            return "Returned {0} results. Add more words to search.".format(jd['achievements']['total'])
+            return "Returned {0} results. Add more words to search.".format(response.json()['achievements']['total'])
 
     def parseitem(self, name):
         url = self.apiurl + '/item/' + name
-        response = urllib.request.urlopen(url)
-        jd = response.read().decode('utf-8')
-        jd = json.loads(jd)
+        response = requests.get(url)
+        jd = response.json()
         message = "{0}\n{1} {2} {3} {4}\n{5}".format(jd['name'], 'Unique' if jd['is_unique'] else 'Common',
                                                      'Tradeable' if 'is_tradable' in jd else 'Untradable',
                                                      'Desynth' if 'is_desynthesizable' in jd else 'No_Desynth',
@@ -198,9 +191,8 @@ class DBParser:
 
     def parsequest(self, name):
         url = self.apiurl + "/quest/" + name
-        response = urllib.request.urlopen(url)
-        jd = response.read().decode('utf-8')
-        jd = json.loads(jd)
+        response = requests.get(url)
+        jd = response.json()
         message = "{0}\n".format(jd['name'])
         if jd['classjob_category_1']['name'] in self.shortnames:
             message += "Related Class: {0}\n".format(self.shortnames[jd['classjob_category_1']['name']])
@@ -219,9 +211,8 @@ class DBParser:
 
     def parserecipe(self, name):
         url = self.apiurl + "/recipe/" + name
-        response = urllib.request.urlopen(url)
-        jd = response.read().decode('utf-8')
-        jd = json.loads(jd)
+        response = requests.get(url)
+        jd = response.json()
         message = "{0}\nClass: {1} Recipe Level: {2}\n".format(jd['name'], jd['classjob']['name'], jd['level'])
         message += "Materials Required:\n"
         for item in jd['_tree']:
@@ -234,9 +225,8 @@ class DBParser:
 
     def parseaction(self, name):
         url = self.apiurl + "/action/" + name
-        response = urllib.request.urlopen(url)
-        jd = response.read().decode('utf-8')
-        jd = json.loads(jd)
+        response = requests.get(url)
+        jd = response.json()
         return "{0}\nClass: {1} Level: {2}\n{3}\n{4}".format(jd['name'], jd['classjob']['name'], jd['level'],
                                                              jd['help'], jd['url_xivdb'])
 
@@ -245,9 +235,8 @@ class DBParser:
 
     def parseshop(self, name):
         url = self.apiurl + "/shop/" + name
-        response = urllib.request.urlopen(url)
-        jd = response.read().decode('utf-8')
-        jd = json.loads(jd)
+        response = requests.get(url)
+        jd = response.json()
         message = "{0} (ID: {1})\nThis shops sells ->\n".format(jd['npc_name'], jd['id'])
         for item in jd['items']:
             message += "   {0} (ID: {1}) for {2}gil\n".format(item['item']['name'], item['item']['id'],
@@ -256,9 +245,8 @@ class DBParser:
 
     def parsegather(self, name):
         url = self.apiurl + "/gathering/" + name
-        response = urllib.request.urlopen(url)
-        jd = response.read().decode('utf-8')
-        jd = json.loads(jd)
+        response = requests.get(url)
+        jd = response.json()
         message = "{0}\nGathered from:\n".format(jd['name'])
         for node in jd['nodes']:
             message += "   {0} - {1} - {2}\n".format(node['region']['name'], node['zone']['name'],
@@ -267,18 +255,16 @@ class DBParser:
 
     def parsenpc(self, name):
         url = self.apiurl + "/npc/" + name
-        response = urllib.request.urlopen(url)
-        jd = response.read().decode('utf-8')
-        jd = json.loads(jd)
+        response = requests.get(url)
+        jd = response.json()
         message = "{0} is located in {1} at {2}x {3}y".format(jd['name'], jd['placename']['name'],
                                                               jd['coordinates']['x'], jd['coordinates']['y'])
         return message
 
     def parseenemy(self, name):
         url = self.apiurl + "/enemy/" + name
-        response = urllib.request.urlopen(url)
-        jd = response.read().decode('utf-8')
-        jd = json.loads(jd)
+        response = requests.get(url)
+        jd = response.json()
         message = "{0}\n".format(jd['name'])
         if 'region_name' in jd:
             message += "Region: {0}\n".format(jd['region_name'])
@@ -295,9 +281,8 @@ class DBParser:
 
     def parsestatus(self, name):
         url = self.apiurl + "/status/" + name
-        response = urllib.request.urlopen(url)
-        jd = response.read().decode('utf-8')
-        jd = json.loads(jd)
+        response = requests.get(url)
+        jd = response.json()
         return "Name: {0}\n{1}".format(jd['name'], jd['help'])
 
     def parsetitle(self, name):
@@ -305,9 +290,8 @@ class DBParser:
 
     def parseminion(self, name):
         url = self.apiurl + "/minion/" + name
-        response = urllib.request.urlopen(url)
-        jd = response.read().decode('utf-8')
-        jd = json.loads(jd)
+        response = requests.get(url)
+        jd = response.json()
         message = "{0}\n   Minion Action: {1}\n   {2}".format(jd['name'], jd['action'], jd['help'])
         return message
 
@@ -316,9 +300,8 @@ class DBParser:
 
     def parseachievement(self, name):
         url = self.apiurl + "/achievement/" + name
-        response = urllib.request.urlopen(url)
-        jd = response.read().decode('utf-8')
-        jd = json.loads(jd)
+        response = requests.get(url)
+        jd = response.json()
         return "{0} ({1} - {2})\n{3}".format(jd['name'], jd['category_name'], jd['kind_name'], jd['help'])
 
     def parsehdim(self, name):
@@ -417,3 +400,6 @@ class DBParser:
                 return "Item found but no location information is recorded."
         else:
             return "No match found."
+
+    def exit(self):
+        return 1

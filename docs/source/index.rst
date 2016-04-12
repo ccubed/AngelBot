@@ -7,12 +7,8 @@ Welcome to AngelBot's documentation!
 ====================================
 
 Contents:
-
-.. toctree::
-   XIVDB
-   Events
-   Music
-   :maxdepth: 0
+   1. :doc:`XIVDB`
+   2. :doc:`Events`
 
 
 
@@ -27,36 +23,33 @@ Features
 ========
 
 - Discord Bot
-- Parses XIVDB
-- Handles events (Timezone aware in future)
-- Will parse Lodestone
-- Will have a music bot portion
-- Modular
-- Cleverbot integration. If your message has an @mention with the bot's name it will respond. (turns out this was really popular in my FC)
+- Modular (It's easy for others to add functionality)
+- Per Server Permissions
+- Automated Error Reporting
+- Supports Oauth flows in various APIs
+
+What is this
+============
+
+A discord bot called AngelBot. AngelBot started as a FFXIV bot but has steadily grown into a complicated, sophisticated API machine. Currently it supports AniList, XIVDB and obviously Discord through Discord.py. Hummingbird is coming soon with plans to add the LCBO Alcohol database next and a FF XIV Lodestone parser after that. It also currently supports a small bit of the Github API but only for adding issues to my github automatically upon encountering errors.
 
 Running
 =======
 
-Download the code and change the login details. The bot will automatically respond to any invite you send to it whether in channel or by PM.
+Well with the new API you no longer need a locally running copy. If you DM the bot, it assumes you want an Oauth link to the addbot flow and will respond with that. So to get the bot going on your server send a DM to AngelBot#7020.
 
 
 Usage
 =====
 
-See individual index's for help on each module. You can pull each of them out and use them for your own bot, they're designed to be modular. Cleverbot is built directly into the main bot however. @help now points to this manual hosted on rtfd.
-
-Note that the bot is channel, server and origin agnostic. It responds to each message on teh channel it receives it from. If you PM it an @mention it will respond to you in that PM with a clevebot connection. If you PM it an XIVDB command it will respond in the PM. If you send an invite to a channel on a server it has access to it will treat that invite as any other invite and accept it immediately. Keep this in mind.
+Usage has per server settings now. Give me a bit to write that documentation. For now, you can use $ and any of the commands listed. The $ is the global default command prefix but you can set a server prefix once you add the bot...Or well you can once I code it in.
 
 Global Commands
 ===============
 
-These commands always start with an @ and are held in the main bot. There are two currently.
+I'm rewriting this module to conform to the command factory standards I've created. So this one will come with the next update.
 
-@leave
-   If you have the power to kick members, issuing this command to the bot will force it to leave the server. Please note that this will not work in a PM. It needs to be done in a channel on the server you want the bot to leave.
+Where's Music
+=============
 
-@help
-   Sends you a link to this documentation.
-
-@mentions
-   Not really a command, but just a reminder that any message with an @mention to the bot's name will have the bot respond to it with a cleverbot generated response.
+I used to have a music portion, but it's gone now. There's a minor controversy over most of the music playing bots and for the moment it seems the best practice is to just not do it.

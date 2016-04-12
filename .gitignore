@@ -61,12 +61,10 @@ target/
 #Ipython Notebook
 .ipynb_checkpoints
 
-#API secrets
-AnilistGlobals.py
-DiscordGlobals.py
-
-#Server secrets
-global_config.json
+#Program Configs Contain API Keys
+Global_config.json
+Anilist_auths.json
+Events_config.json
 
 # pycharm
 .idea/*
