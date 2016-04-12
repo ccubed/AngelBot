@@ -4,6 +4,7 @@ import logging
 import importlib
 import sys
 import inspect
+import json
 from datetime import *
 from types import ModuleType
 from Gitapi import *
@@ -12,6 +13,8 @@ from Gitapi import *
 class AngelBot(discord.Client):
     def __init__(self):
         super().__init__()
+        with open("Global_config.json", mode="r") as cfg:
+            self.config = json.load(cfg)
         self.reporting = GithubApi()
         # Import modules
         if 'modules' in self.config:
@@ -24,8 +27,6 @@ class AngelBot(discord.Client):
         self.references = {}
         for mod in self.config['modules']:
             self.references[mod] = inspect.getmembers(sys.modules[mod], inspect.isclass)[0][1]()
-        # At this point, tell the admin module to load the config and return us a copy
-        self.config = self.references['Admin'].loadconfig()
 
     async def on_message(self, message):
         if str(message.author) == self.config['Discord']['discord_bot_username']:
@@ -37,13 +38,14 @@ class AngelBot(discord.Client):
                                     "PMs don't trigger commands. Assuming you want an OAuth link to add to a server.\nhttps://discordapp.com/oauth2/authorize?&client_id={0}&scope=bot&permissions=0".format(
                                         self.config['Discord']['discord_bot_id']))
         elif message.content.startswith("@"):
-            if message.content == "@drop" and message.author == self.config['Creator']:
-                self.logout()
             if message.server in self.config['Servers']:
-                if message.author in self.config['Servers']['Admin']:
+                if str(message.author) in self.config['Servers']['Admin']:
                     for command in self.references['Admin'].commands:
                         if message.content.lower().startswith("@" + command[0]):
-                            ret = command[1](message)
+                            if command[0] == "server":
+                                await ret = command[1](message)
+                            else:
+                                ret = command[1](message)
                             if isinstance(ret, str):
                                 await self.send_message(message.author,
                                                         ret)  # Only for leave, it reports successful leave
@@ -135,9 +137,11 @@ class AngelBot(discord.Client):
                             if message.content.lower().startswith(prefix + command[0]):
                                 if item['Name'] == "Code" and str(message.author) != self.config['Creator']:
                                     await self.send_message(message.author, "Only the coder can hotload code.")
-                                    break
                                 else:
-                                    ret = command[1](message)
+                                    if command[0] == "debug":
+                                        await ret = command[1](message)
+                                    else:
+                                        ret = command[1](message)
                                     if isinstance(ret, str):
                                         await self.send_message(message.channel, ret)
                                     elif isinstance(ret, ModuleType):
@@ -159,16 +163,17 @@ class AngelBot(discord.Client):
                                             await self.send_message(message.channel,
                                                                     "Sorry, I encountered an error. I was able to create an automatic github issue for it though. See it here:\n{0}".format(
                                                                         repret))
-                                break
             else:
                 for item in self.references:
                     for command in item.commands:
                         if message.content.lower().startswith(prefix + command[0]):
                             if item['Name'] == "Code" and str(message.author) != self.config['Creator']:
                                 await self.send_message(message.channel, "Only the coder can hotload code.")
-                                return
                             else:
-                                ret = command[1](message)
+                                if command[0] == "debug":
+                                    await ret = command[1](message)
+                                else:
+                                    ret = command[1](message)
                                 if isinstance(ret, str):
                                     await self.send_message(message.channel, ret)
                                 elif isinstance(ret, ModuleType):
@@ -215,11 +220,6 @@ handlers = log.handlers[:]
 for item in handlers:
     item.close()
     log.removeHandler(item)
-
-# Dump the config.
-file = open("Global_config.json", mode="w")
-json.dump(obj=bot.config, fp=file, indent=2)
-file.close()
 
 # Call the exit methods of the modules currently Loaded. These should return 1.
 for cls in bot.references:
