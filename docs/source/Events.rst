@@ -43,6 +43,3 @@ wn [id]
 
 who [id]
     Who's going to [id]. Shows current signups. If the type isn't other, will also breakdown the classes and roles.
-
-* :doc:`index`
-* :doc:`XIVDB`

@@ -64,6 +64,3 @@ wdif [name or id]
     Where do I find thing. Name is what you want to find. ID, if you have it, is the Numeric ID assigned by XIVDB. This will tell you all the ways you can find thing.
 
     Example: Curtana
-
-* :doc:`index`
-* :doc:`Events`

@@ -6,10 +6,11 @@
 Welcome to AngelBot's documentation!
 ====================================
 
-Contents:
-   1. :doc:`XIVDB`
-   2. :doc:`Events`
-
+:toctree:
+   Configuration
+   Events
+   XIVDB
+   Code
 
 
 Indices and tables
@@ -42,12 +43,12 @@ Well with the new API you no longer need a locally running copy. If you DM the b
 Usage
 =====
 
-Usage has per server settings now. Give me a bit to write that documentation. For now, you can use $ and any of the commands listed. The $ is the global default command prefix but you can set a server prefix once you add the bot...Or well you can once I code it in.
+Usage has per server settings now. This is written. See configuration.
 
 Global Commands
 ===============
 
-I'm rewriting this module to conform to the command factory standards I've created. So this one will come with the next update.
+Part of configuration.
 
 Where's Music
 =============

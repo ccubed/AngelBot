@@ -73,11 +73,11 @@ class admin:
                 return 1
 
     def parsechannel(self, value):
-        channel_name = value.split("=")[0].split(" ")
+        module = value.split("=")[0]
         if "=" in value:
-            module = value.split("=")[1]
+            channel_name = value.split("=")[1].split(" ")
         else:
-            module = None
+            channel_name = None
         return channel_name, module
 
     def createnewserver(self, server):
