@@ -169,6 +169,6 @@ class Events():
         except IOError:
             return 0
         else:
-            json.dump(obj=self.confg, fp=file, indent=2)
+            json.dump(obj=self.config, fp=file, indent=2)
             file.close()
             return 1
