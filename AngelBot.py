@@ -18,14 +18,14 @@ class AngelBot(discord.Client):
         self.reporting = GithubApi()
         # Import modules
         if 'Modules' in self.config:
-            for mod in self.config['modules']:
+            for mod in self.config['Modules']:
                 importlib.import_module(mod)
             importlib.invalidate_caches()
         else:
             raise ImportError("No modules defined in the config.")
         # Create classes. Each module should have exactly one class.
         self.references = {}
-        for mod in self.config['modules']:
+        for mod in self.config['Modules']:
             self.references[mod] = inspect.getmembers(sys.modules[mod], inspect.isclass)[0][1]()
 
     async def on_message(self, message):
