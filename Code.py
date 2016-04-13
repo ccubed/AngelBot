@@ -46,7 +46,7 @@ class HotCode:
                     if " " in check:
                         check = check.split(" ")[-1:]
                     if '_is_coroutine' in context_loaded.check.__dict__:
-                        await result = eval(code, globals={'message': message, context: context_loaded})
+                        result = await eval(code, globals={'message': message, context: context_loaded})
                     else:
                         result = eval(code, globals={'message': message, context: context_loaded})
                     return str(result)
