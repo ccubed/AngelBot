@@ -32,7 +32,7 @@ class HotCode:
         return 1
 
     async def debug(self, message):
-        if "|" in message:
+        if "|" in message.content:
             context = message.content.split("|")[0]
             code = message.content.split("|")[1]
             if 'bot' not in globals():
