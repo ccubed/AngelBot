@@ -39,10 +39,10 @@ class AngelBot(discord.Client):
                                         self.config['Discord']['discord_bot_id']))
         elif message.content.startswith("#"):
             if message.content.lower().startswith("#debug"):
-                ret = await self.references['Code'][1].debug(message)
+                ret = await self.references['Code'].debug(message)
                 await self.send_message(message.channel, ret)
             elif message.content.lower().startswith("#hotload"):
-                ret = self.references['Code'][1].hotload(message)
+                ret = self.references['Code'].hotload(message)
                 if isinstance(ret, str):
                     await self.send_message(message.channel, ret)
                 elif isinstance(ret, ModuleType):
@@ -61,7 +61,7 @@ class AngelBot(discord.Client):
                                                 "Hotloading module {0} didn't work. Created an error report at:\n{1}".format(
                                                     message.content[8:], repret))
             elif message.content.lower().startswith("#reload"):
-                ret = self.references['Code'][1].reload(message)
+                ret = self.references['Code'].reload(message)
                 if isinstance(ret, str):
                     await self.send_message(message.channel, ret)
                 elif isinstance(ret, ModuleType):
@@ -176,13 +176,6 @@ class AngelBot(discord.Client):
             if message.server.name in self.config['Servers']:
                 if 'Prefix' in self.config['Servers'][message.server.name]:
                     prefix = self.config['Servers'][message.server.name]['Prefix']
-                for item in self.config['Servers'][message.server.name]['Modules']:
-                    if item['channel_lock'] is None or item['channel_lock'] == message.channel:
-                        for command in self.references[item['Name']].commands:
-                            if message.content.lower().startswith(prefix + command[0]):
-                                ret = command[1](message)
-                                await self.send_message(message.channel, ret)
-            else:
                 for item in self.config['Servers'][message.server.name]['Modules']:
                     if item['channel_lock'] is None or item['channel_lock'] == message.channel:
                         for command in self.references[item['Name']].commands:
