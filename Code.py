@@ -8,16 +8,17 @@ class HotCode:
 
     def hotload(self, message):
         modtoload = message.content[9:]
+        importlib.invalidate_caches()
         try:
             modref = importlib.import_module(modtoload)
         except ImportError:
             return "Couldn't load the specified module: {0}".format(modtoload)
         else:
-            importlib.invalidate_caches()
             return modref
 
     def reload(self, message):
         modtoload = message.content[8:]
+        importlib.invalidate_caches()
         if modtoload not in globals():
             return "Module {0} isn't loaded. Perhaps you meant to hotload it?".format(modtoload)
         try:
@@ -25,7 +26,6 @@ class HotCode:
         except ImportError:
             return "Couldn't load the specified module: {0}".format(modtoload)
         else:
-            importlib.invalidate_caches()
             return modref
 
     def exit(self):
