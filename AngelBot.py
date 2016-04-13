@@ -82,7 +82,7 @@ class AngelBot(discord.Client):
                                                     message.content[8:], repret))
         elif message.content.startswith("@"):
             if message.server.name in self.config['Servers']:
-                if str(message.author) in self.config['Servers']['Admin']:
+                if str(message.author) in self.config['Servers'][message.server.name]['Admin']:
                     for command in self.references['Admin'].commands:
                         if message.content.lower().startswith("@" + command[0]):
                             if command[0] == "server":
@@ -170,7 +170,7 @@ class AngelBot(discord.Client):
                                                                         repret))
                                 break
                     # They can't manage the server
-                    await self.send_message(message.channel, "Nope. NOt an admin.")
+                    await self.send_message(message.channel, "Nope. Not an admin.")
         else:
             prefix = "$"
             if message.server.name in self.config['Servers']:
