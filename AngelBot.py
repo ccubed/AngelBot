@@ -17,7 +17,7 @@ class AngelBot(discord.Client):
             self.config = json.load(cfg)
         self.reporting = GithubApi()
         # Import modules
-        if 'modules' in self.config:
+        if 'Modules' in self.config:
             for mod in self.config['modules']:
                 importlib.import_module(mod)
             importlib.invalidate_caches()
