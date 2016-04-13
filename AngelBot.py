@@ -41,7 +41,7 @@ class AngelBot(discord.Client):
             if message.content.lower().startswith("#debug"):
                 if "|" in message.content:
                     context = message.content[7:].split("|")[0]
-                    code = message.content.[7:]split("|")[1]
+                    code = message.content[7:].split("|")[1]
                     if context not in self.references:
                         return "I couldn't find context {0} in loaded contexts. Perhaps you need to hotload it first?".format(
                                 context)
