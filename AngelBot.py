@@ -55,7 +55,7 @@ class AngelBot(discord.Client):
                                 if '_is_coroutine' in item[1].__dict__:
                                     result = await eval(code, globals={'message': message, context: context_loaded})
                         else:
-                            result = eval(code, {'message': message, context: context_loaded}, locals())
+                            result = eval(code, globals(), context_loaded.__dict__)
                         await self.send_message(message.channel, result)
                 else:
                     await self.send_message(message.channel, eval(message.content[7:]))
