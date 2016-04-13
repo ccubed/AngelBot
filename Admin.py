@@ -15,13 +15,13 @@ class admin:
         await self.lock.acquire()
         key = message.content[8:].split(":")[0].lower()
         value = message.content[8:].split(":")[1]
-        if message.server in self.config['Servers']:
+        if message.server.name in self.config['Servers']:
             if key == 'modules':
                 cname, mod = self.parsechannel(value)
                 if mod not in self.config['Modules']:
                     self.lock.release()
                     return "No module by name {0}".format(mod)
-                for item in self.config['Servers'][message.server]['Modules']:
+                for item in self.config['Servers'][message.server.name]['Modules']:
                     if item['Name'] == mod:
                         if cname is None:
                             item['channel_lock'] = None
@@ -33,41 +33,49 @@ class admin:
                             self.lock.release()
                             return self.config
                 # New Mod
-                self.config['Servers'][message.server]['Modules'].append({'Name': mod, 'channel_lock': cname})
+                self.config['Servers'][message.server.name]['Modules'].append({'Name': mod, 'channel_lock': cname})
                 self.lock.release()
                 return self.config
             elif key == 'admin':
                 names = list(
-                    set(value.split(" ")).symmetric_difference(self.config['Servers'][message.server]['Admin']))
-                self.config['Servers'][message.server]['Admin'] = names
+                    set(value.split(" ")).symmetric_difference(self.config['Servers'][message.server.name]['Admin']))
+                self.config['Servers'][message.server.name]['Admin'] = names
                 self.lock.release()
                 return self.config
             elif key == 'prefix':
-                self.config['Servers'][message.server]['Prefix'] = value
-                self.lock.release()
-                return self.config
+                if value in ['#', '@']:
+                    self.lock.release()
+                    return "You can't use # or @ as prefixes."
+                else:
+                    self.config['Servers'][message.server.name]['Prefix'] = value
+                    self.lock.release()
+                    return self.config
             else:
                 self.lock.release()
                 return 1
         else:
-            self.createnewserver(message.server)
+            self.createnewserver(message.server.name)
             if key == 'modules':
                 cname, mod = self.parsechannel(value)
                 if mod not in self.config['Modules']:
                     self.lock.release()
                     return "No module by name {0}".format(mod)
                 else:
-                    self.config['Servers'][message.server]['Modules'].append({'Name': mod, 'channel_lock': cname})
+                    self.config['Servers'][message.server.name]['Modules'].append({'Name': mod, 'channel_lock': cname})
                     self.lock.release()
                     return self.config
             elif key == 'admin':
-                self.config['Servers'][message.server]['Admin'] = value.split(" ")
+                self.config['Servers'][message.server.name]['Admin'] = value.split(" ")
                 self.lock.release()
                 return self.config
             elif key == 'prefix':
-                self.config['Servers'][message.server]['Prefix'] = value
-                self.lock.release()
-                return self.config
+                if value in ['#', '@']:
+                    self.lock.release()
+                    return "You can't use # or @ as prefixes."
+                else:
+                    self.config['Servers'][message.server.name]['Prefix'] = value
+                    self.lock.release()
+                    return self.config
             else:
                 self.lock.release()
                 return 1

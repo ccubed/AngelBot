@@ -31,14 +31,57 @@ class AngelBot(discord.Client):
     async def on_message(self, message):
         if str(message.author) == self.config['Discord']['discord_bot_username']:
             return
-        elif str(message.author) == self.config['Creator'] and message.content.lower() == "@kill":
+        elif message.content.lower() == "@kill":
             self.logout()
         elif message.server is None:
             await self.send_message(message.author,
                                     "PMs don't trigger commands. Assuming you want an OAuth link to add to a server.\nhttps://discordapp.com/oauth2/authorize?&client_id={0}&scope=bot&permissions=0".format(
                                         self.config['Discord']['discord_bot_id']))
+        elif message.content.startswith("#"):
+            if message.content.lower().startswith("#debug"):
+                ret = await self.references['Code'][1].debug(message)
+                await self.send_message(message.channel, ret)
+            elif message.content.lower().startswith("#hotload"):
+                ret = self.references['Code'][1].hotload(message)
+                if isinstance(ret, str):
+                    await self.send_message(message.channel, ret)
+                elif isinstance(ret, ModuleType):
+                    self.references[message.content[8:]] = ret
+                    await self.send_message(message.channel, "Hotloaded Module {0}.".format(message.content[8:]))
+                else:
+                    repret = self.reporting.createissue("Hotloading Returned Something Weird",
+                                                        "Hotloading the module {0} returned a {1}.".format(
+                                                            message.content[8:], type(ret)))
+                    if repret == 0:
+                        await self.send_message(message.channel,
+                                                "Well I couldn't hotload {0} and I couldn't create an error report.".format(
+                                                    message.content[8:]))
+                    else:
+                        await self.send_message(message.channel,
+                                                "Hotloading module {0} didn't work. Created an error report at:\n{1}".format(
+                                                    message.content[8:], repret))
+            elif message.content.lower().startswith("#reload"):
+                ret = self.references['Code'][1].reload(message)
+                if isinstance(ret, str):
+                    await self.send_message(message.channel, ret)
+                elif isinstance(ret, ModuleType):
+                    self.references[message.content[8:]] = ret
+                    await self.send_message(message.channel, "Reloaded Module {0}.".format(message.content[8:]))
+                else:
+                    repret = self.reporting.createissue("Reloading Returned Something Weird",
+                                                        "Reloading the module {0} returned a {1}.".format(
+                                                            message.content[8:],
+                                                            type(ret)))
+                    if repret == 0:
+                        await self.send_message(message.channel,
+                                                "Well I couldn't reload {0} and I couldn't create an error report.".format(
+                                                    message.content[8:]))
+                    else:
+                        await self.send_message(message.channel,
+                                                "Reloading module {0} didn't work. Created an error report at:\n{1}".format(
+                                                    message.content[8:], repret))
         elif message.content.startswith("@"):
-            if message.server in self.config['Servers']:
+            if message.server.name in self.config['Servers']:
                 if str(message.author) in self.config['Servers']['Admin']:
                     for command in self.references['Admin'].commands:
                         if message.content.lower().startswith("@" + command[0]):
@@ -130,82 +173,29 @@ class AngelBot(discord.Client):
                     await self.send_message(message.channel, "Nope. NOt an admin.")
         else:
             prefix = "$"
-            if message.server in self.config['Servers']:
-                if 'Prefix' in self.config['Servers'][message.server]:
-                    prefix = self.config['Servers'][message.server]['Prefix']
-            if 'Modules' in self.config['Servers'][message.server]:
-                for item in self.config['Servers'][message.server]['Modules']:
+            if message.server.name in self.config['Servers']:
+                if 'Prefix' in self.config['Servers'][message.server.name]:
+                    prefix = self.config['Servers'][message.server.name]['Prefix']
+                for item in self.config['Servers'][message.server.name]['Modules']:
                     if item['channel_lock'] is None or item['channel_lock'] == message.channel:
                         for command in self.references[item['Name']].commands:
                             if message.content.lower().startswith(prefix + command[0]):
-                                if item['Name'] == "Code" and str(message.author) != self.config['Creator']:
-                                    await self.send_message(message.author, "Only the coder can hotload code.")
-                                else:
-                                    if command[0] == "debug":
-                                        ret = await command[1](message)
-                                    else:
-                                        ret = command[1](message)
-                                    if isinstance(ret, str):
-                                        await self.send_message(message.channel, ret)
-                                    elif isinstance(ret, ModuleType):
-                                        self.references[item['Name']] = inspect.getmembers(sys.modules[item['Name']],
-                                                                                           inspect.isclass)[0][1]()
-                                        await self.send_message(message.channel,
-                                                                "Hotloaded module {0}".format(item['Name']))
-                                    else:
-                                        now = datetime.now()
-                                        repret = self.reporting.createissue("Unexpected Return Type",
-                                                                            "Encountered an error at {0} while attempted to run a command in {1} based on the command string {2}.\nType: {3}\nError: Type should be str or module".format(
-                                                                                now, item['Name'],
-                                                                                message.content,
-                                                                                type(ret)))
-                                        if repret == 0:
-                                            await self.send_message(message.channel,
-                                                                    "I encountered an error. I was unable to automatically log an issue in github for it.")
-                                        else:
-                                            await self.send_message(message.channel,
-                                                                    "Sorry, I encountered an error. I was able to create an automatic github issue for it though. See it here:\n{0}".format(
-                                                                        repret))
+                                ret = command[1](message)
+                                await self.send_message(message.channel, ret)
             else:
-                for item in self.references:
-                    for command in item.commands:
-                        if message.content.lower().startswith(prefix + command[0]):
-                            if item['Name'] == "Code" and str(message.author) != self.config['Creator']:
-                                await self.send_message(message.channel, "Only the coder can hotload code.")
-                            else:
-                                if command[0] == "debug":
-                                    ret = await command[1](message)
-                                else:
-                                    ret = command[1](message)
-                                if isinstance(ret, str):
-                                    await self.send_message(message.channel, ret)
-                                elif isinstance(ret, ModuleType):
-                                    self.references[item['Name']] = inspect.getmembers(sys.modules[item['Name']],
-                                                                                       inspect.isclass)[0][1]()
-                                    await self.send_message(message.channel,
-                                                            "Hotloaded module {0}".format(item['Name']))
-                                else:
-                                    now = datetime.now()
-                                    repret = self.reporting.createissue("Incorrect Type Returned",
-                                                                        "Encountered an error at {0} while attempted to run a command in {1} based on the command string {2}.\nType: {3}\nError: Type should be str or module".format(
-                                                                            repr(now), item['Name'],
-                                                                            message.content,
-                                                                            type(ret)))
-                                    if repret == 0:
-                                        await self.send_message(message.channel,
-                                                                "I encountered an error. I was unable to automatically log an issue in github for it.")
-                                    else:
-                                        await self.send_message(message.channel,
-                                                                "Sorry, I encountered an error. I was able to create an automatic github issue for it though. See it here.\n{0}".format(
-                                                                    repret))
-                            break
+                for item in self.config['Servers'][message.server.name]['Modules']:
+                    if item['channel_lock'] is None or item['channel_lock'] == message.channel:
+                        for command in self.references[item['Name']].commands:
+                            if message.content.lower().startswith(prefix + command[0]):
+                                ret = command[1](message)
+                                await self.send_message(message.channel, ret)
 
     async def on_ready(self):
         return
 
 
 try:
-   bot = AngelBot()
+    bot = AngelBot()
 except ImportError:
     sys.exit(65)
 
