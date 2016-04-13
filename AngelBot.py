@@ -50,8 +50,10 @@ class AngelBot(discord.Client):
                         check = code.split("(")[0]
                         if " " in check:
                             check = check.split(" ")[-1:]
-                        if '_is_coroutine' in context_loaded.check.__dict__:
-                            result = await eval(code, globals={'message': message, context: context_loaded})
+                        for item in context_loaded.commands:
+                            if item[0] == check:
+                                if '_is_coroutine' in item[1].__dict__:
+                                    result = await eval(code, globals={'message': message, context: context_loaded})
                         else:
                             result = eval(code, globals={'message': message, context: context_loaded})
                         await self.send_message(message.channel, result)
