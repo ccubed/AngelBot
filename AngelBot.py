@@ -37,7 +37,7 @@ class AngelBot(discord.Client):
             await self.send_message(message.author,
                                     "PMs don't trigger commands. Assuming you want an OAuth link to add to a server.\nhttps://discordapp.com/oauth2/authorize?&client_id={0}&scope=bot&permissions=0".format(
                                         self.config['Discord']['discord_client']))
-        elif message.content.startswith("#"):
+        elif message.content.startswith("#") and str(message.author) == self.config['Creator']:
             if message.content.lower().startswith("#debug"):
                 if "|" in message.content:
                     context = message.content[7:].split("|")[0]
