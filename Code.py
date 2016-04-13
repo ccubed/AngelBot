@@ -51,4 +51,4 @@ class HotCode:
                         result = eval(code, globals={'message': message, context: context_loaded})
                     return str(result)
         else:
-            return eval(message.content[8:])
+            return eval(message.content[7:])
