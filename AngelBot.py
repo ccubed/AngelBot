@@ -32,11 +32,11 @@ class AngelBot(discord.Client):
         if str(message.author) == self.config['Discord']['discord_bot_username']:
             return
         elif message.content.lower() == "@kill":
-            self.logout()
+            await self.logout()
         elif message.server is None:
             await self.send_message(message.author,
                                     "PMs don't trigger commands. Assuming you want an OAuth link to add to a server.\nhttps://discordapp.com/oauth2/authorize?&client_id={0}&scope=bot&permissions=0".format(
-                                        self.config['Discord']['discord_bot_id']))
+                                        self.config['Discord']['discord_client']))
         elif message.content.startswith("#"):
             if message.content.lower().startswith("#debug"):
                 ret = await self.references['Code'].debug(message)
