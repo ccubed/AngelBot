@@ -20,8 +20,6 @@ class HotCode:
     def reload(self, message):
         modtoload = message.content[8:]
         importlib.invalidate_caches()
-        if modtoload not in globals():
-            return "Module {0} isn't loaded. Perhaps you meant to hotload it?".format(modtoload)
         try:
             modref = importlib.reload(modtoload)
         except ImportError:

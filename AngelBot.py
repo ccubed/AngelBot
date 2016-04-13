@@ -31,7 +31,7 @@ class AngelBot(discord.Client):
     async def on_message(self, message):
         if str(message.author) == self.config['Discord']['discord_bot_username']:
             return
-        elif message.content.lower() == "@kill":
+        elif message.content.lower() == "@kill" and str(message.author) == self.config['Creator']:
             await self.logout()
         elif message.server is None:
             await self.send_message(message.author,
