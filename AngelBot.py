@@ -201,29 +201,27 @@ class AngelBot(discord.Client):
         return
 
 
-try:
-    bot = AngelBot()
-except ImportError:
-    sys.exit(65)
+#try:
+#   bot = AngelBot()
+#except ImportError:
+#    sys.exit(65)
 
 # Setup logger
-log = logging.getLogger()
-log.setLevel(logging.DEBUG)
-handler = logging.FileHandler(filename="angel.log", encoding="utf-8", mode="a")
-log.addHandler(handler)
-
-print("Well we got past the logger.")
+#log = logging.getLogger()
+#log.setLevel(logging.DEBUG)
+#handler = logging.FileHandler(filename="angel.log", encoding="utf-8", mode="a")
+#log.addHandler(handler)
 
 # Run the bot.
-bot.run(bot.config['Discord']['discord_bot_token'])
+#bot.run(bot.config['Discord']['discord_bot_token'])
 
 # Close handlers.
-handlers = log.handlers[:]
-for item in handlers:
-    item.close()
-    log.removeHandler(item)
+#handlers = log.handlers[:]
+#for item in handlers:
+#    item.close()
+#    log.removeHandler(item)
 
 # Call the exit methods of the modules currently Loaded. These should return 1.
-for cls in bot.references:
-    if bot.references[cls].exit() == 0:
-        print("{0} didn't close correctly.".format(cls))
+#for cls in bot.references:
+#    if bot.references[cls].exit() == 0:
+#        print("{0} didn't close correctly.".format(cls))
