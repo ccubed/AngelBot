@@ -39,8 +39,24 @@ class AngelBot(discord.Client):
                                         self.config['Discord']['discord_client']))
         elif message.content.startswith("#"):
             if message.content.lower().startswith("#debug"):
-                ret = await self.references['Code'].debug(message)
-                await self.send_message(message.channel, ret)
+                if "|" in message.content:
+                    context = message.content[7:].split("|")[0]
+                    code = message.content.[7:]split("|")[1]
+                    if context not in self.references:
+                        return "I couldn't find context {0} in loaded contexts. Perhaps you need to hotload it first?".format(
+                                context)
+                    else:
+                        context_loaded = self.references[context]
+                        check = code.split("(")[0]
+                        if " " in check:
+                            check = check.split(" ")[-1:]
+                        if '_is_coroutine' in context_loaded.check.__dict__:
+                            result = await eval(code, globals={'message': message, context: context_loaded})
+                        else:
+                            result = eval(code, globals={'message': message, context: context_loaded})
+                        await self.send_message(message.channel, result)
+                else:
+                    await self.send_message(message.channel, eval(message.content[7:]))
             elif message.content.lower().startswith("#hotload"):
                 ret = self.references['Code'].hotload(message)
                 if isinstance(ret, str):
@@ -94,6 +110,7 @@ class AngelBot(discord.Client):
                                                         ret)  # Only for leave, it reports successful leave
                             elif isinstance(ret, dict):
                                 self.config = ret  # We got returned updated settings
+                                await self.send_message(message.channel, "Updated server settings.")
                             else:
                                 # Don't know what the fuck we got, but it's wrong
                                 now = datetime.now()

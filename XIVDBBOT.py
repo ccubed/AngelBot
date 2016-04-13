@@ -305,10 +305,10 @@ class DBParser:
         return "{0} ({1} - {2})\n{3}".format(jd['name'], jd['category_name'], jd['kind_name'], jd['help'])
 
     def parsehdim(self, name):
-        if name.isnumeric():
-            return self.parserecipe(str(name))
+        if name.content[6:].isnumeric():
+            return self.parserecipe(str(name.content[6:]))
         else:
-            jd = self.searchid(name)
+            jd = self.searchid(name.content[6:])
             if jd['recipes']['total'] > 1:
                 return "{0} matched more than 1 recipe. Maybe try finding the ID first with search?".format(name)
             elif jd['recipes']['total'] == 0:
