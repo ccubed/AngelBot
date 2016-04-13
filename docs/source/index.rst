@@ -6,11 +6,12 @@
 Welcome to AngelBot's documentation!
 ====================================
 
-:toctree:
+.. toctree::
    Configuration
    Events
    XIVDB
    Code
+   ...
 
 
 Indices and tables
