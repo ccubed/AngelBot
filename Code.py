@@ -17,7 +17,7 @@ class HotCode:
             return modref
 
     def reload(self, message):
-        modtoload = message.content[9:]
+        modtoload = message.content[8:]
         if modtoload not in globals():
             return "Module {0} isn't loaded. Perhaps you meant to hotload it?".format(modtoload)
         try:
