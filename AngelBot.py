@@ -76,7 +76,10 @@ class AngelBot(discord.Client):
                     # Obviously the server owner can manage the bot
                     for command in self.references['Admin'].commands:
                         if message.content.lower().startswith("@" + command[0]):
-                            ret = command[1](message)
+                            if command[0] == "server":
+                                ret = await command[1](message)
+                            else:
+                                ret = command[1](message)
                             if isinstance(ret, str):
                                 await self.send_message(message.channel, str)
                             elif isinstance(ret, dict):
