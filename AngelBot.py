@@ -160,6 +160,7 @@ class AngelBot(discord.Client):
             await self.references["Admin"].createnewserver(server.id, dbp)
 
     async def on_ready(self):
+        return
 
     def update_carbon(self):
         self.loop.create_task(self._update_carbon())
