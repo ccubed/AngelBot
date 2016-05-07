@@ -21,7 +21,7 @@ def generate_oauth_handshake(provider, userid):
 @application.route("/oauth/oauthcallback")
 def oauth_callback():
     if 'state' not in request.args:
-        return redirect(url_for('static', filename='html/oauth_security.html'), code=301)
+        return redirect(url_for('static', filename='html/oauth_security.html'), code=303)
     else:
         rcon = redis.StrictRedis(host="localhost", port=6379, db=1)
         status = rcon.hget(request.args.get('state'), "oauth_status")
@@ -30,14 +30,13 @@ def oauth_callback():
             return redirect(url_for('static', filename='html/oauth_security.html'), code=303)
 
     if 'error' in request.args:
-        if request.args.get('error') == "access_denied":
-            return redirect(url_for('static', filename='html/oauth_access.html'), code=303)
+        return redirect(url_for('static', filename='html/oauth_access.html'), code=303)
 
     rcon = redis.StrictRedis(host="localhost", port=6379, db=1)
     enc = AESCipher(cryptokey)
     atoken = enc.encrypt(request.args.get('code'))
-    data = "{0}|{1}".format(atoken, request.args.get('scope').replace("%2C", ","))
-    rcon.hset(request.args.get('state'), "Github", data)
+    rcon.hset(request.args.get('state'), "Github_Code", atoken)
+    rcon.hset(request.args.get('state'), "oauth_status", "None")
     rcon.shutdown()
     return redirect(url_for('static', filename='html/oauth_success.html'), code=303)
 

@@ -118,20 +118,13 @@ class AngelBot(discord.Client):
             async with self.redis.get() as dbp:
                 admin = await dbp.hget(message.server.id, "Admin")
                 if admin != "None":
-                    if str(message.author) in admin.split("|"):
+                    if message.author.id in admin.split("|") or message.channel.permissions_for(message.author).manage_server:
                         for command in self.references['Admin'].commands:
                             if message.content.lower().startswith("ard" + command[0]):
                                 ret = await command[1](message)
                                 await self.send_message(message.channel, ret)
                                 return
-                elif message.author == message.server.owner:
-                    # Obviously the server owner can manage the bot
-                    for command in self.references['Admin'].commands:
-                        if message.content.lower().startswith("ard" + command[0]):
-                            ret = await command[1](message)
-                            await self.send_message(message.channel, ret)
-                            return
-                elif message.channel.permissions_for(message.author).kick_members:
+                elif message.channel.permissions_for(message.author).manage_server:
                     # Well they can manage the server so they can manage the bot, deal with it
                     for command in self.references['Admin'].commands:
                         if message.content.lower().startswith("ard" + command[0]):
@@ -141,7 +134,9 @@ class AngelBot(discord.Client):
         else:
             prefix = "$"
             async with self.redis.get() as dbp:
-                prefix = await dbp.hget(message.server.id, "Prefix")
+                test = await dbp.hget(message.server.id, "Prefix")
+                if test != "" and test is not None:
+                    prefix = test
                 mods = await dbp.hgetall(message.server.id+"_Modules")
                 for item in mods.keys():
                     if mods[item] == "None" or message.channel.name in mods[item].split("|"):

@@ -12,7 +12,7 @@ class admin:
         key = message.content[10:].split(":")[0].lower()
         value = message.content[10:].split(":")[1]
         async with self.pools.get() as pool:
-            if await pool.hexists(message.server.id, "Prefix"):
+            if await pool.exists(message.server.id):
                 if key == 'modules':
                     cname, mod = self.parsechannel(value)
                     mods = await pool.lrange("BotModules", 0, -1)
@@ -34,7 +34,10 @@ class admin:
                 elif key == 'admin':
                     names = await pool.hget(message.server.id, "Admin")
                     newlist = [x.id for x in message.mentions]
-                    final = "|".join(set(newlist).symmetric_difference(set(names.split("|"))))
+                    if names != "None":
+                        final = "|".join(set(newlist).symmetric_difference(set(names.split("|"))))
+                    else:
+                        final = newlist
                     await pool.hset(message.server.id, "Admin", final)
                     return "Admin list is now: ```{0}```".format(", ".join(final.split("|")))
                 elif key == 'prefix':
@@ -75,7 +78,7 @@ class admin:
     async def createnewserver(self, server, pool):
         await pool.hset(server, "Prefix", "$")
         await pool.hset(server + "_Modules", "Admin", "None")
-        await pool.hset(server, "Admin", "")
+        await pool.hset(server, "Admin", "None")
 
     async def cleanconfig(self, server):
         async with self.pools.get() as pool:
