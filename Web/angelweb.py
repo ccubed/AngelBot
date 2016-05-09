@@ -23,14 +23,9 @@ def generate_oauth_handshake(provider, userid):
 @application.route("/oauth/oauthcallback/<provider>")
 def oauth_callback(provider):
     enc = AESCipher(cryptokey)
+    rcon = redis.StrictRedis(db=1)
     if 'state' not in request.args:
         return redirect(url_for('static', filename='html/oauth_security.html'), code=303)
-    else:
-        rcon = redis.StrictRedis(host="localhost", port=6379, db=1)
-        status = rcon.hget(request.args.get('state'), "oauth_status")
-        rcon.shutdown()
-        if status != "in_progress":
-            return redirect(url_for('static', filename='html/oauth_security.html'), code=303)
 
     if 'error' in request.args:
         return redirect(url_for('static', filename='html/oauth_access.html'), code=303)
@@ -39,28 +34,17 @@ def oauth_callback(provider):
         atoken = request.args.get('code')
         if provider == "github":
             params = {'client_id': oauth['github']['cid'], 'client_secret': oauth['github']['csecret'], 'code': atoken, 'redirect_uri': 'https://angelbot.vertinext.com/oauth/oauthcallback/github', 'state': request.args.get('state')}
-            headers = {'Accept':'application/vnd.github.v3+json'}
+            headers = {'Accept':'application/json'}
             ga = requests.post("https://github.com/login/oauth/access_token", params=params, headers=headers)
-            ga = ga.json()
-            if 'access_token' in ga:
-                rcon = redis.StrictRedis(db=1)
-                access = enc.encrypt(ga['access_token'])
+            gaj = ga.json()
+            if 'access_token' in gaj:
+                access = enc.encrypt(gaj['access_token'])
+                scope = gaj['scope']
                 rcon.hset(request.args.get('state'), 'Github_Token', access)
-                rcon.shutdown()
-                return redirect(url_for('static', Filename='html/oauth_success.html'), code=303)
+                rcon.hset(request.args.get('state'), 'Github_Scope', scope)
+                return redirect(url_for('static', filename='html/oauth_success.html'), code=303)
             else:
-                return redirect(url_for('static', Filename='html/oauth_failed.html'), code=303)
-    else:
-        data = request.get_json(Force=True, Silent=True)
-        if data:
-            if 'access_token' in data:
-                rcon = redis.StrictRedis(host="localhost", port=6379, db=1)
-                if provider == "github":
-                    atoken = enc.encrypt(data['access_token'])
-                    scope = data['scope']
-                    rcon.hset(request.args.get('state'), "Github_Token", atoken)
-                    rcon.hset(request.args.geT('state'), "Github_Scope", scope)
-                    rcon.shutdown()
+                return redirect(url_for('static', filename='html/oauth_failed.html'), code=303)
 
 application.debug = True
 
