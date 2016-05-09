@@ -36,6 +36,8 @@ class admin:
                     newlist = [x.id for x in message.mentions]
                     if names != "None":
                         final = "|".join(set(newlist).symmetric_difference(set(names.split("|"))))
+                    elif newlist == "":
+                        final = "None"
                     else:
                         final = newlist
                     await pool.hset(message.server.id, "Admin", final)

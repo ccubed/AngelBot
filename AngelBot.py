@@ -56,11 +56,16 @@ class AngelBot(discord.Client):
                 await self.send_message(message.channel,
                                         "```AngelBot has a lot of modules that interact with a lot of APIs. Having a list of commands in Discord is unrealistic. See:\nhttp://angelbot.rtfd.org```")
         elif message.server is None:
-            async with self.redis.get() as dbp:
-                did = await dbp.get("DiscordCID")
-                await self.send_message(message.author,
-                                        "PMs don't trigger commands. Assuming you want an OAuth link to add to a server.\nhttps://discordapp.com/oauth2/authorize?&client_id={0}&scope=bot&permissions=0".format(
-                                            did))
+            if 'oauth' in message.content:
+                await self.send_message(message.author, "Angelbot can use an Oauth flow to connect to your logins on other platforms. This allows Angelbot to take actions it may not otherwise be able to. If you'd like to begin this process, please respond with one of the following providers: github")
+            elif 'github' in message.content:
+                async with self.redis.get() as dbp:
+                    await dbp.hset(message.author.id, "oauth_status", "in_progress")
+                    await self.send_message(message.author, "To begin this process visit the following link:\nhttps://angelbot.vertinext.com/oauth/Github/{0}".format(message.author.id))
+            else:
+                async with self.redis.get() as dbp:
+                    cid = dbp.get("DiscordCID")
+                    await self.send_message(message.author, "Assuming you want a join link: https://discordapp.com/oauth2/authorize?client_id={0}&scope=bot&permissions=0".format(cid))
         elif message.content.startswith("owl") and message.author.id == self.creator:
             if message.content.lower().startswith("owldebug"):
                 if "|" in message.content:
