@@ -46,8 +46,8 @@ class admin:
                     if value in ['owl', 'ard', '@']:
                         return "You can't use owl, ard or @ as prefixes."
                     else:
-                        await pool.hset(message.server.id, "Prefix", message.content.split(" ")[1])
-                        return "Set Prefix to ```{0}```.".format(message.content.split(" ")[1])
+                        await pool.hset(message.server.id, "Prefix", value)
+                        return "Set Prefix to ```{0}```.".format(value)
             else:
                 await self.createnewserver(message.server.id, pool)
                 if key == 'modules':
