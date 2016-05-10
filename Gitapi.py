@@ -55,7 +55,7 @@ class GithubApi:
                             else:
                                 jsd = await response.json()
                                 jsd = json.loads(jsd)
-                                await dbp.set("GIT"+name, jsd)
+                                await dbp.set("GIT"+name, json.dumps(jsd))
                                 await dbp.expire("GIT"+name, 36000)
                                 return "Username: {0}\nUrl: {1}\nLocation: {2}\nRepos: {3}\nGists: {4}\nFollowers: {5}\nFollowing: {6}".format(
                                     jsd['login'], jsd['html_url'], jsd['location'], jsd['public_repos'],
@@ -66,18 +66,17 @@ class GithubApi:
                 self.unauth_limit -= 1
                 with aiohttp.ClientSession() as session:
                     async with session.get(url, headers=self.header) as response:
-                        async with self.pools.get() as dbp:
-                            if response.status == 404:
-                                await dbp.set("GIT" + name, "404")
-                                await dbp.expire("GIT" + name, 36000)
-                                return "User {0} not found on github.".format(name)
-                            else:
-                                jsd = await response.json()
-                                await dbp.set("GIT" + name, jsd)
-                                await dbp.expire("GIT" + name, 36000)
-                                return "Username: {0}\nUrl: {1}\nLocation: {2}\nRepos: {3}\nGists: {4}\nFollowers: {5}\nFollowing: {6}".format(
-                                    jsd['login'], jsd['html_url'], jsd['location'], jsd['public_repos'],
-                                    jsd['public_gists'], jsd['followers'], jsd['following'])
+                        if response.status == 404:
+                            await dbp.set("GIT" + name, "404")
+                            await dbp.expire("GIT" + name, 36000)
+                            return "User {0} not found on github.".format(name)
+                        else:
+                            jsd = await response.json()
+                            await dbp.set("GIT" + name, json.dumps(jsd))
+                            await dbp.expire("GIT" + name, 36000)
+                            return "Username: {0}\nUrl: {1}\nLocation: {2}\nRepos: {3}\nGists: {4}\nFollowers: {5}\nFollowing: {6}".format(
+                                jsd['login'], jsd['html_url'], jsd['location'], jsd['public_repos'],
+                                jsd['public_gists'], jsd['followers'], jsd['following'])
 
     async def list_gists(self, message):
         # Return gist info. Requires Oauth.
