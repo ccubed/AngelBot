@@ -12,7 +12,8 @@ class admin:
         key = message.content[10:].split(":")[0].lower()
         value = message.content[10:].split(":")[1]
         async with self.pools.get() as pool:
-            if await pool.exists(message.server.id):
+            test = pool.exists(message.server.id)
+            if test:
                 if key == 'modules':
                     cname, mod = self.parsechannel(value)
                     mods = await pool.lrange("BotModules", 0, -1)

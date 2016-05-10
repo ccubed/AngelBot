@@ -34,15 +34,15 @@ class GithubApi:
         name = message.content[9:]
         url = self.apiurl + "/users/{0}".format(name)
         async with self.pools.get() as dbp:
-            if await dbp.exists(name):
+            test = await dbp.exists(name)
+            if test:
                 jsd = await dbp.get("GIT" + name)
                 if jsd == "404":
                     return "User {0} not found on github.".format(name)
                 else:
                     jsd = json.loads(jsd)
-                    return "Username: {0}\nUrl: {1}\nLocation: {2}\nRepos: {3}\nGists: {4}\nFollowers: {5}\nFollowing: {6}".format(
-                        jsd['login'], jsd['html_url'], jsd['location'], jsd['public_repos'], jsd['public_gists'],
-                        jsd['followers'], jsd['following'])
+                    return "Username: {0}\nUrl: {1}\nPublic Repos: {2}\nPublic Gists: {3}\nFollowers: {4}\nFollowing: {5}".format(
+                        jsd['login'], jsd['html_url'], jsd['public_repos'], jsd['public_gists'], jsd['followers'], jsd['following'])
             elif self.unauth_limit == 0:
                 if self.auth_limit > 1000:
                     cid = await dbp.hget("Github", "ClientID")
@@ -57,9 +57,8 @@ class GithubApi:
                                 jsd = json.loads(jsd)
                                 await dbp.set("GIT"+name, json.dumps(jsd))
                                 await dbp.expire("GIT"+name, 36000)
-                                return "Username: {0}\nUrl: {1}\nLocation: {2}\nRepos: {3}\nGists: {4}\nFollowers: {5}\nFollowing: {6}".format(
-                                    jsd['login'], jsd['html_url'], jsd['location'], jsd['public_repos'],
-                                    jsd['public_gists'], jsd['followers'], jsd['following'])
+                                return "Username: {0}\nUrl: {1}\nPublic Repos: {2}\nPublic Gists: {3}\nFollowers: {4}\nFollowing: {5}".format(
+                                    jsd['login'], jsd['html_url'], jsd['public_repos'], jsd['public_gists'], jsd['followers'], jsd['following'])
                 else:
                     return "The bot has reached the limit on user requests and didn't find a cached result for this name."
             else:
@@ -74,9 +73,8 @@ class GithubApi:
                             jsd = await response.json()
                             await dbp.set("GIT" + name, json.dumps(jsd))
                             await dbp.expire("GIT" + name, 36000)
-                            return "Username: {0}\nUrl: {1}\nLocation: {2}\nRepos: {3}\nGists: {4}\nFollowers: {5}\nFollowing: {6}".format(
-                                jsd['login'], jsd['html_url'], jsd['location'], jsd['public_repos'],
-                                jsd['public_gists'], jsd['followers'], jsd['following'])
+                            return "Username: {0}\nUrl: {1}\nPublic Repos: {2}\nPublic Gists: {3}\nFollowers: {4}\nFollowing: {5}".format(
+                                jsd['login'], jsd['html_url'], jsd['public_repos'], jsd['public_gists'], jsd['followers'], jsd['following'])
 
     async def list_gists(self, message):
         # Return gist info. Requires Oauth.
