@@ -34,7 +34,7 @@ class GithubApi:
         name = message.content[9:]
         url = self.apiurl + "/users/{0}".format(name)
         async with self.pools.get() as dbp:
-            test = await dbp.exists(name)
+            test = await dbp.exists("GIT" + name)
             if test:
                 jsd = await dbp.get("GIT" + name)
                 if jsd == "404":
