@@ -1,7 +1,7 @@
 import aiohttp
 import json
 from secret import *
-from encryption import *
+import encryption
 
 
 class GithubApi:
@@ -9,7 +9,7 @@ class GithubApi:
         self.apiurl = "https://api.github.com"
         self.pools = redis
         self.header = {'Accept': 'application/vnd.github.v3+json', 'User-Agent': 'AngelBot (Github User CCubed)'}
-        self.crypt = AESCipher(cryptokey)
+        self.crypt = encryption.AESCipher(cryptokey)
         self.commands = [['gitinfo', self.get_user_info]]
         self.unauth_limit = 60
         self.auth_limit = 5000
