@@ -11,14 +11,7 @@ class GithubApi:
         self.header = {'Accept': 'application/vnd.github.v3+json', 'User-Agent': 'AngelBot (Github User CCubed)'}
         self.crypt = encryption.AESCipher(cryptokey)
         self.commands = [['gitinfo', self.get_user_info]]
-        self.unauth_limit = 60
         self.auth_limit = 5000
-        self.events = [[self.update_auths, 3600]]
-
-    def update_auths(self, loop):
-        self.unauth_limit = 60
-        self.auth_limit = 5000
-        loop.call_later(3600, self.update_auths, loop)
 
     async def get_oauth(self, id):
         # Return the oauth token for getting user data or pm the oauth link and instructions
@@ -30,51 +23,34 @@ class GithubApi:
             else:
                 return 0
 
-    async def get_user_info(self, message):
-        name = message.content[9:]
-        url = self.apiurl + "/users/{0}".format(name)
+    async def get_ids(self):
         async with self.pools.get() as dbp:
-            test = await dbp.exists("GIT" + name)
-            if test:
-                jsd = await dbp.get("GIT" + name)
-                if jsd == "404":
-                    return "User {0} not found on github.".format(name)
-                else:
-                    jsd = json.loads(jsd)
-                    return "Username: {0}\nUrl: {1}\nPublic Repos: {2}\nPublic Gists: {3}\nFollowers: {4}\nFollowing: {5}".format(
-                        jsd['login'], jsd['html_url'], jsd['public_repos'], jsd['public_gists'], jsd['followers'], jsd['following'])
-            elif self.unauth_limit == 0:
-                if self.auth_limit > 1000:
-                    cid = await dbp.hget("Github", "ClientID")
-                    csec = await dbp.hget("Github", "ClientSecret")
-                    with aiohttp.ClientSession() as session:
-                        async with session.get(url, params={'client_id': cid, 'client_secret': csec}) as response:
-                            if response == "404":
-                                await dbp.set("GIT" + name, "404")
-                                return "User {0} not found on github.".format(name)
-                            else:
-                                jsd = await response.json()
-                                jsd = json.loads(jsd)
-                                await dbp.set("GIT"+name, json.dumps(jsd))
-                                await dbp.expire("GIT"+name, 36000)
-                                return "Username: {0}\nUrl: {1}\nPublic Repos: {2}\nPublic Gists: {3}\nFollowers: {4}\nFollowing: {5}".format(
-                                    jsd['login'], jsd['html_url'], jsd['public_repos'], jsd['public_gists'], jsd['followers'], jsd['following'])
-                else:
-                    return "The bot has reached the limit on user requests and didn't find a cached result for this name."
-            else:
-                self.unauth_limit -= 1
-                with aiohttp.ClientSession() as session:
-                    async with session.get(url, headers=self.header) as response:
-                        if response.status == 404:
-                            await dbp.set("GIT" + name, "404")
-                            await dbp.expire("GIT" + name, 36000)
-                            return "User {0} not found on github.".format(name)
-                        else:
-                            jsd = await response.json()
-                            await dbp.set("GIT" + name, json.dumps(jsd))
-                            await dbp.expire("GIT" + name, 36000)
-                            return "Username: {0}\nUrl: {1}\nPublic Repos: {2}\nPublic Gists: {3}\nFollowers: {4}\nFollowing: {5}".format(
-                                jsd['login'], jsd['html_url'], jsd['public_repos'], jsd['public_gists'], jsd['followers'], jsd['following'])
+            a = await dbp.hget("Github", "ClientID")
+            b = await dbp.hget("Github", "ClientSecret")
+            return {'client_id': a, 'client_secret': b}
+
+    # Todo: Rewrite this a third time.
+    async def get_user_info(self, message):
+        async with self.pools.get() as dbp:
+            jsd = 0
+            headers = self.header
+            if len(message.content) > 8:
+                name = message.content[9:0]
+                test = await dbp.hget("GIT" + name, "etag")
+                params = await self.get_ids()
+                if test is not None and test != 0: #TODO: We have an etag, we can make a If-None-Match query
+                    headers['If-None-Match'] = test
+                else:  # TODO: No etag, we have to do a poll of the api and get initial data
+            else: #TODO: No name passed, use user's oauth id
+                key = await self.get_oauth(message.author.id)
+                if key == 0:
+                    return "You need to authenticate your account with Github and allow AngelBot access. PM AngelBot about Oauth to start."
+                else: #TODO: Valid authorization key, use it
+                    headers['Authorization'] = 'token {0}'.format(key)
+                    test = await dbp.hget("GIT" + message.author.id, "etag")
+                    if test is not None and test != 0: #TODO: We have an etag, we can make a If-None-Match query
+                        headers['If-None-Match'] = test
+                    else: #TODO: No etag, we have to do a poll of the api and get initial data
 
     async def list_gists(self, message):
         # Return gist info. Requires Oauth.
