@@ -40,7 +40,7 @@ class admin:
                     elif newlist == "":
                         final = "None"
                     else:
-                        final = newlist
+                        final = "|".join(newlist)
                     await pool.hset(message.server.id, "Admin", final)
                     return "Admin list is now: ```{0}```".format(", ".join(final.split("|")))
                 elif key == 'prefix':

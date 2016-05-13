@@ -183,7 +183,7 @@ if __name__ == "__main__":
 
     logger = logging.getLogger('discord')
     logger.setLevel(logging.DEBUG)
-    handler = logging.FileHandler(filename='/home/gizmo/AngelBot/GExitLogs/{0}'.format(str(datetime.now()).replace(" ", "_")), encoding="utf-8", mode="w")
+    handler = logging.FileHandler(filename='GExitLogs/{0}'.format(str(datetime.now()).replace(" ", "_")), encoding="utf-8", mode="w")
     handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
     logger.addHandler(handler)
 
