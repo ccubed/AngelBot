@@ -29,8 +29,8 @@ class GithubApi:
             b = await dbp.hget("Github", "ClientSecret")
             return {'client_id': a, 'client_secret': b}
 
-    # Todo: Rewrite this a third time.
     async def get_user_info(self, message):
+        return "Not Done"
         async with self.pools.get() as dbp:
             jsd = 0
             headers = self.header
@@ -41,6 +41,7 @@ class GithubApi:
                 if test is not None and test != 0: #TODO: We have an etag, we can make a If-None-Match query
                     headers['If-None-Match'] = test
                 else:  # TODO: No etag, we have to do a poll of the api and get initial data
+                    pass
             else: #TODO: No name passed, use user's oauth id
                 key = await self.get_oauth(message.author.id)
                 if key == 0:
@@ -51,6 +52,7 @@ class GithubApi:
                     if test is not None and test != 0: #TODO: We have an etag, we can make a If-None-Match query
                         headers['If-None-Match'] = test
                     else: #TODO: No etag, we have to do a poll of the api and get initial data
+                        pass
 
     async def list_gists(self, message):
         # Return gist info. Requires Oauth.

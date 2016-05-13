@@ -70,3 +70,5 @@ serverglob.py
 GExitLogs/*
 
 secret.py
+
+*.profile
