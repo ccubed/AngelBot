@@ -13,8 +13,11 @@ def root():
 
 @application.route("/oauth/<provider>/<userid>")
 def generate_oauth_handshake(provider, userid):
-    if provider in ['Github']:
+    if provider == "Github":
         url = "https://github.com/login/oauth/authorize?client_id={0}&redirect_uri={1}&scope=gist,public_repo&state={2}".format(oauth['github']['cid'], "https://angelbot.vertinext.com/oauth/oauthcallback/github", userid)
+        return redirect(url)
+    elif provider == "AniList":
+        url = "https://anilist.co/api/auth/authorize?grant_type=authorization_code&client_id={0}&redirect_url={1}&response_type=code&state={2}".format(oauth['alist']['cid'], "https://angelbot.vertinext.com/oauth/oauthcallback/anilist", userid)
         return redirect(url)
     else:
         return redirect(url_for('static', filename='html/oauth_security.html', values=None), code=303)
@@ -42,6 +45,20 @@ def oauth_callback(provider):
                 scope = gaj['scope']
                 rcon.hset(request.args.get('state'), 'Github_Token', access)
                 rcon.hset(request.args.get('state'), 'Github_Scope', scope)
+                return redirect(url_for('static', filename='html/oauth_success.html'), code=303)
+            else:
+                return redirect(url_for('static', filename='html/oauth_failed.html'), code=303)
+        elif provider == "anilist":
+            params = {'grant_type': 'authorization_code', 'client_id': oauth['alist']['cid'], 'client_secret': oauth['alist']['csecret'], 'redirect_uri': 'https://angelbot.vertinext.com/oauth/oauthcallback/anilist', 'code': atoken, 'state': request.args.get('state')}
+            ga = requests.post("https://anilist.co/api/auth/access_token", params=params)
+            gaj = ga.json()
+            if 'access_token' in gaj:
+                access = enc.encrypt(gaj['access_token'])
+                expires = gaj['expires']
+                rtoken = gaj['refresh_token']
+                rcon.hset(request.args.get('state'), 'Anilist_Token', access)
+                rcon.hset(request.args.get('state'), 'Anilist_Expires', expires)
+                rcon.hset(request.args.get('state'), 'Anilist_Refresh', rtoken)
                 return redirect(url_for('static', filename='html/oauth_success.html'), code=303)
             else:
                 return redirect(url_for('static', filename='html/oauth_failed.html'), code=303)

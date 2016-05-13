@@ -59,9 +59,9 @@ class AngelBot(discord.Client):
             if 'oauth' in message.content.lower():
                 await self.send_message(message.author, "Angelbot can use an Oauth flow to connect to your logins on other platforms. This allows Angelbot to take actions it may not otherwise be able to. If you'd like to begin this process, please respond with one of the following providers: github")
             elif 'github' in message.content.lower():
-                async with self.redis.get() as dbp:
-                    await dbp.hset(message.author.id, "oauth_status", "in_progress")
-                    await self.send_message(message.author, "To begin this process visit the following link:\nhttps://angelbot.vertinext.com/oauth/Github/{0}".format(message.author.id))
+                await self.send_message(message.author, "To begin this process visit the following link:\nhttps://angelbot.vertinext.com/oauth/Github/{0}".format(message.author.id))
+            elif 'anilist' in message.content.lower():
+                await self.send_message(message.author, "To begin this process visit the following link:\nhttps://angelbot.vertinext.com/oauth/AniList/{0}".format(message.author.id))
             else:
                 async with self.redis.get() as dbp:
                     cid = dbp.get("DiscordCID")
