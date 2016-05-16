@@ -11,7 +11,8 @@ class AList:
     def __init__(self, redis):
         self.apiurl = "https://anilist.co/api"
         self.commands = [['awaifu', self.waifu], ['ahusbando', self.husbando], ['acharacter', self.searchcharacter],
-                         ['acurrent', self.currentanime], ['aanime', self.searchanime], ['amanga', self.searchmanga]]
+                         ['acurrent', self.currentanime], ['aanime', self.searchanime], ['amanga', self.searchmanga],
+                         ['auser', self.get_user], ['anotifications', self.get_notifications]]
         self.pools = redis
         self.events = [[self.get_readonly, 0]]
         self.enc = encryption.AESCipher(cryptokey)
