@@ -241,7 +241,7 @@ class AList:
                             return "Anilist says you don't exist."
                         else:
                             jsd = json.loads(text)
-                            return "{0} ({1})\n{2} Pending Notifications.\n{3}\n\nI've spent {4} on Anime and read {5} Manga Chapters.\n{6}".format(jsd['display_name'], jsd['id'], jsd['notifications'], jsd['about'], str(timedelta(seconds=jsd['anime_time'])), jsd['manga_chap'], jsd['image_url_lge'])
+                            return "{0} ({1})\n{2} Pending Notifications.\n{3}\n\nI've spent {4} on Anime and read {5} Manga Chapters.\n{6}".format(jsd['display_name'], jsd['id'], jsd['notifications'], jsd['about'], str(timedelta(minutes=jsd['anime_time'])), jsd['manga_chap'], jsd['image_url_lge'])
         else:
             name = message.content[7:]
             async with self.pools.get() as dbp:
@@ -260,7 +260,8 @@ class AList:
                                 return "No user found by name {0}".format(name)
                             else:
                                 jsd = json.loads(text)
-                                return "{0} ({1})\n{2} Pending Notifications.\n{3}\n\nI've spent {4} on Anime and read {5} Manga Chapters.\n{6}".format(jsd['display_name'], jsd['id'], jsd['notifications'], jsd['about'],str(timedelta(seconds=jsd['anime_time'])), jsd['manga_chap'], jsd['image_url_lge'])
+                                print(jsd['anime_time'])
+                                return "{0} ({1})\n{2} Pending Notifications.\n{3}\n\nI've spent {4} on Anime and read {5} Manga Chapters.\n{6}".format(jsd['display_name'], jsd['id'], jsd['notifications'], jsd['about'],str(timedelta(minutes=jsd['anime_time'])), jsd['manga_chap'], jsd['image_url_lge'])
 
     async def get_notifications(self, message):
         url = self.apiurl + "/user/notifications"
