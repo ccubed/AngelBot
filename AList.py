@@ -55,7 +55,7 @@ class AList:
                             return jsd['access_token']
             else:
                 atoken = await dbp.hget(id, "Anilist_Token")
-                return self.enc.decrypt(atoken)
+                return self.enc.decrypt(atoken).decode()
 
     async def waifu(self, message):
         name = message.content[8:]
