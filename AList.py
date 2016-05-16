@@ -228,7 +228,7 @@ class AList:
     async def get_user(self, message):
         url = self.apiurl + "/user"
         if len(message.content) <= 6:
-            key = self.get_oauth(message.author.id)
+            key = await self.get_oauth(message.author.id)
             if key == 0:
                 return "I can't pull your details from AniList because you haven't verified your account. PM me about anilist to do that."
             else:
@@ -264,7 +264,7 @@ class AList:
 
     async def get_notifications(self, message):
         url = self.apiurl + "/user/notifications"
-        key = self.get_oauth(message.author.id)
+        key = await self.get_oauth(message.author.id)
         if key == 0:
             return "Notifications require you to verify your account with Oauth. PM me about anilist to do that."
         else:
