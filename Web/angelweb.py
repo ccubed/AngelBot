@@ -17,7 +17,7 @@ def generate_oauth_handshake(provider, userid):
         url = "https://github.com/login/oauth/authorize?client_id={0}&redirect_uri={1}&scope=gist,public_repo&state={2}".format(oauth['github']['cid'], "https://angelbot.vertinext.com/oauth/oauthcallback/github", userid)
         return redirect(url)
     elif provider == "AniList":
-        url = "https://anilist.co/api/auth/authorize?grant_type=authorization_code&client_id={0}&redirect_url={1}&response_type=code&state={2}".format(oauth['alist']['cid'], "https://angelbot.vertinext.com/oauth/oauthcallback/anilist", userid)
+        url = "https://anilist.co/api/auth/authorize?grant_type=authorization_code&client_id={0}&redirect_uri={1}&response_type=code&state={2}".format(oauth['alist']['cid'], "https://angelbot.vertinext.com/oauth/oauthcallback/anilist", userid)
         return redirect(url)
     else:
         return redirect(url_for('static', filename='html/oauth_security.html', values=None), code=303)

@@ -3,6 +3,8 @@ import time
 import aiohttp
 from datetime import timedelta
 import json
+import encryption
+from secret import *
 
 
 class AList:
@@ -12,6 +14,8 @@ class AList:
                          ['acurrent', self.currentanime], ['aanime', self.searchanime], ['amanga', self.searchmanga]]
         self.pools = redis
         self.events = [[self.get_readonly, 0]]
+        self.enc = encryption.AESCipher(cryptokey)
+        self.headers = {'Content-Type': 'application/x-www-form-urlencoded'}
 
     def get_readonly(self, loop):
         loop.create_task(self._get_readonly())
@@ -29,6 +33,28 @@ class AList:
                     jsd = await resp.json()
                     await pool.hset("ALReadOnly", "Expiration", jsd['expires'])
                     await pool.hset("ALReadOnly", "AccessToken", jsd['access_token'])
+
+    async def get_oauth(self, id):
+        async with self.pools.get() as dbp:
+            expiration = await dbp.hget(id, "Anilist_Expires")
+            if int(expiration) < time.time():
+                refresh = await dbp.hget(id, "Anilist_Refresh")
+                cid = await dbp.hget("AniList", "ClientID")
+                csec = await dbp.hget("AniList", "ClientSecret")
+                params = {'grant_type': 'refresh_token', 'client_id': cid, 'client_secret': csec, 'refresh_token': refresh}
+                with aiohttp.ClientSession() as session:
+                    async with session.post("https://anilist.co/api/auth/access_token", params=params) as response:
+                        text = await response.text()
+                        if text == "\n" or response.status == 404:
+                            return 0
+                        else:
+                            jsd = json.loads(text)
+                            await dbp.hset(id, "Anilist_Expires", jsd['expires'])
+                            await dbp.hset(id, "Anilist_Token", self.enc.encrypt(jsd['access_token']))
+                            return jsd['access_token']
+            else:
+                atoken = await dbp.hget(id, "Anilist_Token")
+                return self.enc.decrypt(atoken)
 
     async def waifu(self, message):
         name = message.content[8:]
@@ -87,16 +113,17 @@ class AList:
             with aiohttp.ClientSession() as session:
                 async with session.get(url, params=data) as resp:
                     text = await resp.text()
-                    jsd = json.loads(text)
                     if text == '\n' or resp.status == 404:
                         return "[ANILIST] No results for a character named {0} in Anilist.".format(name)
-                    elif len(jsd) > 1:
-                        msg = "Found these characters ->\n"
-                        for i in jsd:
-                            msg += " {0}{1} (ID: {2})\n".format(i['name_first'], '\b' + i['name_last'] if i['last_name'] != '' else '', i['id'])
-                        return msg
-                    elif len(jsd) == 1:
-                        return await self.parsecharacter(jsd[0]['id'])
+                    else:
+                        jsd = json.loads(text)
+                        if len(jsd) > 1:
+                            msg = "Found these characters ->\n"
+                            for i in jsd:
+                                msg += " {0}{1} (ID: {2})\n".format(i['name_first'], '\b' + i['name_last'] if i['last_name'] != '' else '', i['id'])
+                            return msg
+                        elif len(jsd) == 1:
+                            return await self.parsecharacter(jsd[0]['id'])
 
     async def parsecharacter(self, id):
         async with self.pools.get() as pool:
@@ -120,16 +147,17 @@ class AList:
             with aiohttp.ClientSession() as session:
                 async with session.get(url, params=data) as resp:
                     text = await resp.text()
-                    jsd = json.loads(text)
                     if text == '\n' or resp.status == 404:
                         return "[ANILIST] No results found on Anilist for Anime {0}".format(name)
-                    elif len(jsd) > 1:
-                        msg = "Found these Anime ->\n"
-                        for i in jsd:
-                            msg += " {0} (ID: {1})\n".format(i['title_english'], i['id'])
-                        return msg
-                    elif len(jsd) == 1:
-                        return await self.parseanime(jsd[0]['id'])
+                    else:
+                        jsd = json.loads(text)
+                        if len(jsd) > 1:
+                            msg = "Found these Anime ->\n"
+                            for i in jsd:
+                                msg += " {0} (ID: {1})\n".format(i['title_english'], i['id'])
+                            return msg
+                        elif len(jsd) == 1:
+                            return await self.parseanime(jsd[0]['id'])
 
     async def parseanime(self, id):
         async with self.pools.get() as pool:
@@ -169,16 +197,18 @@ class AList:
             url = self.apiurl + "/manga/search/" + name.replace(' ', '%20')
             with aiohttp.ClientSession() as session:
                 async with session.get(url, params=data) as resp:
-                    jsd = await resp.json()
-                    if len(jsd) == 1:
-                        return await self.parsemanga(jsd[0]['id'])
-                    elif resp.text() == "\n" or resp.status == 404:
+                    text = await resp.text()
+                    if resp.text() == "\n" or resp.status == 404:
                         return "[ANILIST] No results found for {0} in Manga.".format(name)
-                    elif len(jsd) > 1:
-                        msg = "Found these Manga ->\n"
-                        for i in jsd:
-                            msg += " {0} (ID: {1})\n".format(i['title_english'], i['id'])
-                        return msg
+                    else:
+                        jsd = json.loads(text)
+                        if len(jsd) == 1:
+                            return await self.parsemanga(jsd[0]['id'])
+                        elif len(jsd) > 1:
+                            msg = "Found these Manga ->\n"
+                            for i in jsd:
+                                msg += " {0} (ID: {1})\n".format(i['title_english'], i['id'])
+                            return msg
 
     async def parsemanga(self, id):
         async with self.pools.get() as pool:
@@ -193,3 +223,58 @@ class AList:
                         jsd['publishing_status'], jsd['total_volumes'], jsd['total_chapters'],
                         jsd['average_score'], ','.join(jsd['genres']), jsd['description'],
                         jsd['image_url_med'])
+
+    async def get_user(self, message):
+        url = self.apiurl + "/user"
+        if len(message.content) <= 6:
+            key = self.get_oauth(message.author.id)
+            if key == 0:
+                return "I can't pull your details from AniList because you haven't verified your account. PM me about anilist to do that."
+            else:
+                header = self.headers
+                header['Authorization'] = 'Bearer {0}'.format(key)
+                with aiohttp.ClientSession() as session:
+                    async with session.get(url, headers=header) as response:
+                        text = await response.text()
+                        if response.status == 404 or text == "\n":
+                            return "Anilist says you don't exist."
+                        else:
+                            jsd = json.loads(text)
+                            return "{0} ({1})\n{2} Pending Notifications.\n{3}\n\nI've spent {4} on Anime and read {5} Manga Chapters.\n{6}".format(jsd['display_name'], jsd['id'], jsd['notifications'], jsd['about'], str(timedelta(seconds=jsd['anime_time'])), jsd['manga_chap'], jsd['image_url_lge'])
+        else:
+            name = message.content[7:]
+            async with self.pools.get() as dbp:
+                token = await dbp.hget("ALReadOnly", "AccessToken")
+                data = {'access_token': token}
+                url = url + "/" + name
+                with aiohttp.ClientSession() as session:
+                    async with session.get(url, params=data) as response:
+                        if response.status in [403, 401]:
+                            return "Your profile is private."
+                        elif response.status == 404:
+                            return "No user found by name {0}".format(name)
+                        else:
+                            text = await response.text()
+                            if text == "\n":
+                                return "No user found by name {0}".format(name)
+                            else:
+                                jsd = json.loads(text)
+                                return "{0} ({1})\n{2} Pending Notifications.\n{3}\n\nI've spent {4} on Anime and read {5} Manga Chapters.\n{6}".format(jsd['display_name'], jsd['id'], jsd['notifications'], jsd['about'],str(timedelta(seconds=jsd['anime_time'])), jsd['manga_chap'], jsd['image_url_lge'])
+
+    async def get_notifications(self, message):
+        url = self.apiurl + "/user/notifications"
+        key = self.get_oauth(message.author.id)
+        if key == 0:
+            return "Notifications require you to verify your account with Oauth. PM me about anilist to do that."
+        else:
+            header = self.headers
+            header['Authorization'] = 'Bearer {0}'.format(key)
+            with aiohttp.ClientSession() as session:
+                async with session.get(url, headers=header) as response:
+                    text = await response.text()
+                    if text == "\n" or response.status == 404:
+                        return "Something went wrong. I wasn't able to get your notifications."
+                    else:
+                        jsd = json.loads(text)
+                        print(json.dumps(jsd))
+                        return json.dumps(jsd)
