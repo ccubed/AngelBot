@@ -278,5 +278,10 @@ class AList:
                         return "Something went wrong. I wasn't able to get your notifications."
                     else:
                         jsd = json.loads(text)
-                        print(json.dumps(jsd))
-                        return json.dumps(jsd)
+                        msg = "Notifications ->\n"
+                        for item in jsd:
+                            msg += "{0}({1}) {2}".format(item['user']['display_name'], item['user']['id'], item['value'])
+                            if 'thread' in item:
+                                msg += " {0}({1})".format(item['thread']['title'], item['thread']['id'])
+                            msg += "\n"
+                        return msg
