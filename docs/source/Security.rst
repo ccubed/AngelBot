@@ -16,4 +16,9 @@ The Oauth section of the server runs on a flask setup with SSL Credentials. You'
 
 The server only accepts TLS connections encrypted with AES. It won't accept lesser encryption protocols. Attempting to visit the site with an out of date browser will simply yield an error.
 
-Keys are encrypted using a 256 random bytes from urandom and AES.
+Keys are encrypted using random bytes from urandom and AES.
+
+Yeah but...
+-----------
+* https://www.ssllabs.com/ssltest/analyze.html?d=angelbot.vertinext.com&hideResults=on
+

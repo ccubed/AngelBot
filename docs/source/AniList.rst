@@ -5,9 +5,7 @@ Have you ever wanted to look up anime details while on discord? No? Oh well I ha
 
 **NOTE:** Anilist makes no guarantees about adult content. I also don't filter by that tag. Even if I did filter they don't even make a guarantee that all adult content is appropriately marked adult. So case in point: This can return NSFW/Adult content, you have been warned.
 
-**More Notes:**  Gonna be honest here, It's not that great. I'm not sure how the titles are indexed but it is not a partial match search, you need to kind of know the title which makes it slightly less useful.
-
-**And More:** So today I found out that there are actually characters, manga, staff, etc, with blank names. So yeah, if you see an id with no name that's not an error, that's the data being returned.
+**Note 2:** I had to write a preprocessor for the anilist profiles due to the HTML content messing with discord formatting. It can take a little bit of time for a user profile to return because of that.
 
 aanime [name or id]
     Search for an anime based on name or id.
@@ -26,3 +24,12 @@ awaifu [name or id]
 
 ahusbando [name or id]
     Equal Opportunity! Declare your devotion for your husbando! Complete with pic.
+
+auser
+    **OAUTH Required**: Pulls your user details
+
+asuer [username or id]
+    Pulls the details of another user
+
+anotifications
+    **OAUTH Required**: Pulls up to 10 notifications off your profile
