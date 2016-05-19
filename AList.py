@@ -5,6 +5,7 @@ from datetime import timedelta
 import json
 import encryption
 from secret import *
+from AList_ProfileProcessor import profile_preprocessor
 
 
 class AList:
@@ -241,8 +242,8 @@ class AList:
                             return "Anilist says you don't exist."
                         else:
                             jsd = json.loads(text)
-                            print(jsd['about'])
-                            return "{0} ({1})\n{2} Pending Notifications.\n{3}\n\nI've spent {4} on Anime and read {5} Manga Chapters.\n{6}".format(jsd['display_name'], jsd['id'], jsd['notifications'], jsd['about'], str(timedelta(minutes=jsd['anime_time'])), jsd['manga_chap'], jsd['image_url_lge'])
+                            about = await profile_preprocessor(jsd['about'])
+                            return "{0} ({1})\n{2} Pending Notifications.\n{3}\n\nI've spent {4} on Anime and read {5} Manga Chapters.\n{6}".format(jsd['display_name'], jsd['id'], jsd['notifications'], about, str(timedelta(minutes=jsd['anime_time'])), jsd['manga_chap'], jsd['image_url_lge'])
         else:
             name = message.content[7:]
             async with self.pools.get() as dbp:
@@ -261,8 +262,8 @@ class AList:
                                 return "No user found by name {0}".format(name)
                             else:
                                 jsd = json.loads(text)
-                                print(jsd['about'])
-                                return "{0} ({1})\n{2}\n\nI've spent {3} on Anime and read {4} Manga Chapters.\n{5}".format(jsd['display_name'], jsd['id'], jsd['about'], str(timedelta(minutes=jsd['anime_time'])), jsd['manga_chap'], jsd['image_url_lge'])
+                                about = await profile_preprocessor(jsd['about'])
+                                return "{0} ({1})\n{2}\n\nI've spent {3} on Anime and read {4} Manga Chapters.\n{5}".format(jsd['display_name'], jsd['id'], about, str(timedelta(minutes=jsd['anime_time'])), jsd['manga_chap'], jsd['image_url_lge'])
 
     async def get_notifications(self, message):
         url = self.apiurl + "/user/notifications"
@@ -286,3 +287,64 @@ class AList:
                                 msg += " {0}({1})".format(item['thread']['title'], item['thread']['id'])
                             msg += "\n"
                         return msg
+
+    async def follow_user(self, message):
+        url = self.apiurl + "/user/follow"
+        if len(message.content) <= 8:
+            return "Need a user id."
+        else:
+            if message.content[9:].isdigit():
+                uid = message.content[9:]
+            else:
+                uid = self.get_user_id(message.content[9:])
+                if uid == 0:
+                    return "Proide a valid username or id."
+                elif isinstance(uid, list):
+                    msg = "Matched several names. =>\n"
+                    for x in uid:
+                        msg += "   {0} ({1})\n".format(x[0], x[1])
+                    return msg
+            with aiohttp.ClientSession() as session:
+                async with session.post(url, data=json.dumps(uid)) as response:
+                    text = await response.text()
+                    if response.text == "\n" or response.status == 404:
+                        return "Encountered an error following that user."
+                    elif response.status in [401, 403]:
+                        return "I'm not authorized to follow that user for you."
+                    else:
+                        return "You are now following that user."
+
+    async def user_search(self, message):
+        url = self.apiurl + "/user/search/{0}".format(message.content[9:])
+        with aiohttp.ClientSession() as session:
+            async with session.get(url) as response:
+                text = await response.text()
+                if response.status == 404 or text == "\n":
+                    return "No users found."
+                elif response.status in [403, 401]:
+                    return "Bot is not authorized."
+                else:
+                    jsd = json.loads(text)
+                    if isinstance(jsd, list):
+                        msg = "Found {0} Users. Here are the first 5. =>\n".format(len(jsd))
+                        for x in jsd:
+                            msg += "   {0} ({1})\n".format(jsd['display_name'], jsd['id'])
+                        return msg
+                    else:
+                        return "{0} ({1})".format(jsd['display_name'], jsd['id'])
+
+    async def get_user_id(self, id):
+        url = self.apiurl + "/user/search/{0}".format(id)
+        with aiohttp.ClientSession() as session:
+            async with session.get(url) as response:
+                text = await response.text()
+                if response.status == 404 or text == "\n":
+                    return 0
+                elif response.status in [403, 401]:
+                    return 0
+                else:
+                    jsd = json.loads(text)
+                    if isinstance(jsd, list):
+                        return [[x['display_name'], x['id']] for x in jsd]
+                    else:
+                        return jsd['id']

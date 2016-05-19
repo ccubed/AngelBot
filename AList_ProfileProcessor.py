@@ -1,7 +1,7 @@
 import re
 
 
-def profile_preprocessor(content):
+async def profile_preprocessor(content):
     # Compile Regular Expressions
     imgtag = re.compile("img.*?\((?P<location>.*?)\)", re.IGNORECASE)
     mdimg = re.compile("\[.*?\]\((?P<location>.*?)\)", re.IGNORECASE)

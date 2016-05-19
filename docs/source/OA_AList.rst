@@ -31,5 +31,5 @@ A special endpoint that returns your currently watching currently airing anime a
 
 Lists
 -----
-Retrieval of Anime and Manga Lists. Not the same as changing episode or show status. This is simply for display.
+Modifications to Anime and Manga lists of any kind required OAuth. Used for adding new Anime and Manga and changing status, review. ratings, etc.
 
