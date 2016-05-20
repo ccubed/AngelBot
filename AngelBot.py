@@ -101,7 +101,7 @@ class AngelBot(discord.Client):
             elif message.content.lower().startswith("owlstats"):
                 up = datetime.now() - self.uptime
                 await self.send_message(message.channel,
-                                        "```AngelBot Statistics\n{0} Servers\n{1} Users\nUptime: {2}\n{3} commands total\n{4} commands a second```".format(
+                                        "```AngelBot Statistics\n{} Servers\n{} Users\nUptime: {}\n{} commands total\n{:.1f} commands a second```".format(
                                             len(self.servers), sum(x.member_count for x in self.servers), str(up), self.commands, self.commands/up.total_seconds()))
             elif message.content.lower().startswith("owlavatar"):
                 file = message.content[10:]
@@ -175,7 +175,7 @@ class AngelBot(discord.Client):
         stats['uptime'] = datetime.now() - self.uptime
         stats['users'] = sum(x.member_count for x in self.servers)
         stats['servers'] = len(self.servers)
-        stats['cmdssec'] = self.commands/stats['uptime'].total_seconds()
+        stats['cmdssec'] = '{:.1f}'.format(self.commands/stats['uptime'].total_seconds())
         stats['totalcmds'] = self.commands
         self.loop.create_task(self._update_stats(stats))
         self.loop.call_later(900, self.update_stats)
