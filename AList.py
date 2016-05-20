@@ -242,11 +242,12 @@ class AList:
                             return "Anilist says you don't exist."
                         else:
                             jsd = json.loads(text)
-                            if len(jsd['about']) > 1800:
-                                about = "Attempt to parse novel failed. Please visit user at <http://anilist.co/user/{0}> to view about section.".format(jd['display_name'])
+                            about = await profile_preprocessor(jsd['about'])
+                            ret = "{0} ({1})\n{2} Pending Notifications.\n{3}\n\nI've spent {4} on Anime and read {5} Manga Chapters.\n{6}".format(jsd['display_name'], jsd['id'], jsd['notifications'], about, str(timedelta(minutes=jsd['anime_time'])), jsd['manga_chap'], jsd['image_url_lge'])
+                            if len(ret) > 2000:
+                                return "{0} ({1})\n{2} Pending Notifications.\n{3}\n\nI've spent {4} on Anime and read {5} Manga Chapters.\n{6}".format(jsd['display_name'], jsd['id'], jsd['notifications'], "Attempt to parse novel failed. Visit <http://anilist.co/user/{0}> to view about section.".format(jsd['display_name']), str(timedelta(minutes=jsd['anime_time'])), jsd['manga_chap'], jsd['image_url_lge'])
                             else:
-                                about = await profile_preprocessor(jsd['about'])
-                            return "{0} ({1})\n{2} Pending Notifications.\n{3}\n\nI've spent {4} on Anime and read {5} Manga Chapters.\n{6}".format(jsd['display_name'], jsd['id'], jsd['notifications'], about, str(timedelta(minutes=jsd['anime_time'])), jsd['manga_chap'], jsd['image_url_lge'])
+                                return ret
         else:
             name = message.content[7:]
             async with self.pools.get() as dbp:
@@ -265,11 +266,12 @@ class AList:
                                 return "No user found by name {0}".format(name)
                             else:
                                 jsd = json.loads(text)
-                                if len(jsd['about']) > 1800:
-                                    about = "Attempt to parse novel failed. Please visit user at <http://anilist.co/user/{0}> to view about section.".format(jd['display_name'])
+                                about = await profile_preprocessor(jsd['about'])
+                                ret = "{0} ({1})\n{2}\n\nI've spent {3} on Anime and read {4} Manga Chapters.\n{5}".format(jsd['display_name'], jsd['id'], about, str(timedelta(minutes=jsd['anime_time'])), jsd['manga_chap'], jsd['image_url_lge'])
+                                if len(ret) > 2000:
+                                    return "{0} ({1})\n{2} Pending Notifications.\n{3}\n\nI've spent {4} on Anime and read {5} Manga Chapters.\n{6}".format(jsd['display_name'], jsd['id'], jsd['notifications'], "Attempt to parse novel failed. Visit <http://anilist.co/user/{0}> to view about section.".format(jsd['display_name']), str(timedelta(minutes=jsd['anime_time'])), jsd['manga_chap'], jsd['image_url_lge'])
                                 else:
-                                    about = await profile_preprocessor(jsd['about'])
-                                return "{0} ({1})\n{2}\n\nI've spent {3} on Anime and read {4} Manga Chapters.\n{5}".format(jsd['display_name'], jsd['id'], about, str(timedelta(minutes=jsd['anime_time'])), jsd['manga_chap'], jsd['image_url_lge'])
+                                    return ret
 
     async def get_notifications(self, message):
         url = self.apiurl + "/user/notifications"
