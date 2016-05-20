@@ -39,6 +39,8 @@ class AngelBot(discord.Client):
                             self.loop.call_soon_threadsafe(event[0], self.loop)
                         else:
                             self.loop.call_later(event[1], event[0], self.loop)
+            self.loop.call_soon_threadsafe(self.update_stats)
+            self.loop.call_soon_threadsafe(self.update_carbon)
 
     async def on_message(self, message):
         self.commands += 1
@@ -50,7 +52,7 @@ class AngelBot(discord.Client):
         elif self.user in message.mentions:
             if 'info' in message.content:
                 await self.send_message(message.channel,
-                                        "```AngelBot\nVersion: 1.0\nLibrary: Discord.py\nURL: https://angelbot.vertinext.com\nOwner: Rory#6028\nHelp: http://angelbot.rtfd.org```")
+                                        "```AngelBot\nVersion: 2.0\nLibrary: Discord.py\nURL: https://angelbot.vertinext.com\nOwner: Rory#6028\nHelp: http://angelbot.rtfd.org\nServer: https://discord.gg/cyclops-sagat-magitek```")
             elif 'help' in message.content:
                 await self.send_message(message.channel,
                                         "```AngelBot has a lot of modules that interact with a lot of APIs. Having a list of commands in Discord is unrealistic. See:\nhttp://angelbot.rtfd.org```")
@@ -97,14 +99,10 @@ class AngelBot(discord.Client):
                 else:
                     await self.send_message(message.channel, "Lol what?")
             elif message.content.lower().startswith("owlstats"):
-                delta = datetime.now() - self.uptime
-                servers = len(self.servers)
-                users = 0
-                for item in self.servers:
-                    users += len(item.members)
+                up = datetime.now() - self.uptime
                 await self.send_message(message.channel,
-                                        "```\nAngelBot has been connected to {0} Servers and {1} Users for {2}\nI've processed {3} commands over that time.```".format(
-                                            servers, users, delta, self.commands))
+                                        "```AngelBot Statistics\n{0} Servers\n{1} Users\nUptime: {2}\n{3} commands total\n{4} commands a second```".format(
+                                            len(self.servers), sum(x.member_count for x in self.servers), str(up), self.commands, int(up.total_seconds/self.commands)))
             elif message.content.lower().startswith("owlavatar"):
                 file = message.content[10:]
                 try:
@@ -171,6 +169,24 @@ class AngelBot(discord.Client):
             with aiohttp.ClientSession() as session:
                 async with session.post("https://www.carbonitex.net/discord/data/botdata.php", data=json.dumps(data)) as resp:
                     await resp.release()
+
+    def update_stats(self):
+        stats = {}
+        stats['uptime'] = datetime.now() - self.uptime
+        stats['users'] = sum(x.member_count for x in self.servers)
+        stats['servers'] = len(self.servers)
+        stats['cmdssec'] = int(stats['uptime'].total_seconds/self.commands)
+        stats['totalcmds'] = self.commands
+        self.loop.create_task(self._update_stats(stats))
+        self.loop.call_later(900, self.update_stats)
+
+    async def _update_stats(self, stats):
+        async with self.redis.get() as dbp:
+            await dbp.hset('stats', 'uptime', str(stats['uptime']))
+            await dbp.hset('stats', 'users', stats['users'])
+            await dbp.hset('stats', 'servers', stats['servers'])
+            await dbp.hset('stats', 'cmdssec', stats['cmdssec'])
+            await dbp.hset('stats', 'totalcmds', stats['totalcmds'])
 
 
 if __name__ == "__main__":
