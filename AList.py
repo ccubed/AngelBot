@@ -242,7 +242,10 @@ class AList:
                             return "Anilist says you don't exist."
                         else:
                             jsd = json.loads(text)
-                            about = await profile_preprocessor(jsd['about'])
+                            if len(jsd['about']) > 1800:
+                                about = "Attempt to parse novel failed. Please visit user at <http://anilist.co/user/{0}> to view about section.".format(jd['display_name'])
+                            else:
+                                about = await profile_preprocessor(jsd['about'])
                             return "{0} ({1})\n{2} Pending Notifications.\n{3}\n\nI've spent {4} on Anime and read {5} Manga Chapters.\n{6}".format(jsd['display_name'], jsd['id'], jsd['notifications'], about, str(timedelta(minutes=jsd['anime_time'])), jsd['manga_chap'], jsd['image_url_lge'])
         else:
             name = message.content[7:]

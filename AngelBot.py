@@ -39,7 +39,6 @@ class AngelBot(discord.Client):
                             self.loop.call_soon_threadsafe(event[0], self.loop)
                         else:
                             self.loop.call_later(event[1], event[0], self.loop)
-            self.loop.call_soon_threadsafe(self.update_carbon)
 
     async def on_message(self, message):
         self.commands += 1
@@ -148,7 +147,10 @@ class AngelBot(discord.Client):
                         for command in self.references[item].commands:
                             if message.content.lower().startswith(prefix + command[0]):
                                 ret = await command[1](message)
-                                await self.send_message(message.channel, ret)
+                                if len(ret) > 2000:
+
+                                else:
+                                    await self.send_message(message.channel, ret)
                                 return
 
     # We need to clean settings and Oauth on server remove for security
