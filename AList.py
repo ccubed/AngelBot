@@ -265,7 +265,10 @@ class AList:
                                 return "No user found by name {0}".format(name)
                             else:
                                 jsd = json.loads(text)
-                                about = await profile_preprocessor(jsd['about'])
+                                if len(jsd['about']) > 1800:
+                                    about = "Attempt to parse novel failed. Please visit user at <http://anilist.co/user/{0}> to view about section.".format(jd['display_name'])
+                                else:
+                                    about = await profile_preprocessor(jsd['about'])
                                 return "{0} ({1})\n{2}\n\nI've spent {3} on Anime and read {4} Manga Chapters.\n{5}".format(jsd['display_name'], jsd['id'], about, str(timedelta(minutes=jsd['anime_time'])), jsd['manga_chap'], jsd['image_url_lge'])
 
     async def get_notifications(self, message):
