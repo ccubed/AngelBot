@@ -147,11 +147,7 @@ class AngelBot(discord.Client):
                         for command in self.references[item].commands:
                             if message.content.lower().startswith(prefix + command[0]):
                                 ret = await command[1](message)
-                                if len(ret) > 2000:
-
-                                else:
-                                    await self.send_message(message.channel, ret)
-                                return
+                                await self.send_message(message.channel, ret)
 
     # We need to clean settings and Oauth on server remove for security
     async def on_server_remove(self, server):
