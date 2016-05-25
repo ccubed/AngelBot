@@ -182,7 +182,7 @@ class AngelBot(discord.Client):
 
     async def _update_stats(self, stats):
         async with self.redis.get() as dbp:
-            await dbp.hset('stats', 'uptime', stats['uptime'].total_seconds()*1000)
+            await dbp.hset('stats', 'uptime', stats['uptime'].total_seconds())
             await dbp.hset('stats', 'users', stats['users'])
             await dbp.hset('stats', 'servers', stats['servers'])
             await dbp.hset('stats', 'cmdssec', stats['cmdssec'])
