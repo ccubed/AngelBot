@@ -20,10 +20,10 @@
     <div class="container text-center block-center">
         <div class="row">
             <div class="jumbotron col-md-4 col-md-offset-4 hidden-xs hidden-sm">
-                <img src="{{ url_for('static', filename='images/avatar.jpg') }}" alt="AngelBot Avatar" class="img-circle img-responsive">
+                <img src="{{ url_for('static', filename='images/avatar.jpg') }}" alt="AngelBot Avatar" class="img-circle">
             </div>
             <div class="jumbotron col-xs-12 hidden-md hidden-lg">
-                <img src="{{ url_for('static', filename='images/avatar.jpg') }}" alt="AngelBot Avatar" class="img-circle img-responsive">
+                <img src="{{ url_for('static', filename='images/avatar.jpg') }}" alt="AngelBot Avatar" class="img-circle">
             </div>
         </div>
         <div class="row">
@@ -35,7 +35,22 @@
         </div>
         <div class="row feature">
             <div class="col-xs-12 hidden-md hidden-lg">
-                Features Small - Table
+                <table class="table table-striped">
+                    <tbody>
+                        <tr>
+                            <td>AngelBot has one goal. External Services. It does that really well. Want to interface with Anilist on Discord? AngelBot is your bot.</td>
+                        </tr>
+                        <tr>
+                            <td>Want to use it with other bots? That's okay too. We can dig it. The command prefix for AngelBot can be anything.  AngelBot is robo friendly.</td>
+                        </tr>
+                        <tr>
+                            <td>AngelBot has per guild settings. Additionally, each command set can be locked to specific channels in your guild if you like.</td>
+                        </tr>
+                        <tr>
+                            <td>AngelBot has a flexible configuration system. You can control channel locks through AngelBot or by simply restricting what channels AngelBot can hear.</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
             <div class="col-md-8 hidden-xs hidden-sm">
                 AngelBot has one goal. External Services. It does that really well. Want to interface with Anilist on Discord? AngelBot is your bot.
