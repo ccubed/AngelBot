@@ -9,11 +9,11 @@ application = Flask(__name__)
 @application.route("/")
 def root():
     rcon = redis.StrictRedis(db=1)
-    up = rcon.hget("stats", "uptime")
-    users = rcon.hget("stats", "users")
-    servers = rcon.hget("stats", "servers")
-    cmdss = rcon.hget("stats", "cmdssec")
-    totalcmds = rcon.hget("stats", "totalcmds")
+    up = rcon.hget("stats", "uptime").decode('utf-8')
+    users = rcon.hget("stats", "users").decode('utf-8')
+    servers = rcon.hget("stats", "servers").decode('utf-8')
+    cmdss = rcon.hget("stats", "cmdssec").decode('utf-8')
+    totalcmds = rcon.hget("stats", "totalcmds").decode('utf-8')
     return render_template("index.html", servers=servers, users=users, commands=totalcmds, cmdssec=cmdss, uptime=up)
 
 
