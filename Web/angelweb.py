@@ -8,7 +8,13 @@ application = Flask(__name__)
 
 @application.route("/")
 def root():
-    return render_template("index.html")
+    rcon = redis.StrictRedis(db=1)
+    up = rcon.hget("stats", "uptime")
+    users = rcon.hget("stats", "users")
+    servers = rcon.hget("stats", "servers")
+    cmdss = rcon.hget("stats", "cmdssec")
+    totalcmds = rcon.hget("stats", "totalcmds")
+    return render_template("index.html", servers=servers, users=users, commands=totalcmds, cmdssec=cmdss, uptime=up)
 
 
 @application.route("/oauth/<provider>/<userid>")

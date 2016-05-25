@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0"/>
+  <title>AngelBot</title>
+
+  <!-- CSS  -->
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.6/css/materialize.min.css" type="text/css" rel="stylesheet" media="screen,projection"/>
+  <link href="{{ url_for('static', filename='css/style.css') }}" type="text/css" rel="stylesheet" media="screen,projection"/>
+</head>
+<body>
+  <nav class="blue-grey lighten-1" role="navigation">
+    <div class="nav-wrapper container"><a id="logo-container" href="#" class="brand-logo">AngelBot</a>
+    </div>
+  </nav>
+  <div class="section no-pad-bot" id="index-banner">
+    <div class="container">
+      <br><br>
+      <h1 class="header center orange-text">AngelBot</h1>
+      <div class="row center">
+        <h5 class="header col s12 light">A Discord bot that likes to communicate with APIs and started with FF XIV and XIVDB.</h5>
+      </div>
+      <div class="row center">
+        <a href="https://discordapp.com/oauth2/authorize?&client_id=168925464591728640&scope=bot&permissions=0" id="download-button" class="btn-large waves-effect">Add Bot</a>
+      </div>
+      <br><br>
+
+    </div>
+  </div>
+
+
+  <div class="container">
+    <div class="section">
+
+      <!--   Icon Section   -->
+      <div class="row">
+        <div class="col s12 m4">
+          <div class="icon-block">
+            <h2 class="center light-blue-text"><i class="material-icons">settings</i></h2>
+            <h5 class="center">Per Server Settings</h5>
+
+            <p class="light">While the bot started on one server, a lot of feedback came from that server. Not unlike the dynamic rules that other bots implement, this bot has per server rules. You can even lock individual commands to individual channels!</p>
+          </div>
+        </div>
+
+        <div class="col s12 m4">
+          <div class="icon-block">
+            <h2 class="center light-blue-text"><i class="material-icons">help</i></h2>
+            <h5 class="center">Well Documented</h5>
+
+            <p class="light">Do you need help? There are help files available at <a href="http://angelbot.rtfd.org">RTFD</a>. Always up to date with the latest code to inform you of any pressing changes and always maintained by the developer of AngelBot.</p>
+          </div>
+        </div>
+
+        <div class="col s12 m4">
+          <div class="icon-block">
+            <h2 class="center light-blue-text"><i class="material-icons">apps</i></h2>
+            <h5 class="center">Customizable</h5>
+
+            <p class="light">Want to add your own module? Yeah I can dig that. The modules have a standard format that is pretty apparent and a documentation page that explains further details. Then just submit a request on github at <a href="https://github.com/ccubed/AngelBot">AngelBot</a> and we can get your module added.</p>
+          </div>
+        </div>
+      </div>
+    <div class="row">
+        <div class="col s12 m4">
+          <div class="icon-block">
+            <h2 class="center light-blue-text"><i class="material-icons">network_wifi</i></h2>
+            <h5 class="center">APIs</h5>
+
+            <p class="light">The focus of the bot is entirely on external APIs. While other bots focus on information available within Discord or parsing websites, AngelBot parses APIs. Currently there is support for XIVDB with coding already started on Github and Anilist and plans for LCBO, Hummingbird.me and Twitch.tv.</p>
+          </div>
+        </div>
+
+        <div class="col s12 m4">
+          <div class="icon-block">
+            <h2 class="center light-blue-text"><i class="material-icons">child_friendly</i></h2>
+            <h5 class="center">Bot Friendly</h5>
+
+            <p class="light">With the ability to customize the command prefix that the bot responds to per server and the fact that the admin commands use                                         prefixes that should never ever be copied, this bot is extremely friendly with other bots and shouldn't ever interfere or dual fire.</p>
+          </div>
+        </div>
+
+        <div class="col s12 m4">
+          <div class="icon-block">
+            <h2 class="center light-blue-text"><i class="material-icons">account_circle</i></h2>
+            <h5 class="center">OAuth</h5>
+
+            <p class="light">That's right, this bot can get to know you. It can log into your accounts. It supports OAuth 2 by redirecting you to your familiar website flow and then collecting the results here at angelbot HQ.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <br><br>
+
+    <div class="section">
+
+    </div>
+  </div>
+
+  <footer class="page-footer blue-grey darken-2">
+    <div class="container">
+      <div class="row">
+        <div class="col l6 s12">
+          <h5 class="white-text">About AngelBot</h5>
+          <p class="grey-text text-lighten-4">AngelBot was made using <a href="https://github.com/Rapptz/discord.py">Discord.py</a>. It is open source and the code is available on <a href="https://github.com/ccubed/AngelBot">Github</a>. You can contact AngelBot's developer on Discord by finding Rory in Discord-dev or <a href="https://discord.gg/0wjevYU2RBlo7JpF">AngelBot</a>. This bot is also listed on <a href="https://www.carbonitex.net/">Carbon</a>.</p>
+
+
+        </div>
+      </div>
+    </div>
+    <div class="footer-copyright">
+      <div class="container">
+      Made by <a class="orange-text text-lighten-3" href="http://materializecss.com">Materialize</a>
+      </div>
+    </div>
+  </footer>
+
+
+  <!--  Scripts-->
+  <script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+  <script src="{{ url_for('static', filename='js/materialize.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/init.js') }}"></script>
+
+  </body>
+</html>
