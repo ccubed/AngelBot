@@ -13,7 +13,8 @@ class AList:
         self.apiurl = "https://anilist.co/api"
         self.commands = [['awaifu', self.waifu], ['ahusbando', self.husbando], ['acharacter', self.searchcharacter],
                          ['acurrent', self.currentanime], ['aanime', self.searchanime], ['amanga', self.searchmanga],
-                         ['auser', self.get_user], ['anotifications', self.get_notifications]]
+                         ['auser', self.get_user], ['anotifications', self.get_notifications], ['apeople', self.user_search],
+                         ['afollow', self.follow_user]]
         self.pools = redis
         self.events = [[self.get_readonly, 0]]
         self.enc = encryption.AESCipher(cryptokey)
@@ -38,25 +39,29 @@ class AList:
 
     async def get_oauth(self, id):
         async with self.pools.get() as dbp:
-            expiration = await dbp.hget(id, "Anilist_Expires")
-            if int(expiration) < time.time():
-                refresh = await dbp.hget(id, "Anilist_Refresh")
-                cid = await dbp.hget("AniList", "ClientID")
-                csec = await dbp.hget("AniList", "ClientSecret")
-                params = {'grant_type': 'refresh_token', 'client_id': cid, 'client_secret': csec, 'refresh_token': refresh}
-                with aiohttp.ClientSession() as session:
-                    async with session.post("https://anilist.co/api/auth/access_token", params=params) as response:
-                        text = await response.text()
-                        if text == "\n" or response.status == 404:
-                            return 0
-                        else:
-                            jsd = json.loads(text)
-                            await dbp.hset(id, "Anilist_Expires", jsd['expires'])
-                            await dbp.hset(id, "Anilist_Token", self.enc.encrypt(jsd['access_token']))
-                            return jsd['access_token']
+            test = await dbp.exists(id)
+            if test:
+                expiration = await dbp.hget(id, "Anilist_Expires")
+                if int(expiration) < time.time():
+                    refresh = await dbp.hget(id, "Anilist_Refresh")
+                    cid = await dbp.hget("AniList", "ClientID")
+                    csec = await dbp.hget("AniList", "ClientSecret")
+                    params = {'grant_type': 'refresh_token', 'client_id': cid, 'client_secret': csec, 'refresh_token': refresh}
+                    with aiohttp.ClientSession() as session:
+                        async with session.post("https://anilist.co/api/auth/access_token", params=params) as response:
+                            text = await response.text()
+                            if text == "\n" or response.status == 404:
+                                return 0
+                            else:
+                                jsd = json.loads(text)
+                                await dbp.hset(id, "Anilist_Expires", jsd['expires'])
+                                await dbp.hset(id, "Anilist_Token", self.enc.encrypt(jsd['access_token']))
+                                return jsd['access_token']
+                else:
+                    atoken = await dbp.hget(id, "Anilist_Token")
+                    return self.enc.decrypt(atoken).decode()
             else:
-                atoken = await dbp.hget(id, "Anilist_Token")
-                return self.enc.decrypt(atoken).decode()
+                return 0
 
     async def waifu(self, message):
         name = message.content[8:]
@@ -73,8 +78,10 @@ class AList:
                     if resp.status == 404 or text == "\n":
                         return "What character? You don't even know the name of your waifu? The shame."
                     jsd = json.loads(text)
-                    if isinstance(jsd, list):
+                    if isinstance(jsd, list) and len(jsd) > 0:
                         jsd = jsd[0]
+                    elif isinstance(jsd, list) and len(jsd) == 0:
+                        print("[" + jsd + "\n" + resp.status + "]")
                     whc = "{0} confesses their undying devotion to their waifu {1}{2}!\n{3}".format(message.author.name,
                                                                                                     jsd['name_first'],
                                                                                                     ' ' + jsd['name_last'] if jsd['name_last'] is not None else '',
@@ -96,8 +103,10 @@ class AList:
                     if text == "\n" or resp.status == 404:
                         return "What character? You don't even know the name of your husbando? The shame."
                     jsd = json.loads(text)
-                    if isinstance(jsd, list):
+                    if isinstance(jsd, list) and len(jsd) > 0:
                         jsd = jsd[0]
+                    elif isinstance(jsd, list) and len(jsd) == 0:
+                        print("[" + jsd + "\n" + resp.status + "]")
                     whc = "{0} confesses their undying devotion to their husbando {1}{2}!\n{3}".format(message.author.name,
                                                                                                jsd['name_first'],
                                                                                                ' ' + jsd['name_last'] if jsd['name_last'] is not None else '',
@@ -122,7 +131,7 @@ class AList:
                         if len(jsd) > 1:
                             msg = "Found these characters ->\n"
                             for i in jsd:
-                                msg += " {0}{1} (ID: {2})\n".format(i['name_first'], '\b' + i['name_last'] if i['last_name'] != '' else '', i['id'])
+                                msg += " {0}{1} (ID: {2})\n".format(i['name_first'], '\b' + i.get('name_last', ''), i['id'])
                             return msg
                         elif len(jsd) == 1:
                             return await self.parsecharacter(jsd[0]['id'])
@@ -135,7 +144,7 @@ class AList:
             with aiohttp.ClientSession() as session:
                 async with session.get(url, params=data) as resp:
                     jsd = await resp.json()
-                    return " {0} {1}\nInfo: {2}\n{3}".format(jsd['name_first'], jsd['name_last'],
+                    return " {0} {1}\nInfo: {2}\n{3}".format(jsd['name_first'], jsd.get('name_last', ''),
                                                             jsd['info'], jsd['image_url_med'])
 
     async def searchanime(self, message):

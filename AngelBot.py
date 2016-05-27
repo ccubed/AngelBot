@@ -52,7 +52,7 @@ class AngelBot(discord.Client):
         elif self.user in message.mentions:
             if 'info' in message.content:
                 await self.send_message(message.channel,
-                                        "```AngelBot\nVersion: 2.0\nLibrary: Discord.py\nURL: https://angelbot.vertinext.com\nOwner: Rory#6028\nHelp: http://angelbot.rtfd.org\nServer: https://discord.gg/cyclops-sagat-magitek```")
+                                        "```AngelBot\nVersion: 2.0\nLibrary: Discord.py\nURL: https://angelbot.vertinext.com\nOwner: 66257033204080640\nHelp: http://angelbot.rtfd.org\nServer: https://discord.gg/0wjevYU2RBlo7JpF```")
             elif 'help' in message.content:
                 await self.send_message(message.channel,
                                         "```AngelBot has a lot of modules that interact with a lot of APIs. Having a list of commands in Discord is unrealistic. See:\nhttp://angelbot.rtfd.org```")
