@@ -41,25 +41,29 @@ class AList:
         async with self.pools.get() as dbp:
             test = await dbp.exists(id)
             if test:
-                expiration = await dbp.hget(id, "Anilist_Expires")
-                if int(expiration) < time.time():
-                    refresh = await dbp.hget(id, "Anilist_Refresh")
-                    cid = await dbp.hget("AniList", "ClientID")
-                    csec = await dbp.hget("AniList", "ClientSecret")
-                    params = {'grant_type': 'refresh_token', 'client_id': cid, 'client_secret': csec, 'refresh_token': refresh}
-                    with aiohttp.ClientSession() as session:
-                        async with session.post("https://anilist.co/api/auth/access_token", params=params) as response:
-                            text = await response.text()
-                            if text == "\n" or response.status == 404:
-                                return 0
-                            else:
-                                jsd = json.loads(text)
-                                await dbp.hset(id, "Anilist_Expires", jsd['expires'])
-                                await dbp.hset(id, "Anilist_Token", self.enc.encrypt(jsd['access_token']))
-                                return jsd['access_token']
+                test = await dbp.hexists(id, "Anilist_Expires")
+                if test:
+                    expiration = await dbp.hget(id, "Anilist_Expires")
+                    if int(expiration) < time.time():
+                        refresh = await dbp.hget(id, "Anilist_Refresh")
+                        cid = await dbp.hget("AniList", "ClientID")
+                        csec = await dbp.hget("AniList", "ClientSecret")
+                        params = {'grant_type': 'refresh_token', 'client_id': cid, 'client_secret': csec, 'refresh_token': refresh}
+                        with aiohttp.ClientSession() as session:
+                            async with session.post("https://anilist.co/api/auth/access_token", params=params) as response:
+                                text = await response.text()
+                                if text == "\n" or response.status == 404:
+                                    return 0
+                                else:
+                                    jsd = json.loads(text)
+                                    await dbp.hset(id, "Anilist_Expires", jsd['expires'])
+                                    await dbp.hset(id, "Anilist_Token", self.enc.encrypt(jsd['access_token']))
+                                    return jsd['access_token']
+                    else:
+                        atoken = await dbp.hget(id, "Anilist_Token")
+                        return self.enc.decrypt(atoken).decode()
                 else:
-                    atoken = await dbp.hget(id, "Anilist_Token")
-                    return self.enc.decrypt(atoken).decode()
+                    return 0
             else:
                 return 0
 
