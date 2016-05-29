@@ -20,6 +20,7 @@ class AngelBot(discord.Client):
         self.btoken = None
         self.creator = None
         self.references = {}
+        self.testing = True
 
     async def setup(self):
         self.redis = await aioredis.create_pool(('localhost', 6379), db=1, minsize=5, maxsize=10, encoding="utf-8")
@@ -39,8 +40,9 @@ class AngelBot(discord.Client):
                             self.loop.call_soon_threadsafe(event[0], self.loop)
                         else:
                             self.loop.call_later(event[1], event[0], self.loop)
-            self.loop.call_soon_threadsafe(self.update_stats)
-            self.loop.call_soon_threadsafe(self.update_carbon)
+            if not self.testing:
+                self.loop.call_soon_threadsafe(self.update_stats)
+                self.loop.call_soon_threadsafe(self.update_carbon)
 
     async def on_message(self, message):
         self.commands += 1
@@ -136,14 +138,15 @@ class AngelBot(discord.Client):
         else:
             prefix = "$"
             async with self.redis.get() as dbp:
-                test = await dbp.hget(message.server.id, "Prefix")
-                if test != "" and test is not None:
-                    prefix = test
+                test = await dbp.hexists(message.server.id, "Prefix")
+                if test:
+                    prefix = await dbp.hget(message.server.id, "Prefix")
                 mods = await dbp.hgetall(message.server.id+"_Modules")
                 for item in mods.keys():
                     if mods[item] == "None" or message.channel.name in mods[item].split("|"):
+                        check = message.content.split(" ")[0]
                         for command in self.references[item].commands:
-                            if message.content.lower().startswith(prefix + command[0]):
+                            if check == prefix + command[0]:
                                 ret = await command[1](message)
                                 await self.send_message(message.channel, ret)
 
