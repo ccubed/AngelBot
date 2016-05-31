@@ -30,3 +30,10 @@ GitHub
 * Documentation: None Yet
 * Module Name: None Yet
 * Oauth: :doc:`OA_Git`
+
+Riot
+----
+* Features: Still Coding
+* Documentation: :doc:`Riot_Games`
+* Module Name: LOL
+* Oauth: Unknown (I Don't think so? Haven't gotten to that point)
