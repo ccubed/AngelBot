@@ -49,7 +49,13 @@ Usage has per server settings now. This is written. See configuration.
 Global Commands
 ===============
 
-Part of configuration.
+@AngelBot Help
+
+
+@AngelBot Info
+
+
+PM AngelBot Oauth
 
 Where's Music
 =============
