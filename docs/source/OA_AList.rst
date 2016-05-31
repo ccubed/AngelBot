@@ -13,22 +13,6 @@ Follows/Notifications
 ---------------------
 In order to show you your notifications and allow you to follow other users, OAuth is required.
 
-Adding Anime
-------------
-Self explanatory.
-
-Marking Shows Watched
----------------------
-Self explanatory.
-
-Favorites
----------
-Modifications to and Retrieving of favorite anime/manga.
-
-Airing
-------
-A special endpoint that returns your currently watching currently airing anime as defined by AniList's filters. It required OAuth. Don't ask me.
-
 Lists
 -----
 Modifications to Anime and Manga lists of any kind required OAuth. Used for adding new Anime and Manga and changing status, review. ratings, etc.

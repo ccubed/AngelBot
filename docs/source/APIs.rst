@@ -5,7 +5,7 @@ This is a listing of all the current APIs that the bot supports and their comman
 
 AniList
 -------
-* Features: Anime, Manga, Characters.
+* Features: Anime, Manga, Characters, Users, User Lists, Modifications to your list
 * Documentation: :doc:`AniList`
 * Module Name: AList
 * Oauth: :doc:`OA_AList`
@@ -24,38 +24,9 @@ XKCD
 * Module Name: XKCD
 * Oauth: No
 
-OSU
----
-* Features: In Progress
-* Documentation: None Yet
-* Module Name: None Yet
-* Oauth: No
-
 GitHub
 ------
 * Features: In Progress
 * Documentation: None Yet
 * Module Name: None Yet
 * Oauth: :doc:`OA_Git`
-
-Twitch
-------
-* Features: In Progress
-* Documentation: None Yet
-* Module Name: None Yet
-* Oauth: :doc:`OA_Twitch`
-
-Steam
------
-* Features: In Progress
-* Documentation: None Yet
-* Module Name: None Yet
-* Oauth: :doc:`OA_Steam`
-
-Hummingbird.me
---------------
-* Features: In Progress
-* Documentation: None Yet
-* Module Name: None Yet
-* Oauth: No, instead it likes to send plaintext username and passwords through post requests over https because securitay
-* But for documentation on what the bot uses your login for: :doc:`OA_HBird` (No it's not oauth, but consistency)
