@@ -19,8 +19,8 @@ Prefix
 
 You can define a server wide prefix to use besides $. This is mostly for compatibility with other bots. AngelBot is pretty chill, use what you want.
 
-ardprefix [thing]
-    Set the command prefix to [thing]. That means you would type [thing] before every command in these documents.
+ardserver prefix:[value]
+    Set the command prefix to [value]. That means you would type [value] before every command in these documents.
     Ex: ardserver prefix:^
 
 Modules
