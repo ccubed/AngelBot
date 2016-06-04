@@ -67,8 +67,15 @@ serverglob.py
 # pycharm
 .idea/*
 
+# Program logs, only code in the github
 GExitLogs/*
 
+# Encryption things
 secret.py
 
+# Pycharm settings again
 *.profile
+
+# My personal Notes for development, aren't part of the repo.
+Notes/*
+

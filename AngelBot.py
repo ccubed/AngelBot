@@ -20,7 +20,7 @@ class AngelBot(discord.Client):
         self.btoken = None
         self.creator = None
         self.references = {}
-        self.testing = True
+        self.testing = False
 
     async def setup(self):
         self.redis = await aioredis.create_pool(('localhost', 6379), db=1, minsize=5, maxsize=10, encoding="utf-8")
@@ -148,7 +148,19 @@ class AngelBot(discord.Client):
                         for command in self.references[item].commands:
                             if check == prefix + command[0]:
                                 ret = await command[1](message)
-                                await self.send_message(message.channel, ret)
+                                if isinstance(ret, list):
+                                    for retstring in ret:
+                                        if len(retstring) > 2000:
+                                            logger.warning("Item was more than 2000 characters. Skipped.")
+                                            return
+                                        else:
+                                            await self.send_message(message.channel, retstring)
+                                else:
+                                    if len(ret) > 2000:
+                                        logger.warning("Item was more than 2000 characters. Skipped.")
+                                        return
+                                    else:
+                                        await self.send_message(message.channel, ret)
 
     # We need to clean settings and Oauth on server remove for security
     async def on_server_remove(self, server):

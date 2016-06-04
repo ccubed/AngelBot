@@ -34,7 +34,7 @@ def oauth_callback(provider):
     enc = AESCipher(cryptokey)
     rcon = redis.StrictRedis(db=1)
     if 'state' not in request.args:
-        return redirect(url_for('static', filename='html/oauth_security.html'), code=303)
+        return redirect(url_for('static', filename='html/oauthhttps://angelbot.vertinext.com/oauth/oauthcallback/battlenet_security.html'), code=303)
 
     if 'error' in request.args:
         return redirect(url_for('static', filename='html/oauth_access.html'), code=303)

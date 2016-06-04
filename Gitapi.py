@@ -8,7 +8,7 @@ class GithubApi:
     def __init__(self, redis):
         self.apiurl = "https://api.github.com"
         self.pools = redis
-        self.header = {'Accept': 'application/vnd.github.v3+json', 'User-Agent': 'AngelBot (Github User CCubed)'}
+        self.header = {'Accept': 'application/vnd.github.v3+json', 'User-Agent': 'AngelBot ( aiohttp 0.26.1 python 3.5.1 )'}
         self.crypt = encryption.AESCipher(cryptokey)
         self.commands = [['gitinfo', self.get_user_info]]
         self.auth_limit = 5000

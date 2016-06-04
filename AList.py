@@ -20,7 +20,7 @@ class AList:
         self.pools = redis
         self.events = [[self.get_readonly, 0]]
         self.enc = encryption.AESCipher(cryptokey)
-        self.headers = {'Content-Type': 'application/x-www-form-urlencoded'}
+        self.headers = {'Content-Type': 'application/x-www-form-urlencoded', 'User-Agent': 'AngelBot (aiohttp 0.21.6 python 3.5.1)'}
 
     def get_readonly(self, loop):
         loop.create_task(self._get_readonly())

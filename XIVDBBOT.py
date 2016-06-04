@@ -21,7 +21,7 @@ class DBParser:
         data = {'string': message.content[7:]}
         url = self.apiurl + '/search'
         with aiohttp.ClientSession() as session:
-            async with session.get(url, params=data) as response:
+            async with session.get(url, params=data, headers={'User-Agent': 'AngelBot ( aiohttp 0.26.1 python 3.5.1 )'}) as response:
                 jsd = await response.json()
                 msg = "Matched...\n"
                 for key in jsd:
@@ -34,7 +34,7 @@ class DBParser:
         data = {'string': name}
         url = self.apiurl + '/search'
         with aiohttp.ClientSession() as session:
-            async with session.get(url, params=data) as response:
+            async with session.get(url, params=data, headers={'User-Agent': 'AngelBot ( aiohttp 0.26.1 python 3.5.1 )'}) as response:
                 jsd = await response.json()
                 return jsd
 
@@ -42,7 +42,7 @@ class DBParser:
         data = {'string': message.content[6:], 'one': 'items'}
         url = self.apiurl + '/search'
         with aiohttp.ClientSession() as session:
-            async with session.get(url, params=data) as response:
+            async with session.get(url, params=data, headers={'User-Agent': 'AngelBot ( aiohttp 0.26.1 python 3.5.1 )'}) as response:
                 jsd = await response.json()
                 if jsd['items']['total'] == 0:
                     return "No results for {0} in items.".format(message.content[6:])
@@ -60,7 +60,7 @@ class DBParser:
         data = {'string': message.content[7:], 'one': 'quests'}
         url = self.apiurl + '/search'
         with aiohttp.ClientSession() as session:
-            async with session.get(url, params=data) as response:
+            async with session.get(url, params=data, headers={'User-Agent': 'AngelBot ( aiohttp 0.26.1 python 3.5.1 )'}) as response:
                 jsd = await response.json()
                 if jsd['quests']['total'] == 0:
                     return "No results for {0} in quests.".format(message.content[7:])
@@ -78,7 +78,7 @@ class DBParser:
         data = {'string': message.content[8:], 'one': 'recipes'}
         url = self.apiurl + '/search'
         with aiohttp.ClientSession() as session:
-            async with session.get(url, params=data) as response:
+            async with session.get(url, params=data, headers={'User-Agent': 'AngelBot ( aiohttp 0.26.1 python 3.5.1 )'}) as response:
                 jsd = await response.json()
                 if jsd['recipes']['total'] == 0:
                     return "No results for {0} in recipes.".format(message.content[8:])
@@ -96,7 +96,7 @@ class DBParser:
         data = {'string': message.content[8:], 'one': 'actions'}
         url = self.apiurl + '/search'
         with aiohttp.ClientSession() as session:
-            async with session.get(url, params=data) as response:
+            async with session.get(url, params=data, headers={'User-Agent': 'AngelBot ( aiohttp 0.26.1 python 3.5.1 )'}) as response:
                 jsd = await response.json()
                 if jsd['actions']['total'] == 0:
                     return "No results for {0} in actions.".format(message.content[8:])
@@ -114,7 +114,7 @@ class DBParser:
         data = {'string': message.content[6:], 'one': 'gathering'}
         url = self.apiurl + '/search'
         with aiohttp.ClientSession() as session:
-            async with session.get(url, params=data) as response:
+            async with session.get(url, params=data, headers={'User-Agent': 'AngelBot ( aiohttp 0.26.1 python 3.5.1 )'}) as response:
                 jsd = await response.json()
                 if jsd['gathering']['total'] == 0:
                     return "No results for {0} in gathering.".format(message.content[8:])
@@ -132,7 +132,7 @@ class DBParser:
         data = {'string': message.content[5:], 'one': 'npcs'}
         url = self.apiurl + '/search'
         with aiohttp.ClientSession() as session:
-            async with session.get(url, params=data) as response:
+            async with session.get(url, params=data, headers={'User-Agent': 'AngelBot ( aiohttp 0.26.1 python 3.5.1 )'}) as response:
                 jsd = response.json()
                 if jsd['npcs']['total'] == 0:
                     return "No results for {0} in npcs.".format(message.content[5:])
@@ -150,7 +150,7 @@ class DBParser:
         data = {'string': message.content[8:], 'one': 'status'}
         url = self.apiurl + '/search'
         with aiohttp.ClientSession() as session:
-            async with session.get(url, params=data) as response:
+            async with session.get(url, params=data, headers={'User-Agent': 'AngelBot ( aiohttp 0.26.1 python 3.5.1 )'}) as response:
                 jsd = response.json()
                 if jsd['status']['total'] == 0:
                     return "No results for {0} in status.".format(message.content[8:])
@@ -168,7 +168,7 @@ class DBParser:
         data = {'string': message.content[8:], 'one': 'minions'}
         url = self.apiurl + '/search'
         with aiohttp.ClientSession() as session:
-            async with session.get(url, params=data) as response:
+            async with session.get(url, params=data, headers={'User-Agent': 'AngelBot ( aiohttp 0.26.1 python 3.5.1 )'}) as response:
                 jsd = response.json()
                 if jsd['minions']['total'] == 0:
                     return "No results for {0} in minions.".format(message.content[8:])
@@ -186,7 +186,7 @@ class DBParser:
         data = {'string': message.content[13:], 'one': 'achievements'}
         url = self.apiurl + '/search'
         with aiohttp.ClientSession() as session:
-            async with session.get(url, params=data) as response:
+            async with session.get(url, params=data, headers={'User-Agent': 'AngelBot ( aiohttp 0.26.1 python 3.5.1 )'}) as response:
                 jsd = await response.json()
                 if jsd['achievements']['total'] == 0:
                     return "No results for {0} in achievements.".format(message.content[13:])
@@ -203,7 +203,7 @@ class DBParser:
     async def parseitem(self, name):
         url = self.apiurl + '/item/' + name
         with aiohttp.ClientSession() as session:
-            async with session.get(url) as response:
+            async with session.get(url, headers={'User-Agent': 'AngelBot ( aiohttp 0.26.1 python 3.5.1 )'}) as response:
                 jd = await response.json()
                 message = "{0}\n{1} {2} {3} {4}\n{5}".format(jd['name'], 'Unique' if jd['is_unique'] else 'Common',
                                                              'Tradeable' if 'is_tradable' in jd else 'Untradable',
@@ -214,7 +214,7 @@ class DBParser:
     async def parsequest(self, name):
         url = self.apiurl + "/quest/" + name
         with aiohttp.ClientSession() as session:
-            async with session.get(url) as response:
+            async with session.get(url, headers={'User-Agent': 'AngelBot ( aiohttp 0.26.1 python 3.5.1 )'}) as response:
                 jd = await response.json()
                 message = "{0}\n".format(jd['name'])
                 if jd['classjob_category_1']['name'] in self.shortnames:
@@ -235,7 +235,7 @@ class DBParser:
     async def parserecipe(self, name):
         url = self.apiurl + "/recipe/" + name
         with aiohttp.ClientSession() as session:
-            async with session.get(url) as response:
+            async with session.get(url, headers={'User-Agent': 'AngelBot ( aiohttp 0.26.1 python 3.5.1 )'}) as response:
                 jd = await response.json()
                 message = "{0}\nClass: {1} Recipe Level: {2}\n".format(jd['name'], jd['classjob']['name'], jd['level'])
                 message += "Materials Required:\n"
@@ -247,7 +247,7 @@ class DBParser:
     async def parseaction(self, name):
         url = self.apiurl + "/action/" + name
         with aiohttp.ClientSession() as session:
-            async with session.get(url) as response:
+            async with session.get(url, headers={'User-Agent': 'AngelBot ( aiohttp 0.26.1 python 3.5.1 )'}) as response:
                 jd = await response.json()
                 return "{0}\nClass: {1} Level: {2}\n{3}\n{4}".format(jd['name'], jd['classjob']['name'], jd['level'],
                                                                      jd['help'], jd['url_xivdb'])
@@ -255,7 +255,7 @@ class DBParser:
     async def parseshop(self, name):
         url = self.apiurl + "/shop/" + name
         with aiohttp.ClientSession() as session:
-            async with session.get(url) as response:
+            async with session.get(url, headers={'User-Agent': 'AngelBot ( aiohttp 0.26.1 python 3.5.1 )'}) as response:
                 jd = await response.json()
                 message = "{0} (ID: {1})\nThis shops sells ->\n".format(jd['npc_name'], jd['id'])
                 for item in jd['items']:
@@ -277,7 +277,7 @@ class DBParser:
     async def parsenpc(self, name):
         url = self.apiurl + "/npc/" + name
         with aiohttp.ClientSession() as session:
-            async with session.get(url) as response:
+            async with session.get(url, headers={'User-Agent': 'AngelBot ( aiohttp 0.26.1 python 3.5.1 )'}) as response:
                 jd = await response.json()
                 message = "{0} is located in {1} at {2}x {3}y".format(jd['name'], jd['placename']['name'],
                                                                       jd['coordinates']['x'], jd['coordinates']['y'])
@@ -286,7 +286,7 @@ class DBParser:
     async def parseenemy(self, name):
         url = self.apiurl + "/enemy/" + name
         with aiohttp.ClientSession() as session:
-            async with session.get(url) as response:
+            async with session.get(url, headers={'User-Agent': 'AngelBot ( aiohttp 0.26.1 python 3.5.1 )'}) as response:
                 jd = await response.json()
                 message = "{0}\n".format(jd['name'])
                 if 'region_name' in jd:
@@ -302,14 +302,14 @@ class DBParser:
     async def parsestatus(self, name):
         url = self.apiurl + "/status/" + name
         with aiohttp.ClientSession() as session:
-            async with session.get(url) as response:
+            async with session.get(url, headers={'User-Agent': 'AngelBot ( aiohttp 0.26.1 python 3.5.1 )'}) as response:
                 jd = await response.json()
                 return "Name: {0}\n{1}".format(jd['name'], jd['help'])
 
     async def parseminion(self, name):
         url = self.apiurl + "/minion/" + name
         with aiohttp.ClientSession() as session:
-            async with session.get(url) as response:
+            async with session.get(url, headers={'User-Agent': 'AngelBot ( aiohttp 0.26.1 python 3.5.1 )'}) as response:
                 jd = await response.json()
                 message = "{0}\n   Minion Action: {1}\n   {2}".format(jd['name'], jd['action'], jd['help'])
                 return message
@@ -317,7 +317,7 @@ class DBParser:
     async def parseachievement(self, name):
         url = self.apiurl + "/achievement/" + name
         with aiohttp.ClientSession() as session:
-            async with session.get(url) as response:
+            async with session.get(url, headers={'User-Agent': 'AngelBot ( aiohttp 0.26.1 python 3.5.1 )'}) as response:
                 jd = await response.json()
                 return "{0} ({1} - {2})\n{3}".format(jd['name'], jd['category_name'], jd['kind_name'], jd['help'])
 
