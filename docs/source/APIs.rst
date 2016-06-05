@@ -7,12 +7,12 @@ AniList
 -------
 * Features: Anime, Manga, Characters, Users, User Lists, Modifications to your list
 * Documentation: :doc:`AniList`
-* Module Name: AList
+* Module Name: AniList
 * Oauth: :doc:`OA_AList`
 
 XIVDB
 -----
-* Features: Quests, Items, Recipes, NPCs, Minions, Materials/Gather Nodes, Class Actions, Status Effects
+* Features: Quests, Items, Recipes, NPCs, Minions, Materials/Gather Nodes, Class Actions, Status Effects. Everything with information.
 * Documentation: :doc:`XIVDB`
 * Module Name: XIVDBBOT
 * Oauth: No
@@ -33,7 +33,7 @@ GitHub
 
 Riot
 ----
-* Features: Still Coding
+* Features: Featured Games, Status, Summoner Stats, Recent Games, Free Rotation
 * Documentation: :doc:`Riot_Games`
-* Module Name: LOL
-* Oauth: Unknown (I Don't think so? Haven't gotten to that point)
+* Module Name: Riot
+* Oauth: No

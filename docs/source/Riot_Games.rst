@@ -16,4 +16,20 @@ I am also, per my agreement with Riot, legally required to tell you that I don't
 
 Features
 --------
-I'm still in the planning and research phase right now, but I had to get the legal parts out of the way to agree to the terms and conditions of riot's api. Check back later.
+islolup
+    Return the status for every shard in every region. Includes any known incidents.
+
+lolstatus [region]
+    Return the status for a specific region. Region should be one of na1 (North America), eu (Europe West), eun1 (EU Nordic and East), la1 (Latin America North), la2 (Latin America South), oc1 (Oceania), jp1 (Japan)
+
+lolfree
+    Return the current free rotation heros.
+
+lolfreatures
+    **NA Only**: Return the currently featured games, their team makeup, game mode, map and currently elapsed time.
+
+lolrecent [summoner]
+    **NA Only**: Return a list of recent games and whether or not they were a win or loss for summoner. Summoner can be a name or ID.
+
+lolstats [summoner]
+    **NA Only**: Return a summary of ranked and unranked stats for a summoner for the current season. Summoner can be a name or id.
