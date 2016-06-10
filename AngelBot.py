@@ -251,7 +251,7 @@ class AngelBot(discord.Client):
 
 
 if __name__ == "__main__":
-    tracker = ClassTracker()
+    #tracker = ClassTracker()
     try:
         bot = AngelBot()
     except ImportError:
