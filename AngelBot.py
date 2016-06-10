@@ -7,6 +7,9 @@ import json
 import aiohttp
 import aioredis
 import discord
+import time
+from pympler.classtracker import ClassTracker
+from pympler.classtracker_stats import ConsoleStats
 from datetime import *
 from types import ModuleType
 
@@ -21,6 +24,7 @@ class AngelBot(discord.Client):
         self.creator = None
         self.references = {}
         self.testing = False
+        self.token_bucket = {}
 
     async def setup(self):
         self.redis = await aioredis.create_pool(('localhost', 6379), db=1, minsize=5, maxsize=10, encoding="utf-8")
@@ -43,6 +47,7 @@ class AngelBot(discord.Client):
             if not self.testing:
                 self.loop.call_soon_threadsafe(self.update_stats)
                 self.loop.call_soon_threadsafe(self.update_carbon)
+                self.loop.call_soon_threadsafe(self.update_tokens)
 
     async def on_message(self, message):
         self.commands += 1
@@ -86,25 +91,7 @@ class AngelBot(discord.Client):
                     await self.send_message(message.author, "Assuming you want a join link: https://discordapp.com/oauth2/authorize?client_id={0}&scope=bot&permissions=0".format(cid))
         elif message.content.startswith("owl") and message.author.id == self.creator:
             if message.content.lower().startswith("owldebug"):
-                if "|" in message.content:
-                    context = message.content[9:].split("|")[0]
-                    code = message.content[9:].split("|")[1]
-                    if context not in self.references:
-                        return "I couldn't find context {0} in loaded contexts. Perhaps you need to hotload it first?".format(
-                            context)
-                    else:
-                        context_loaded = self.references[context]
-                        check = code.split("(")[0]
-                        if " " in check:
-                            check = check.split(" ")[-1:]
-                        for item in context_loaded.commands:
-                            if item[0] == check:
-                                if '_is_coroutine' in item[1].__dict__:
-                                    result = await eval(code, globals(), context_loaded.__dict__)
-                        else:
-                            result = eval(code, globals(), context_loaded.__dict__)
-                        await self.send_message(message.channel, result)
-                else:
+                    # Rewrite this whole thing to be able to await things seriously
                     await self.send_message(message.channel, eval(message.content[9:]))
             elif message.content.lower().startswith("owlhotload"):
                 ret = self.references['Code'].hotload(message)
@@ -128,9 +115,9 @@ class AngelBot(discord.Client):
                     await self.send_message(message.channel, "File not found.")
                     return
                 else:
-                    fstream = fstream.read()
+                    imgbd = fstream.read()
                     fstream.close()
-                    await self.edit_profile(avatar=fstream)
+                    await self.edit_profile(avatar=imgbd)
             elif message.content.lower().startswith("owlgame"):
                 await self.change_status(game=discord.Game(name=message.content[8:]))
         elif message.content.startswith("ard"):
@@ -163,7 +150,20 @@ class AngelBot(discord.Client):
                         for command in self.references[item].commands:
                             if check == prefix + command[0]:
                                 ret = await command[1](message)
-                                if isinstance(ret, list):
+                                if isinstance(ret, dict):
+                                    if ret['module'] in self.token_bucket:
+                                        await self.token_bucket[ret['module']]['commands'].put([ret['command'], ret['message']])
+                                        self.token_bucket[ret['module']]['servers'][ret['message'].server.id] = True
+                                        if self.token_bucket[ret['module']]['time_to_retry'] > ret['time_to_retry']:
+                                            self.token_bucket[ret['module']]['time_to_retry'] = ret['time_to_retry']
+                                        await self.send_message(ret['message'].server.id, "Oh no, we done got ratelimited! Please wait {}. Messages will automatically process then.".format(timedelta(seconds=self.token_bucket[ret['module']]['time_to_rety'])))
+                                    else:
+                                        self.token_bucket[ret['module']] = {'servers': {ret['message'].server.id: True},
+                                                                            'time_to_retry': ret['time_to_retry']}
+                                        self.token_bucket[ret['module']]['commands'] = asyncio.Queue(loop=self.loop)
+                                        await self.token_bucket[ret['module']]['commands'].put([ret['command'], ret['message']])
+                                        await self.send_message(ret['message'].server.id, "Oh no, we done got ratelimited! Please wait {}. Messages will automatically process then.".format(timedelta(seconds=ret['time_to_rety'])))
+                                elif isinstance(ret, list):
                                     for retstring in ret:
                                         if len(retstring) > 2000:
                                             logger.warning("Item was more than 2000 characters. Skipped.")
@@ -218,12 +218,46 @@ class AngelBot(discord.Client):
             await dbp.hset('stats', 'cmdssec', stats['cmdssec'])
             await dbp.hset('stats', 'totalcmds', stats['totalcmds'])
 
+    def update_tokens(self):
+        if len(list(self.token_bucket.keys())) > 0:
+            #  We got ratelimits
+            self.loop.create_task(self._clear_tokens)
+        else:
+            #  We ain't got no ratelimits, whatever
+            self.loop.call_later(300, self.update_tokens)
+
+    async def _clear_tokens(self):
+        tokens = False
+        for module in self.token_bucket.keys():
+            if time.time() > self.token_bucket[module]['time_to_retry']:
+                if self.token_bucket[module]['commands'].qsize() > 0:
+                    tokens = True
+                    for x in range(0,4):  #  5 at a time or b1nzy will send me angry pms
+                        this_task = await self.token_bucket[module]['commands'].get()
+                        ret = await this_task[0](this_task[1])
+                        if isinstance(ret, str):
+                            await self.send_message(this_task[1].channel, ret)
+                        elif isinstance(ret, list):
+                            for x in ret:
+                                await self.send_message(this_task[1].channel, x)
+                        elif isinstance(ret, dict):
+                            #  anoooother 429.
+                            logger.critical("Got another 429 while processing command {} after ratelimit wait.".format(this_task[1].content))
+                            continue
+                else:
+                    self.token_bucket.pop(module)
+        if tokens:  #  We need to come back and keep clearing
+            self.loop.call_later(20, self.update_tokens)
+
 
 if __name__ == "__main__":
+    tracker = ClassTracker()
     try:
         bot = AngelBot()
     except ImportError:
         sys.exit(65)
+
+    tracker.track_object(bot)
 
     logger = logging.getLogger('discord')
     logger.setLevel(logging.DEBUG)
@@ -235,3 +269,6 @@ if __name__ == "__main__":
 
     # Run the bot.
     bot.run(bot.btoken)
+
+    # dump Memory profiling
+    tracker.stats.dump_stats('profile_dump_{}.dat'.format(time.time())
