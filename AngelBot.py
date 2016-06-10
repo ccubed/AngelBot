@@ -8,7 +8,6 @@ import aiohttp
 import aioredis
 import discord
 import time
-import tracemalloc
 from datetime import *
 from types import ModuleType
 
@@ -261,11 +260,7 @@ if __name__ == "__main__":
     handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
     logger.addHandler(handler)
 
-    tracemalloc.start()
-
     bot.loop.run_until_complete(bot.setup())
 
     # Run the bot.
     bot.run(bot.btoken)
-
-    tracemalloc.take_snapshot().dump('trace_malloc.dat')
