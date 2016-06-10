@@ -245,6 +245,7 @@ class AList:
                                 msg += " {0} (ID: {1})\n".format(i['title_english'], i['id'])
                             return msg
 
+    # TODO: Replace <br> with \n
     async def parsemanga(self, id):
         async with self.pools.get() as pool:
             token = await pool.hget("ALReadOnly", "AccessToken")

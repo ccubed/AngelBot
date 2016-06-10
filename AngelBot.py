@@ -9,7 +9,6 @@ import aioredis
 import discord
 import time
 from pympler.classtracker import ClassTracker
-from pympler.classtracker_stats import ConsoleStats
 from datetime import *
 from types import ModuleType
 
@@ -25,6 +24,7 @@ class AngelBot(discord.Client):
         self.references = {}
         self.testing = False
         self.token_bucket = {}
+        self.trackers = []
 
     async def setup(self):
         self.redis = await aioredis.create_pool(('localhost', 6379), db=1, minsize=5, maxsize=10, encoding="utf-8")
@@ -38,6 +38,11 @@ class AngelBot(discord.Client):
             for mod in modules:
                 self.references[mod] = inspect.getmembers(sys.modules[mod], inspect.isclass)[0][1](self.redis)
             for mod in self.references:
+                tr = ClassTracker()
+                tr.track_object(self.references[mod])
+                tr.create_snapshot('Initialization')
+                tr.stats.dump_stats('Profile_Start_{}'.format(mod))
+                self.trackers.append(tr)
                 if 'events' in self.references[mod].__dict__:
                     for event in self.references[mod].events:
                         if event[1] == 0:
@@ -251,14 +256,10 @@ class AngelBot(discord.Client):
 
 
 if __name__ == "__main__":
-    #tracker = ClassTracker()
     try:
         bot = AngelBot()
     except ImportError:
         sys.exit(65)
-
-    #tracker.track_object(bot)
-    #tracker.create_snapshot('Initialization')
 
     logger = logging.getLogger('discord')
     logger.setLevel(logging.DEBUG)
@@ -271,6 +272,6 @@ if __name__ == "__main__":
     # Run the bot.
     bot.run(bot.btoken)
 
-    # dump Memory profiling
-    #tracker.create_snapshot('Closing')
-    #tracker.stats.dump_stats('profile_dump_{}.dat'.format(time.time()))
+    for idx, track in enumerate(bot.trackers):
+        track.create_snapshot('Shutting Down')
+        track.stats.dump_stats('Profile_End_{}'.format(idx))
