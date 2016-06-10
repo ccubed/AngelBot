@@ -79,3 +79,5 @@ secret.py
 # My personal Notes for development, aren't part of the repo.
 Notes/*
 
+# Profiling
+Profiling/*
