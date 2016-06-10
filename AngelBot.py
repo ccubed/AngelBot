@@ -8,7 +8,7 @@ import aiohttp
 import aioredis
 import discord
 import time
-#from pympler.classtracker import ClassTracker
+import tracemalloc
 from datetime import *
 from types import ModuleType
 
@@ -24,7 +24,6 @@ class AngelBot(discord.Client):
         self.references = {}
         self.testing = False
         self.token_bucket = {}
-        #self.trackers = []
 
     async def setup(self):
         self.redis = await aioredis.create_pool(('localhost', 6379), db=1, minsize=5, maxsize=10, encoding="utf-8")
@@ -38,11 +37,6 @@ class AngelBot(discord.Client):
             for mod in modules:
                 self.references[mod] = inspect.getmembers(sys.modules[mod], inspect.isclass)[0][1](self.redis)
             for mod in self.references:
-                #tr = ClassTracker()
-                #tr.track_object(self.references[mod])
-                #tr.create_snapshot('Initialization')
-                #tr.stats.dump_stats('Profile_Start_{}'.format(mod))
-                #self.trackers.append(tr)
                 if 'events' in self.references[mod].__dict__:
                     for event in self.references[mod].events:
                         if event[1] == 0:
@@ -267,7 +261,11 @@ if __name__ == "__main__":
     handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
     logger.addHandler(handler)
 
+    tracemalloc.start()
+
     bot.loop.run_until_complete(bot.setup())
 
     # Run the bot.
     bot.run(bot.btoken)
+
+    tracemalloc.take_snapshot().dump('trace_malloc.dat')
