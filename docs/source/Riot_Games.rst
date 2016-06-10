@@ -1,5 +1,8 @@
 Riot Games
 ==========
+**NOTE:** This does not function yet. I am waiting for Riot to approve my usage of the API.
+
+
 
 This is an API for looking up information on League of Legends matches, players and champions. First some legal stuff.
 
