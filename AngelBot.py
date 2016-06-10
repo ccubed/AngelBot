@@ -144,7 +144,7 @@ class AngelBot(discord.Client):
                 mods = await dbp.hgetall(message.server.id+"_Modules")
                 for item in mods.keys():
                     if mods[item] == "None" or message.channel.name in mods[item].split("|"):
-                        check = message.content.split(" ")[0]
+                        check = message.content.split(" ")[0].lower()
                         for command in self.references[item].commands:
                             if check == prefix + command[0]:
                                 ret = await command[1](message)
