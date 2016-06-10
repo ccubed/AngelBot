@@ -251,14 +251,14 @@ class AngelBot(discord.Client):
 
 
 if __name__ == "__main__":
-    tracker = ClassTracker()
+    #tracker = ClassTracker()
     try:
         bot = AngelBot()
     except ImportError:
         sys.exit(65)
 
-    tracker.track_object(bot)
-    tracker.create_snapshot('Initialization')
+    #tracker.track_object(bot)
+    #tracker.create_snapshot('Initialization')
 
     logger = logging.getLogger('discord')
     logger.setLevel(logging.DEBUG)
@@ -272,5 +272,5 @@ if __name__ == "__main__":
     bot.run(bot.btoken)
 
     # dump Memory profiling
-    tracker.create_snapshot('Closing')
-    tracker.stats.dump_stats('profile_dump_{}.dat'.format(time.time()))
+    #tracker.create_snapshot('Closing')
+    #tracker.stats.dump_stats('profile_dump_{}.dat'.format(time.time()))
