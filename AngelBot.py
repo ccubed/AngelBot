@@ -101,10 +101,10 @@ class AngelBot(discord.Client):
                 else:
                     await self.send_message(message.channel, "Lol what?")
             elif message.content.lower().startswith("owlstats"):
-                up = str(timedelta(seconds=(time.time() - self.uptime))).split(".")[0]
+                up = timedelta(seconds=(time.time() - self.uptime))
                 await self.send_message(message.channel,
                                         "```AngelBot Statistics\n{} Servers\n{} Users\nUptime: {}\n{} commands total\n{:.1f} commands a second```".format(
-                                            len(self.servers), sum(x.member_count for x in self.servers), str(up), self.commands, self.commands/up.total_seconds()))
+                                            len(self.servers), sum(x.member_count for x in self.servers), str(up).split(".")[0], self.commands, self.commands/up.total_seconds()))
             elif message.content.lower().startswith("owlavatar"):
                 file = message.content[10:]
                 try:
