@@ -212,7 +212,7 @@ class Riot:
     async def get_summoner_id(self, name):
         async with self.pools.get() as dbp:
             key = await dbp.get("RiotGames")
-            test = await dbp.exists(name.lower())
+            test = await dbp.exists(name.lower().replace('%20', ''))
             if test:
                 return await dbp.get(name.lower())
             with aiohttp.ClientSession() as session:
@@ -221,9 +221,9 @@ class Riot:
                         return 0
                     else:
                         jsd = await response.json()
-                        await dbp.set(name.lower(), jsd[name.lower()]['id'])
-                        await dbp.set("LOLSUM{}".format(jsd[name.lower()]['id']), json.dumps(jsd))
-                        return jsd[name.lower()]['id']
+                        await dbp.set(name.lower().replace('%20', ''), jsd[name.lower().replace('%20', '')]['id'])
+                        await dbp.set("LOLSUM{}".format(jsd[name.lower().replace('%20', '')]['id']), json.dumps(jsd))
+                        return jsd[name.lower().replace('%20', '')]['id']
 
     @staticmethod
     async def parse_summoner_stat_data(jsondata):
@@ -231,21 +231,24 @@ class Riot:
                              'totalAssists': 0, 'totalTurretsKilled': 0, 'wins': 0},
                 'Ranked': {'totalNeutralMinionsKilled': 0, 'totalMinionKills': 0, 'totalChampionKills': 0,
                            'totalAssists': 0, 'totalTurretsKilled': 0, 'wins': 0}}
+        if 'playerStatSummaries' not in jsondata:
+            return data
         for x in jsondata['playerStatSummaries']:
-            if x['playerStatSummaryType'] in ["Unranked3x3", "Unranked"]:
-                data['Unranked']['totalNeutralMinionsKilled'] += x['aggregatedStats']['totalNeutralMinionsKilled']
-                data['Unranked']['totalMinionKills'] += x['aggregatedStats']['totalMinionKills']
-                data['Unranked']['totalChampionKills'] += x['aggregatedStats']['totalChampionKills']
-                data['Unranked']['totalAssists'] += x['aggregatedStats']['totalAssists']
-                data['Unranked']['totalTurretsKilled'] += x['aggregatedStats']['totalTurretsKilled']
-                data['Unranked']['wins'] += x['wins']
-            elif x['playerStatSummaryType'] == "RankedSolo5x5":
-                data['Ranked']['totalNeutralMinionsKilled'] += x['aggregatedStats']['totalNeutralMinionsKilled']
-                data['Ranked']['totalMinionKills'] += x['aggregatedStats']['totalMinionKills']
-                data['Ranked']['totalChampionKills'] += x['aggregatedStats']['totalChampionKills']
-                data['Ranked']['totalAssists'] += x['aggregatedStats']['totalAssists']
-                data['Ranked']['totalTurretsKilled'] += x['aggregatedStats']['totalTurretsKilled']
-                data['Ranked']['wins'] += x['wins']
+            if 'aggregatedStats' in x:
+                if x['playerStatSummaryType'] in ["Unranked3x3", "Unranked"]:
+                    data['Unranked']['totalNeutralMinionsKilled'] += x['aggregatedStats'].get('totalNeutralMinionsKilled', 0)
+                    data['Unranked']['totalMinionKills'] += x['aggregatedStats'].get('totalMinionKills', 0)
+                    data['Unranked']['totalChampionKills'] += x['aggregatedStats'].get('totalChampionKills', 0)
+                    data['Unranked']['totalAssists'] += x['aggregatedStats'].get('totalAssists', 0)
+                    data['Unranked']['totalTurretsKilled'] += x['aggregatedStats'].get('totalTurretsKilled', 0)
+                    data['Unranked']['wins'] += x['wins']
+                elif x['playerStatSummaryType'] == "RankedSolo5x5":
+                    data['Ranked']['totalNeutralMinionsKilled'] += x['aggregatedStats'].get('totalNeutralMinionsKilled', 0)
+                    data['Ranked']['totalMinionKills'] += x['aggregatedStats'].get('totalMinionKills', 0)
+                    data['Ranked']['totalChampionKills'] += x['aggregatedStats'].get('totalChampionKills', 0)
+                    data['Ranked']['totalAssists'] += x['aggregatedStats'].get('totalAssists', 0)
+                    data['Ranked']['totalTurretsKilled'] += x['aggregatedStats'].get('totalTurretsKilled', 0)
+                    data['Ranked']['wins'] += x['wins']
         return data
 
     async def summoner_stats(self, message):

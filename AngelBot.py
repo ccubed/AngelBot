@@ -8,33 +8,33 @@ import aiohttp
 import aioredis
 import discord
 import time
-from datetime import *
+from datetime import timedelta
 from types import ModuleType
+
 
 
 class AngelBot(discord.Client):
     def __init__(self):
         super().__init__()
-        self.uptime = datetime.now()
+        self.uptime = time.time()
         self.commands = 0
         self.redis = None
         self.btoken = None
         self.creator = None
         self.references = {}
-        self.testing = False
+        self.testing = True
         self.token_bucket = {}
 
     async def setup(self):
-        self.redis = await aioredis.create_pool(('localhost', 6379), db=1, minsize=5, maxsize=10, encoding="utf-8")
+        self.redis = await aioredis.create_pool(('localhost', 6379), db=1, minsize=1, maxsize=10, encoding="utf-8")
         async with self.redis.get() as dbp:
             modules = await dbp.lrange("BotModules", 0, -1)
             self.btoken = await dbp.get("BotToken")
             self.creator = await dbp.get("Creator")
             for mod in modules:
-                importlib.import_module(mod)
-                importlib.invalidate_caches()
+                globals()[mod] = importlib.import_module(mod)
             for mod in modules:
-                self.references[mod] = inspect.getmembers(sys.modules[mod], inspect.isclass)[0][1](self.redis)
+                self.references[mod] = inspect.getmembers(globals()[mod], inspect.isclass)[0][1](self.redis)
             for mod in self.references:
                 if 'events' in self.references[mod].__dict__:
                     for event in self.references[mod].events:
@@ -49,7 +49,7 @@ class AngelBot(discord.Client):
 
     async def on_message(self, message):
         self.commands += 1
-        if message.author.id == self.user.id:
+        if message.author.id == self.user.id or message.author.bot:
             return
         elif message.content.lower() == "owlkill" and message.author.id == self.creator:
             await self.redis.clear()
@@ -101,7 +101,7 @@ class AngelBot(discord.Client):
                 else:
                     await self.send_message(message.channel, "Lol what?")
             elif message.content.lower().startswith("owlstats"):
-                up = datetime.now() - self.uptime
+                up = timedelta(seconds=(time.time() - self.uptime))
                 await self.send_message(message.channel,
                                         "```AngelBot Statistics\n{} Servers\n{} Users\nUptime: {}\n{} commands total\n{:.1f} commands a second```".format(
                                             len(self.servers), sum(x.member_count for x in self.servers), str(up), self.commands, self.commands/up.total_seconds()))
@@ -117,7 +117,7 @@ class AngelBot(discord.Client):
                     fstream.close()
                     await self.edit_profile(avatar=imgbd)
             elif message.content.lower().startswith("owlgame"):
-                await self.change_status(game=discord.Game(name=message.content[8:]))
+                await self.change_status(game=discord.Game(name=" ".join(message.content.split(" ")[1:])))
         elif message.content.startswith("ard"):
             async with self.redis.get() as dbp:
                 admin = await dbp.hget(message.server.id, "Admin")
@@ -200,17 +200,17 @@ class AngelBot(discord.Client):
 
     def update_stats(self):
         stats = {}
-        stats['uptime'] = datetime.now() - self.uptime
+        stats['uptime'] = time.time() - self.uptime
         stats['users'] = sum(x.member_count for x in self.servers)
         stats['servers'] = len(self.servers)
-        stats['cmdssec'] = '{:.1f}'.format(self.commands/stats['uptime'].total_seconds())
+        stats['cmdssec'] = '{:.1f}'.format(self.commands/stats['uptime'])
         stats['totalcmds'] = self.commands
         self.loop.create_task(self._update_stats(stats))
         self.loop.call_later(900, self.update_stats)
 
     async def _update_stats(self, stats):
         async with self.redis.get() as dbp:
-            await dbp.hset('stats', 'uptime', stats['uptime'].total_seconds())
+            await dbp.hset('stats', 'uptime', stats['uptime'])
             await dbp.hset('stats', 'users', stats['users'])
             await dbp.hset('stats', 'servers', stats['servers'])
             await dbp.hset('stats', 'cmdssec', stats['cmdssec'])
@@ -256,7 +256,7 @@ if __name__ == "__main__":
 
     logger = logging.getLogger('discord')
     logger.setLevel(logging.DEBUG)
-    handler = logging.FileHandler(filename='/home/gizmo/AngelBot/GExitLogs/{0}'.format(str(datetime.now()).replace(" ", "_")), encoding="utf-8", mode="w")
+    handler = logging.FileHandler(filename='/home/gizmo/AngelBot/GExitLogs/{0}'.format(time.time()), encoding="utf-8", mode="w")
     handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
     logger.addHandler(handler)
 

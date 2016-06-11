@@ -5,7 +5,6 @@ import json
 import encryption
 from secret import *
 from AList_ProfileProcessor import profile_preprocessor
-import random
 
 
 class AList:
@@ -245,7 +244,6 @@ class AList:
                                 msg += " {0} (ID: {1})\n".format(i['title_english'], i['id'])
                             return msg
 
-    # TODO: Replace <br> with \n
     async def parsemanga(self, id):
         async with self.pools.get() as pool:
             token = await pool.hget("ALReadOnly", "AccessToken")
@@ -257,7 +255,7 @@ class AList:
                     return "Titles\n English: {0}\n Romaji: {1}\n Japanese: {2}\nStatus: {3}\nLength: {4} volumes and {5} chapters\nAverage Score: {6}\nGenres: {7}\nDescriptions: {8}\n{9}".format(
                         jsd['title_english'], jsd['title_romaji'], jsd['title_japanese'],
                         jsd['publishing_status'], jsd['total_volumes'], jsd['total_chapters'],
-                        jsd['average_score'], ','.join(jsd['genres']), jsd['description'],
+                        jsd['average_score'], ','.join(jsd['genres']), jsd['description'].replace('<br>', '\n'),
                         jsd['image_url_med'])
 
     async def get_user(self, message):
@@ -276,7 +274,10 @@ class AList:
                             return "Anilist says you don't exist."
                         else:
                             jsd = json.loads(text)
-                            about = await profile_preprocessor(jsd['about'])
+                            if 'about' in jsd and jsd['about']:
+                                about = await profile_preprocessor(jsd['about'])
+                            else:
+                                about = "No about for this user."
                             ret = "{0} ({1})\n{2} Pending Notifications.\n{3}\n\nI've spent {4} on Anime and read {5} Manga Chapters.\n{6}".format(jsd['display_name'], jsd['id'], jsd['notifications'], about, str(timedelta(minutes=jsd['anime_time'])), jsd['manga_chap'], jsd['image_url_lge'])
                             if len(ret) > 2000:
                                 return "{0} ({1})\n{2} Pending Notifications.\n{3}\n\nI've spent {4} on Anime and read {5} Manga Chapters.\n{6}".format(jsd['display_name'], jsd['id'], jsd['notifications'], "Attempt to parse novel failed. Visit <http://anilist.co/user/{0}> to view about section.".format(jsd['display_name']), str(timedelta(minutes=jsd['anime_time'])), jsd['manga_chap'], jsd['image_url_lge'])
@@ -300,7 +301,10 @@ class AList:
                                 return "No user found by name {0}".format(name)
                             else:
                                 jsd = json.loads(text)
-                                about = await profile_preprocessor(jsd['about'])
+                                if 'about' in jsd and jsd['about']:
+                                    about = await profile_preprocessor(jsd['about'])
+                                else:
+                                    about = "No about for this user."
                                 ret = "{0} ({1})\n{2}\n\nI've spent {3} on Anime and read {4} Manga Chapters.\n{5}".format(jsd['display_name'], jsd['id'], about, str(timedelta(minutes=jsd['anime_time'])), jsd['manga_chap'], jsd['image_url_lge'])
                                 if len(ret) > 2000:
                                     return "{0} ({1})\n{2} Pending Notifications.\n{3}\n\nI've spent {4} on Anime and read {5} Manga Chapters.\n{6}".format(jsd['display_name'], jsd['id'], jsd['notifications'], "Attempt to parse novel failed. Visit <http://anilist.co/user/{0}> to view about section.".format(jsd['display_name']), str(timedelta(minutes=jsd['anime_time'])), jsd['manga_chap'], jsd['image_url_lge'])
