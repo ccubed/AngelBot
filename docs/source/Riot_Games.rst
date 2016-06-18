@@ -28,7 +28,7 @@ lolstatus [region]
 lolfree
     Return the current free rotation heros.
 
-lolfreatures
+lolfeatures
     **NA Only**: Return the currently featured games, their team makeup, game mode, map and currently elapsed time.
 
 lolrecent [summoner]
