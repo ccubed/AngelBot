@@ -1,9 +1,7 @@
 Overwatch
 =========
 
-This module allows you to grab stats for battletags across the US or EU regions. Or at least it would if It was enabled. The code exists though, so I'm writing the documentation now in the hopes that the OWAPI that I rely on will someday be more reliable. Right now it's not reliable at all.
-
-**Note**: TLDR: This isn't enabled. The code exists. When OWAPI becomes production ready I will turn it on.
+This module allows you to grab stats for battletags across the US or EU regions.
 
 Features
 --------

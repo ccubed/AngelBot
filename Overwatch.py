@@ -86,7 +86,7 @@ class OWAPI:
             if hid == 0:
                 return "Couldn't find a hero with that name."
         with aiohttp.ClientSession() as session:
-            async with session.get(self.apiurlheroes + "{}/heroes/{}".format(name, hname), headers=self.header, params={'region': 'us'}) as response:
+            async with session.get(self.apiurlheroes + "{}/heroes/{}".format(name, hid), headers=self.header, params={'region': 'us'}) as response:
                 if response.status == 404:
                     return "Couldn't find that battletag."
                 elif response.status == 500:
@@ -96,12 +96,9 @@ class OWAPI:
                     messages = []
                     message = "{}'s stats for {}\n".format(name, self.index[hid])
                     messages.append(message)
-                    print(jsd)
                     for type in jsd['stats']:
-                        print(type)
                         message = '{}\n```xl\n'.format(type['name'])
                         for stat in type['stats']:
                             message += '{}: {}\n'.format(stat['name'], stat['value'])
-                        print(message)
                         messages.append(message + "```")
                     return messages

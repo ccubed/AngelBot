@@ -40,8 +40,6 @@ Riot
 
 Overwatch
 ---------
-**Note**: This is disabled right now. The API it relies on is not production ready.
-
 * Features: Stats, Hero Stats, Funny Easter Eggs
 * Documentation: :doc:`Overwatch`
 * Module Name: Overwatch
