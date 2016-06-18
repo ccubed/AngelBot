@@ -1,7 +1,7 @@
 Riot Games
 ==========
-**NOTE:** This does not function yet. I am waiting for Riot to approve my usage of the API.
-
+**NOTICE**: Hey this got approved, enjoy! Don't forget to ardserver modules:Riot
+**Ratelimit**: Please note. My key is good only for NA and only for 500 requests every 10 seconds and 30k every 10 mins. I don't think we're in any danger, but I built a ratelimit helper in. So you'll get a notice if we hit it.
 
 
 This is an API for looking up information on League of Legends matches, players and champions. First some legal stuff.

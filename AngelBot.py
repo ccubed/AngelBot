@@ -22,7 +22,7 @@ class AngelBot(discord.Client):
         self.btoken = None
         self.creator = None
         self.references = {}
-        self.testing = False
+        self.testing = True
         self.token_bucket = {}
 
     async def setup(self):
@@ -230,7 +230,7 @@ class AngelBot(discord.Client):
             if time.time() > self.token_bucket[module]['time_to_retry']:
                 if self.token_bucket[module]['commands'].qsize() > 0:
                     tokens = True
-                    for x in range(0,4):  #  5 at a time or b1nzy will send me angry pms
+                    for x in range(0, 4):  # 5 at a time or b1nzy will send me angry pms
                         this_task = await self.token_bucket[module]['commands'].get()
                         ret = await this_task[0](this_task[1])
                         if isinstance(ret, str):
@@ -241,6 +241,7 @@ class AngelBot(discord.Client):
                         elif isinstance(ret, dict):
                             #  anoooother 429.
                             logger.critical("Got another 429 while processing command {} after ratelimit wait.".format(this_task[1].content))
+                            await self.send_message(this_task[1].channel, "I attempted to process a held command for this channel but hit another ratelimit so I cleared the command. Dang man, them ratelimits.")
                             continue
                 else:
                     self.token_bucket.pop(module)

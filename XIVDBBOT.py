@@ -18,7 +18,7 @@ class DBParser:
                          ['hdim', self.parsehdim], ['wdif', self.parsewdif]]
 
     async def searchall(self, message):
-        data = {'string': message.content[7:]}
+        data = {'string': " ".join(message.content.split(' ')[1:])}
         url = self.apiurl + '/search'
         with aiohttp.ClientSession() as session:
             async with session.get(url, params=data, headers={'User-Agent': 'AngelBot ( aiohttp 0.26.1 python 3.5.1 )'}) as response:
@@ -39,13 +39,13 @@ class DBParser:
                 return jsd
 
     async def searchitem(self, message):
-        data = {'string': message.content[6:], 'one': 'items'}
+        data = {'string': " ".join(message.content.split(' ')[1:]), 'one': 'items'}
         url = self.apiurl + '/search'
         with aiohttp.ClientSession() as session:
             async with session.get(url, params=data, headers={'User-Agent': 'AngelBot ( aiohttp 0.26.1 python 3.5.1 )'}) as response:
                 jsd = await response.json()
                 if jsd['items']['total'] == 0:
-                    return "No results for {0} in items.".format(message.content[6:])
+                    return "No results for {0} in items.".format(" ".join(message.content.split(" ")[1:]))
                 elif jsd['items']['total'] == 1:
                     return await self.parseitem(str(jsd['items']['results'][0]['id']))
                 elif jsd['items']['total'] <= 5:
@@ -57,13 +57,13 @@ class DBParser:
                     return "Returned {0} results. Add more words to search.".format(jsd['items']['total'])
 
     async def searchquest(self, message):
-        data = {'string': message.content[7:], 'one': 'quests'}
+        data = {'string': " ".join(message.content.split(' ')[1:]), 'one': 'quests'}
         url = self.apiurl + '/search'
         with aiohttp.ClientSession() as session:
             async with session.get(url, params=data, headers={'User-Agent': 'AngelBot ( aiohttp 0.26.1 python 3.5.1 )'}) as response:
                 jsd = await response.json()
                 if jsd['quests']['total'] == 0:
-                    return "No results for {0} in quests.".format(message.content[7:])
+                    return "No results for {0} in quests.".format(" ".join(message.content.split(" ")[1:]))
                 elif jsd['quests']['total'] == 1:
                     return await self.parsequest(str(jsd['quests']['results'][0]['id']))
                 elif jsd['quests']['total'] <= 5:
@@ -75,13 +75,13 @@ class DBParser:
                     return "Returned {0} results. Add more words to search.".format(jsd['quests']['total'])
 
     async def searchrecipe(self, message):
-        data = {'string': message.content[8:], 'one': 'recipes'}
+        data = {'string': " ".join(message.content.split(' ')[1:]), 'one': 'recipes'}
         url = self.apiurl + '/search'
         with aiohttp.ClientSession() as session:
             async with session.get(url, params=data, headers={'User-Agent': 'AngelBot ( aiohttp 0.26.1 python 3.5.1 )'}) as response:
                 jsd = await response.json()
                 if jsd['recipes']['total'] == 0:
-                    return "No results for {0} in recipes.".format(message.content[8:])
+                    return "No results for {0} in recipes.".format(" ".join(message.content.split(" ")[1:]))
                 elif jsd['recipes']['total'] == 1:
                     return await self.parserecipe(str(jsd['recipes']['results'][0]['id']))
                 elif jsd['recipes']['total'] <= 5:
@@ -93,13 +93,13 @@ class DBParser:
                     return "Returned {0} results. Add more words to search.".format(jsd['recipes']['total'])
 
     async def searchaction(self, message):
-        data = {'string': message.content[8:], 'one': 'actions'}
+        data = {'string': " ".join(message.content.split(' ')[1:]), 'one': 'actions'}
         url = self.apiurl + '/search'
         with aiohttp.ClientSession() as session:
             async with session.get(url, params=data, headers={'User-Agent': 'AngelBot ( aiohttp 0.26.1 python 3.5.1 )'}) as response:
                 jsd = await response.json()
                 if jsd['actions']['total'] == 0:
-                    return "No results for {0} in actions.".format(message.content[8:])
+                    return "No results for {0} in actions.".format(" ".join(message.content.split(" ")[1:]))
                 elif jsd['actions']['total'] == 1:
                     return await self.parseaction(str(jsd['actions']['results'][0]['id']))
                 elif jsd['actions']['total'] <= 5:
@@ -111,13 +111,13 @@ class DBParser:
                     return "Returned {0} results. Add more words to search.".format(jsd['actions']['total'])
 
     async def searchmats(self, message):
-        data = {'string': message.content[6:], 'one': 'gathering'}
+        data = {'string': " ".join(message.content.split(' ')[1:]), 'one': 'gathering'}
         url = self.apiurl + '/search'
         with aiohttp.ClientSession() as session:
             async with session.get(url, params=data, headers={'User-Agent': 'AngelBot ( aiohttp 0.26.1 python 3.5.1 )'}) as response:
                 jsd = await response.json()
                 if jsd['gathering']['total'] == 0:
-                    return "No results for {0} in gathering.".format(message.content[8:])
+                    return "No results for {0} in gathering.".format(" ".join(message.content.split(" ")[1:]))
                 elif jsd['gathering']['total'] == 1:
                     return await self.parsegather(str(jsd['gathering']['results'][0]['id']))
                 elif jsd['gathering']['total'] <= 5:
@@ -129,13 +129,13 @@ class DBParser:
                     return "Returned {0} results. Add more words to search.".format(jsd['gathering']['total'])
 
     async def searchnpc(self, message):
-        data = {'string': message.content[5:], 'one': 'npcs'}
+        data = {'string': " ".join(message.content.split(' ')[1:]), 'one': 'npcs'}
         url = self.apiurl + '/search'
         with aiohttp.ClientSession() as session:
             async with session.get(url, params=data, headers={'User-Agent': 'AngelBot ( aiohttp 0.26.1 python 3.5.1 )'}) as response:
-                jsd = response.json()
+                jsd = await response.json()
                 if jsd['npcs']['total'] == 0:
-                    return "No results for {0} in npcs.".format(message.content[5:])
+                    return "No results for {0} in npcs.".format(" ".join(message.content.split(" ")[1:]))
                 elif jsd['npcs']['total'] == 1:
                     return await self.parsenpc(str(jsd['npcs']['results'][0]['id']))
                 elif jsd['npcs']['total'] <= 5:
@@ -147,13 +147,13 @@ class DBParser:
                     return "Returned {0} results. Add more words to search.".format(jsd['npcs']['total'])
 
     async def searchstatus(self, message):
-        data = {'string': message.content[8:], 'one': 'status'}
+        data = {'string': " ".join(message.content.split(' ')[1:]), 'one': 'status'}
         url = self.apiurl + '/search'
         with aiohttp.ClientSession() as session:
             async with session.get(url, params=data, headers={'User-Agent': 'AngelBot ( aiohttp 0.26.1 python 3.5.1 )'}) as response:
-                jsd = response.json()
+                jsd = await response.json()
                 if jsd['status']['total'] == 0:
-                    return "No results for {0} in status.".format(message.content[8:])
+                    return "No results for {0} in status.".format(" ".join(message.content.split(" ")[1:]))
                 elif jsd['status']['total'] == 1:
                     return await self.parsestatus(str(jsd['status']['results'][0]['id']))
                 elif jsd['status']['total'] <= 5:
@@ -165,13 +165,13 @@ class DBParser:
                     return "Returned {0} results. Add more words to search.".format(jsd['status']['total'])
 
     async def searchminion(self, message):
-        data = {'string': message.content[8:], 'one': 'minions'}
+        data = {'string': " ".join(message.content.split(' ')[1:]), 'one': 'minions'}
         url = self.apiurl + '/search'
         with aiohttp.ClientSession() as session:
             async with session.get(url, params=data, headers={'User-Agent': 'AngelBot ( aiohttp 0.26.1 python 3.5.1 )'}) as response:
-                jsd = response.json()
+                jsd = await response.json()
                 if jsd['minions']['total'] == 0:
-                    return "No results for {0} in minions.".format(message.content[8:])
+                    return "No results for {0} in minions.".format(" ".join(message.content.split(" ")[1:]))
                 elif jsd['minions']['total'] == 1:
                     return await self.parseminion(str(jsd['minions']['results'][0]['id']))
                 elif jsd['minions']['total'] <= 5:
@@ -183,15 +183,15 @@ class DBParser:
                     return "Returned {0} results. Add more words to search.".format(jsd['minion']['total'])
 
     async def searchachievement(self, message):
-        data = {'string': message.content[13:], 'one': 'achievements'}
+        data = {'string': " ".join(message.content.split(' ')[1:]), 'one': 'achievements'}
         url = self.apiurl + '/search'
         with aiohttp.ClientSession() as session:
             async with session.get(url, params=data, headers={'User-Agent': 'AngelBot ( aiohttp 0.26.1 python 3.5.1 )'}) as response:
                 jsd = await response.json()
                 if jsd['achievements']['total'] == 0:
-                    return "No results for {0} in achievements.".format(message.content[13:])
+                    return "No results for {0} in achievements.".format(" ".join(message.content.split(" ")[1:]))
                 elif jsd['achievements']['total'] == 1:
-                    return await self.parserecipe(str(jsd['achievements']['results'][0]['id']))
+                    return await self.parseachievement(str(jsd['achievements']['results'][0]['id']))
                 elif jsd['achievements']['total'] <= 5:
                     message = "Matched more than one achievement. Try searching by ID.\n"
                     for achievements in jsd['achievements']['results']:
@@ -217,18 +217,17 @@ class DBParser:
             async with session.get(url, headers={'User-Agent': 'AngelBot ( aiohttp 0.26.1 python 3.5.1 )'}) as response:
                 jd = await response.json()
                 message = "{0}\n".format(jd['name'])
-                if jd['classjob_category_1']['name'] in self.shortnames:
-                    message += "Related Class: {0}\n".format(self.shortnames[jd['classjob_category_1']['name']])
-                message += "Start this quest with {0} in {1} at {2}x {3}y\n".format(jd['npc_start']['name'],
+                if jd['classjob_category_1'] in self.shortnames:
+                    message += "   Related Class: {0}\n".format(self.shortnames[jd['classjob_category_1']])
+                message += "   Start this quest with {0} in {1} at {2}x {3}y {4}z\n".format(jd['npc_start']['name'],
                                                                                     jd['npc_start']['placename']['name'],
-                                                                                    jd['npc_start']['position']['x'] if
-                                                                                    jd['npc_start']['position'] != '' else '0',
-                                                                                    jd['npc_start']['position']['y'] if
-                                                                                    jd['npc_start']['position'] != '' else '0')
-                if 'pre_quest' in jd:
+                                                                                    jd['npc_start']['zones'][0]['x'],
+                                                                                    jd['npc_start']['zones'][0]['y'],
+                                                                                    jd['npc_start']['zones'][0]['z'])
+                if 'pre_quests' in jd:
                     message += "Prerequisite Quests ->\n"
-                    for item in jd['pre_quest']:
-                        message += "{0} (ID: {1})\n".format(item['name'], item['id'])
+                    for item in jd['pre_quests']:
+                        message += "   {0} (ID: {1})\n".format(jd['pre_quests'][item]['name'], jd['pre_quests'][item]['id'])
                 message += jd['url_xivdb']
                 return message
 
@@ -239,7 +238,7 @@ class DBParser:
                 jd = await response.json()
                 message = "{0}\nClass: {1} Recipe Level: {2}\n".format(jd['name'], jd['classjob']['name'], jd['level'])
                 message += "Materials Required:\n"
-                for item in jd['_tree']:
+                for item in jd['tree']:
                     message += "   {0} {1} (ID:{2})\n".format(item['quantity'], item['name'], item['id'])
                 message += jd['url_xivdb']
                 return message
@@ -270,8 +269,7 @@ class DBParser:
                 jd = await response.json()
                 message = "{0}\nGathered from:\n".format(jd['name'])
                 for node in jd['nodes']:
-                    message += "   {0} - {1} - {2}\n".format(node['region']['name'], node['zone']['name'],
-                                                             node['placename']['name'])
+                    message += "   {0} - {1}\n".format(jd['nodes'][node]['region']['name'], jd['nodes'][node]['name'])
                 return message
 
     async def parsenpc(self, name):
@@ -279,24 +277,11 @@ class DBParser:
         with aiohttp.ClientSession() as session:
             async with session.get(url, headers={'User-Agent': 'AngelBot ( aiohttp 0.26.1 python 3.5.1 )'}) as response:
                 jd = await response.json()
-                message = "{0} is located in {1} at {2}x {3}y".format(jd['name'], jd['placename']['name'],
-                                                                      jd['coordinates']['x'], jd['coordinates']['y'])
-                return message
-
-    async def parseenemy(self, name):
-        url = self.apiurl + "/enemy/" + name
-        with aiohttp.ClientSession() as session:
-            async with session.get(url, headers={'User-Agent': 'AngelBot ( aiohttp 0.26.1 python 3.5.1 )'}) as response:
-                jd = await response.json()
-                message = "{0}\n".format(jd['name'])
-                if 'region_name' in jd:
-                    message += "Region: {0}\n".format(jd['region_name'])
+                message = "{0}".format(jd['name'])
+                if jd['placename'] is None:
+                    message += ' is an NPC from patch {} with no location data.'.format(jd['patch']['number'])
                 else:
-                    message += "Region: No data\n"
-                if 'placename' in jd:
-                    message += "Found near: {0}".format(jd['placename']['name'])
-                else:
-                    message += "Found near: No location data"
+                    message += ' is an NPC from patch {} located in {} at {}x {}y'.format(jd['patch']['number'], jd['placename']['name'], jd['coordinates']['x'], jd['coordinates']['y'])
                 return message
 
     async def parsestatus(self, name):
@@ -322,10 +307,10 @@ class DBParser:
                 return "{0} ({1} - {2})\n{3}".format(jd['name'], jd['category_name'], jd['kind_name'], jd['help'])
 
     async def parsehdim(self, name):
-        if name.content[6:].isnumeric():
-            return await self.parserecipe(str(name.content[6:]))
+        if " ".join(name.content.split(" ")[1:]).isdigit():
+            return await self.parserecipe(" ".join(name.content.split(" ")[1:]))
         else:
-            jd = await self.searchid(name.content[6:])
+            jd = await self.searchid(" ".join(name.content.split(" ")[1:]))
             if jd['recipes']['total'] > 1:
                 return "{0} matched more than 1 recipe. Maybe try finding the ID first with search?".format(name)
             elif jd['recipes']['total'] == 0:
@@ -334,7 +319,7 @@ class DBParser:
                 return await self.parserecipe(str(jd['recipes']['results'][0]['id']))
 
     async def parsewdif(self, name):
-        jd = await self.searchid(name)
+        jd = await self.searchid(" ".join(name.content.split(" ")[1:]))
         if 'items' in jd:
             achievements = []
             if 'achievements' in jd:

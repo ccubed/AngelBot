@@ -1,6 +1,7 @@
 import aiohttp
 import json
 from datetime import timedelta
+import time
 
 
 class Riot:
@@ -50,6 +51,8 @@ class Riot:
                 current = json.loads(current)  # Storage format is a list of dictionaries with an id and name attribute.
             with aiohttp.ClientSession() as session:
                 async with session.get(self.apiurls['na'] + '/na/v1.2/champion', params={'freeToPlay': 'True', 'api_key': key}, headers=self.header) as response:
+                    if response.status == 429:
+                        return
                     jsd = await response.json()
                     templist = []
                     new = []
@@ -97,6 +100,9 @@ class Riot:
                 else:
                     with aiohttp.ClientSession() as session:
                         async with session.get(self.apiurls['status'] + "/shards/{}".format(region), headers=self.header) as response:
+                            if response.status == 429:
+                                return {'message': message, 'module': 'Riot', 'command': self.status,
+                                        'time_to_retry': time.time() + int(response.headers['retry-after'])}
                             jsd = await response.json()
                             await dbp.set("LOL"+region, json.dumps(jsd))
                             await dbp.expire("LOL"+region, 3600)  # Cache clears every hour
@@ -148,6 +154,9 @@ class Riot:
                     else:
                         with aiohttp.ClientSession() as session:
                             async with session.get(self.apiurls['status'] + "/shards/{}".format(region), headers=self.header) as response:
+                                if response.status == 429:
+                                    return {'message': message, 'module': 'Riot', 'command': self.region_status,
+                                            'time_to_retry': time.time() + int(response.headers['retry-after'])}
                                 jsd = await response.json()
                                 await dbp.set("LOL" + region, json.dumps(jsd))
                                 await dbp.expire("LOL" + region, 3600)  # Cache clears every hour
@@ -178,6 +187,9 @@ class Riot:
             else:
                 with aiohttp.ClientSession() as session:
                     async with session.get(self.apiurls['observer'] + "/rest/featured", params={'api_key': key}, headers=self.header) as response:
+                        if response.status == 429:
+                            return {'message': message, 'module': 'Riot', 'command': self.featured_games,
+                                    'time_to_retry': time.time() + int(response.headers['retry-after'])}
                         data = await response.json()
                         await dbp.set("LOLFeatured", json.dumps(data))
                         await dbp.expire("LOLFeatured", 1800)
@@ -217,6 +229,10 @@ class Riot:
                 return await dbp.get(name.lower())
             with aiohttp.ClientSession() as session:
                 async with session.get(self.apiurls['na'] + "/na/v1.4/summoner/by-name/{}".format(name), params={'api_key': key}, headers=self.header) as response:
+                    if response.status == 429:
+                        if response.status == 429:
+                            return {'message': None, 'module': 'Riot', 'command': None,
+                                    'time_to_retry': time.time() + int(response.headers['retry-after'])}
                     if response.status == 404:
                         return 0
                     else:
@@ -257,6 +273,10 @@ class Riot:
         sid = "%20".join(message.content.split(" ")[1:])
         if not sid.isdigit():
             sid = await self.get_summoner_id(sid)
+            if isinstance(sid, dict):  #  429 - Ratelimited!
+                sid['message'] = message
+                sid['command'] = self.summoner_stats
+                return sid
         if sid == 0 or sid is None:
             return "Couldn't find that summoner."
         async with self.pools.get() as dbp:
@@ -269,6 +289,9 @@ class Riot:
             else:
                 with aiohttp.ClientSession() as session:
                     async with session.get(self.apiurls['na'] + "/na/v1.3/stats/by-summoner/{}/summary".format(sid), params={'api_key': key}, headers=self.header) as response:
+                        if response.status == 429:
+                            return {'message': message, 'module': 'Riot', 'command': self.summoner_stats,
+                                    'time_to_retry': time.time() + int(response.headers['retry-after'])}
                         stats = await response.json()
                         await dbp.set("LOLStats{}".format(sid), json.dumps(stats))
                         await dbp.expire("LOLStats{}".format(sid), 86400)
@@ -294,6 +317,10 @@ class Riot:
         sid = "%20".join(message.content.split(" ")[1:])
         if not sid.isdigit():
             sid = await self.get_summoner_id(sid)
+            if isinstance(sid, dict):  #  429 - ratelimited!
+                sid['message'] = message
+                sid['command'] = self.match_list
+                return sid
         if sid == 0:
             return "Couldn't find that summoner."
         async with self.pools.get() as dbp:
@@ -306,6 +333,9 @@ class Riot:
             else:
                 with aiohttp.ClientSession() as session:
                     async with session.get(self.apiurls['na'] + "/na/v1.3/game/by-summoner/{}/recent".format(sid), params={'api_key': key}, headers=self.header) as response:
+                        if response.status == 429:
+                            return {'message': message, 'module': 'Riot', 'command': self.match_list,
+                                    'time_to_retry': time.time() + int(response.headers['retry-after'])}
                         data = await response.json()
                         await dbp.set("LOLMatches{}".format(sid), json.dumps(data))
                         await dbp.expire("LOLMatches{}".format(sid), 86400)
