@@ -162,12 +162,16 @@ class AngelBot(discord.Client):
                                         await self.token_bucket[ret['module']]['commands'].put([ret['command'], ret['message']])
                                         await self.send_message(ret['message'].server.id, "Oh no, we done got ratelimited! Please wait {}. Messages will automatically process then.".format(timedelta(seconds=ret['time_to_rety'])))
                                 elif isinstance(ret, list):
-                                    for retstring in ret:
-                                        if len(retstring) > 2000:
-                                            logger.warning("Item was more than 2000 characters. Skipped.")
-                                            return
-                                        else:
-                                            await self.send_message(message.channel, retstring)
+                                    attempt = "\n".join(ret)
+                                    if len(attempt) > 2000:
+                                        for retstring in ret:
+                                            if len(retstring) > 2000:
+                                                logger.warning("Item was more than 2000 characters. Skipped.")
+                                                return
+                                            else:
+                                                await self.send_message(message.channel, retstring)
+                                    else:
+                                        await self.send_message(message.channel, attempt)
                                 else:
                                     if len(ret) > 2000:
                                         logger.warning("Item was more than 2000 characters. Skipped.")
