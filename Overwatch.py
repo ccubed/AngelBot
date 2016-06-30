@@ -1,7 +1,7 @@
 import aiohttp
 
 class OWAPI:
-    def __init__(self, pool):
+    def __init__(self, pool, graylog):
         self.apiurl = "https://owapi.net/api/v2/u/"
         self.apiurlheroes = "https://owapi.net/api/v1/u/"  # Use this until heroes is built into v2
         # Map Numbers to names
@@ -22,11 +22,12 @@ class OWAPI:
                            {'names': ['D.Va', 'twitch streamer', 'gamer girl'], 'id': 22}]
         self.commands = [['ow', self.ow], ['owheroes', self.owheroes], ['owhero', self.owhero]]
         self.header = {'User-Agent': "AngelBot AioHttp Python3.5"}
+        self.log = graylog
 
     async def ow(self, message):
         name = " ".join(message.content.split(" ")[1:])
         with aiohttp.ClientSession() as session:
-            async with session.get(self.apiurl + "{}/stats".format(name), headers=self.header) as response:
+            async with session.get(self.apiurl + "{}/stats/general".format(name), headers=self.header) as response:
                 if response.status == 404:
                     return "Battletag not found."
                 elif response.status == 500:
