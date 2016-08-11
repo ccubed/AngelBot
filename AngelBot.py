@@ -142,7 +142,7 @@ class AngelBot(discord.Client):
                 if test:
                     prefix = await dbp.hget(message.server.id, "Prefix")
                 mods = await dbp.hgetall(message.server.id+"_Modules")
-                for item in mods.keys():
+                for item in set(mods.keys()).difference(['AList']):
                     if mods[item] == "None" or message.channel.name in mods[item].split("|"):
                         check = message.content.split(" ")[0].lower()
                         for command in self.references[item].commands:
@@ -164,18 +164,21 @@ class AngelBot(discord.Client):
                                 elif isinstance(ret, list):
                                     attempt = "\n".join(ret)
                                     if len(attempt) > 2000:
-                                        for retstring in ret:
-                                            if len(retstring) > 2000:
-                                                logger.warning("Item was more than 2000 characters. Skipped.")
-                                                return
-                                            else:
-                                                await self.send_message(message.channel, retstring)
+                                        if len(ret) <= 5:
+                                            for retstring in ret:
+                                                if len(retstring) > 2000:
+                                                    logger.warning("Item was more than 2000 characters. Skipped.")
+                                                    await self.send_message(message.channel, "Received a list of things to return, but one of them was over 2000 characters. Ignored.")
+                                                else:
+                                                    await self.send_message(message.channel, retstring)
+                                        else:
+                                            await self.send_message(message.channel, "Received a large list of things to return that would hit the rate limit. Not implemented yet.")
                                     else:
                                         await self.send_message(message.channel, attempt)
                                 else:
                                     if len(ret) > 2000:
                                         logger.warning("Item was more than 2000 characters. Skipped.")
-                                        return
+                                        await self.send_message(message.channel, "The result of that was larger than 2000 characters. Sorry, I discarded it.")
                                     else:
                                         await self.send_message(message.channel, ret)
 

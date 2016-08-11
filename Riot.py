@@ -20,7 +20,7 @@ class Riot:
         self.pools = redis
         self.commands = [['islolup', self.status], ['lolfree', self.free_rotation], ['lolstatus', self.region_status],
                          ['lolfeatures', self.featured_games], ['lolrecent', self.match_list], ['lolstats', self.summoner_stats]]
-        self.regions = ['jp1', 'oc1', 'la2', 'la1', 'eun1', 'eu', 'na1']
+        self.regions = ['na', 'lan', 'las', 'br', 'oce', 'eune', 'tr', 'ru', 'euw', 'kr']
         self.header = {'User-Agent': 'AngelBot ( aiohttp 0.26.1 python 3.5.1 )'}
         self.events = [[self.update_freerotation, 0]]
         self.maps = {1: "Summoner's Rift (Original Summer)", 2: "Summoner's Rift (Original Autumn)", 4: 'Twisted Treeline (Original)',
@@ -33,7 +33,6 @@ class Riot:
 
         :event_loop loop:
         """
-        pass
         loop.create_task(self._update_freerotation())
         loop.call_later(172800, self.update_freerotation, loop)
 
@@ -45,6 +44,8 @@ class Riot:
         async with self.pools.get() as dbp:
             key = await dbp.get("RiotGames")
             test = await dbp.exists("LOLFreeRotation")
+            champdata = await dbp.get("LOLCHAMPS")
+            champdata = json.loads(champdata)
             current = []
             if test:
                 current = await dbp.get("LOLFreeRotation")
@@ -54,28 +55,17 @@ class Riot:
                     if response.status == 429:
                         return
                     jsd = await response.json()
-                    templist = []
-                    new = []
-                    for x in jsd['champions']:
-                        templist.append(x['id'])
+                    templist = [x['id'] for x in jsd['champions']]
                     if current:
-                        different = False
-                        for x in current:
-                            if x['id'] not in templist:
-                                different = True
-                        if different:
-                            for x in templist:
-                                async with session.get(self.apiurls['global'] + '/static-data/na/v1.2/champion/{}'.format(x), params={'api_key': key}, headers=self.header) as csd:
-                                    champsd = await csd.json()
-                                    new.append({'id': x, 'name': champsd['name']})
+                        if set(templist).difference([x['id'] for x in current]):
+                            new = [x for x in current if x['id'] in set(templist).intersection([y['id'] for y in current])]
+                            for x in set(templist).difference([x['id'] for x in current]):
+                                new.append({'id': x, 'name': champdata['keys'][str(x)]})
                             await dbp.set("LOLFreeRotation", json.dumps(new))
                     else:
+                        new = []
                         for x in templist:
-                            async with session.get(
-                                            self.apiurls['global'] + '/static-data/na/v1.2/champion/{}'.format(x),
-                                            params={'api_key': key}, headers=self.header) as csd:
-                                champsd = await csd.json()
-                                new.append({'id': x, 'name': champsd['name']})
+                            new.append({'id': x, 'name': champdata['keys'][str(x)]})
                         await dbp.set("LOLFreeRotation", json.dumps(new))
 
     async def status(self, message):
@@ -86,32 +76,35 @@ class Riot:
         :return: a message containing the status of the shards for League of Legends
         """
         async with self.pools.get() as dbp:
-            msg = "```xl\n"
             for region in self.regions:
+                msgs = []
                 test = await dbp.exists("LOL"+region)
                 if test:
+                    print("We're sending cached data")
                     jsd = await dbp.get("LOL"+region)
                     jsd = json.loads(jsd)
-                    msg += jsd['name'] + '\n'
+                    msg = '```xl\n' + jsd['name'] + '\n'
                     for service in jsd['services']:
                         msg += ' '*4 + service['name'] + ' "' + service['status'] + '"\n'
                         if len(service['incidents']):
                             msg += '    '*2 + 'Currently there {} {} {}\n'.format('is' if len(service['incidents']) == 1 else 'are', len(service['incidents']), 'Incident' if len(service['incidents']) == 1 else 'Incidents')
+                    msgs.append(msg + '\n```')
                 else:
                     with aiohttp.ClientSession() as session:
-                        async with session.get(self.apiurls['status'] + "/shards/{}".format(region), headers=self.header) as response:
+                        async with session.get(self.apiurls['status'] + "shards/{}".format(region), headers=self.header) as response:
                             if response.status == 429:
                                 return {'message': message, 'module': 'Riot', 'command': self.status,
                                         'time_to_retry': time.time() + int(response.headers['retry-after'])}
                             jsd = await response.json()
                             await dbp.set("LOL"+region, json.dumps(jsd))
                             await dbp.expire("LOL"+region, 3600)  # Cache clears every hour
-                            msg += jsd['name'] + '\n'
+                            msg = '```xl\n' + jsd['name'] + '\n'
                             for service in jsd['services']:
                                 msg += ' '*4 + service['name'] + ' "' + service['status'] + '"\n'
                                 if len(service['incidents']):
                                     msg += '    '*2 + 'Currently there {} {} {}\n'.format('is' if len(service['incidents']) == 1 else 'are', len(service['incidents']), 'Incident' if len(service['incidents']) == 1 else 'Incidents')
-            return msg + "```"
+                                msgs.append(msg + '\n```')
+            return msgs
 
     async def free_rotation(self, message):
         """
@@ -135,6 +128,7 @@ class Riot:
         :class message:
         :return:
         """
+        print("In Region Status")
         if len(message.content.split(" ")) == 1:
             return "Need to provide a region. Most likely na1 (North America), eu (Europe) or eun1 (Nordic and Eastern Europe)."
         else:
@@ -143,6 +137,7 @@ class Riot:
                 async with self.pools.get() as dbp:
                     test = await dbp.exists("LOL" + region)
                     if test:
+                        print("Sent cached data.")
                         jsd = await dbp.get("LOL"+region)
                         jsd = json.loads(jsd)
                         msg = "```xl\nStatus for {}\n".format(jsd['name'])
@@ -153,7 +148,9 @@ class Riot:
                         return msg + "```"
                     else:
                         with aiohttp.ClientSession() as session:
-                            async with session.get(self.apiurls['status'] + "/shards/{}".format(region), headers=self.header) as response:
+                            async with session.get(self.apiurls['status'] + "shards/{}".format(region), headers=self.header) as response:
+                                print("Sent new data\nStatus: {}".format(response.status))
+                                print(await response.text())
                                 if response.status == 429:
                                     return {'message': message, 'module': 'Riot', 'command': self.region_status,
                                             'time_to_retry': time.time() + int(response.headers['retry-after'])}
@@ -182,11 +179,13 @@ class Riot:
             test = await dbp.exists("LOLFeatured")
             data = 0
             if test:
+                print("Sent cached data")
                 data = await dbp.get("LOLFeatured")
                 data = json.loads(data)
             else:
                 with aiohttp.ClientSession() as session:
                     async with session.get(self.apiurls['observer'] + "/rest/featured", params={'api_key': key}, headers=self.header) as response:
+                        print("Sent New Data\nStatus: {}".format(response.status))
                         if response.status == 429:
                             return {'message': message, 'module': 'Riot', 'command': self.featured_games,
                                     'time_to_retry': time.time() + int(response.headers['retry-after'])}
