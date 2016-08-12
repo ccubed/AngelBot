@@ -15,7 +15,7 @@ class DBParser:
                          ['recipe', self.searchrecipe], ['action', self.searchaction],
                          ['mats', self.searchmats], ['npc', self.searchnpc], ['effect', self.searchstatus],
                          ['minion', self.searchminion], ['achievement', self.searchachievement],
-                         ['hdim', self.parsehdim], ['wdif', self.parsewdif]]
+                         ['hdim', self.parsehdim]]
 
     async def searchall(self, message):
         data = {'string': " ".join(message.content.split(' ')[1:])}
