@@ -23,12 +23,14 @@ class DBParser:
         with aiohttp.ClientSession() as session:
             async with session.get(url, params=data, headers={'User-Agent': 'AngelBot ( aiohttp 0.26.1 python 3.5.1 )'}) as response:
                 jsd = await response.json()
-                msg = "Matched...\n"
+                msgs = []
                 for key in jsd:
                     if jsd[key]['total'] > 0:
-                        msg += "{0} {1}\n".format(jsd[key]['total'], key)
-                msg += "Ask for a specific category or add more words."
-                return msg
+                        msg = "Found {} {}\n".format(jsd[key]['total'], key if key != "gathering" else "mats")
+                        for item in jsd[key]['results']:
+                            msg += "   {0[name]} ({0[id]})\n".format(item)
+                        msgs.append(msg)
+                return msgs
 
     async def searchid(self, name):
         data = {'string': name}
@@ -320,6 +322,7 @@ class DBParser:
 
     async def parsewdif(self, name):
         jd = await self.searchid(" ".join(name.content.split(" ")[1:]))
+        print(jd)
         if 'items' in jd:
             achievements = []
             if 'achievements' in jd:

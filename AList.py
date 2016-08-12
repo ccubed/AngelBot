@@ -33,9 +33,8 @@ class AList:
                     'client_secret': csecret}
             url = self.apiurl + "/auth/access_token"
             with aiohttp.ClientSession() as session:
-                async with session.post(url, params=data) as response:
+                async with session.post(url, data=data) as response:
                     jsd = await response.json()
-                    await pool.hset("ALReadOnly", "Expiration", jsd['expires'])
                     await pool.hset("ALReadOnly", "AccessToken", jsd['access_token'])
 
     async def get_oauth(self, id):
@@ -51,7 +50,7 @@ class AList:
                         csec = await dbp.hget("AniList", "ClientSecret")
                         params = {'grant_type': 'refresh_token', 'client_id': cid, 'client_secret': csec, 'refresh_token': refresh}
                         with aiohttp.ClientSession() as session:
-                            async with session.post("https://anilist.co/api/auth/access_token", params=params) as response:
+                            async with session.post("https://anilist.co/api/auth/access_token", data=params) as response:
                                 text = await response.text()
                                 if text == "\n" or response.status == 404:
                                     return 0

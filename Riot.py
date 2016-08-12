@@ -76,11 +76,10 @@ class Riot:
         :return: a message containing the status of the shards for League of Legends
         """
         async with self.pools.get() as dbp:
+            msgs = []
             for region in self.regions:
-                msgs = []
                 test = await dbp.exists("LOL"+region)
                 if test:
-                    print("We're sending cached data")
                     jsd = await dbp.get("LOL"+region)
                     jsd = json.loads(jsd)
                     msg = '```xl\n' + jsd['name'] + '\n'
@@ -128,16 +127,14 @@ class Riot:
         :class message:
         :return:
         """
-        print("In Region Status")
         if len(message.content.split(" ")) == 1:
-            return "Need to provide a region. Most likely na1 (North America), eu (Europe) or eun1 (Nordic and Eastern Europe)."
+            return "Need to provide a region. These are: {}.".format(', '.join(self.regions))
         else:
             region = message.content.split(" ")[1]
             if region in self.regions:
                 async with self.pools.get() as dbp:
                     test = await dbp.exists("LOL" + region)
                     if test:
-                        print("Sent cached data.")
                         jsd = await dbp.get("LOL"+region)
                         jsd = json.loads(jsd)
                         msg = "```xl\nStatus for {}\n".format(jsd['name'])
@@ -149,8 +146,6 @@ class Riot:
                     else:
                         with aiohttp.ClientSession() as session:
                             async with session.get(self.apiurls['status'] + "shards/{}".format(region), headers=self.header) as response:
-                                print("Sent new data\nStatus: {}".format(response.status))
-                                print(await response.text())
                                 if response.status == 429:
                                     return {'message': message, 'module': 'Riot', 'command': self.region_status,
                                             'time_to_retry': time.time() + int(response.headers['retry-after'])}
@@ -179,13 +174,11 @@ class Riot:
             test = await dbp.exists("LOLFeatured")
             data = 0
             if test:
-                print("Sent cached data")
                 data = await dbp.get("LOLFeatured")
                 data = json.loads(data)
             else:
                 with aiohttp.ClientSession() as session:
                     async with session.get(self.apiurls['observer'] + "/rest/featured", params={'api_key': key}, headers=self.header) as response:
-                        print("Sent New Data\nStatus: {}".format(response.status))
                         if response.status == 429:
                             return {'message': message, 'module': 'Riot', 'command': self.featured_games,
                                     'time_to_retry': time.time() + int(response.headers['retry-after'])}

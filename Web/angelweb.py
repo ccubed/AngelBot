@@ -56,7 +56,7 @@ def oauth_callback(provider):
                 return redirect(url_for('static', filename='html/oauth_failed.html'), code=303)
         elif provider == "anilist":
             params = {'grant_type': 'authorization_code', 'client_id': oauth['alist']['cid'], 'client_secret': oauth['alist']['csecret'], 'redirect_uri': 'https://angelbot.vertinext.com/oauth/oauthcallback/anilist', 'code': atoken, 'state': request.args.get('state')}
-            ga = requests.post("https://anilist.co/api/auth/access_token", params=params)
+            ga = requests.post("https://anilist.co/api/auth/access_token", data=params)
             gaj = ga.json()
             if 'access_token' in gaj:
                 access = enc.encrypt(gaj['access_token'])

@@ -22,7 +22,7 @@ class AngelBot(discord.Client):
         self.btoken = None
         self.creator = None
         self.references = {}
-        self.testing = False
+        self.testing = True
         self.token_bucket = {}
 
     async def setup(self):
@@ -142,7 +142,7 @@ class AngelBot(discord.Client):
                 if test:
                     prefix = await dbp.hget(message.server.id, "Prefix")
                 mods = await dbp.hgetall(message.server.id+"_Modules")
-                for item in set(mods.keys()).difference(['AList']):
+                for item in mods.keys():
                     if mods[item] == "None" or message.channel.name in mods[item].split("|"):
                         check = message.content.split(" ")[0].lower()
                         for command in self.references[item].commands:
@@ -164,7 +164,7 @@ class AngelBot(discord.Client):
                                 elif isinstance(ret, list):
                                     attempt = "\n".join(ret)
                                     if len(attempt) > 2000:
-                                        if len(ret) <= 5:
+                                        if len(ret) <= 3:
                                             for retstring in ret:
                                                 if len(retstring) > 2000:
                                                     logger.warning("Item was more than 2000 characters. Skipped.")
@@ -172,7 +172,14 @@ class AngelBot(discord.Client):
                                                 else:
                                                     await self.send_message(message.channel, retstring)
                                         else:
-                                            await self.send_message(message.channel, "Received a large list of things to return that would hit the rate limit. Not implemented yet.")
+                                            await self.send_message(message.channel, "Received a list of items to return. I will return them slowly over the next few seconds.")
+                                            for idx, idt in enumerate(ret):
+                                                    if len(idt) > 2000:
+                                                        await self.send_message(message.channel, "Received a list of things to return, but one of them was over 2000 characters. Ignored.")
+                                                    else:
+                                                        await self.send_message(message.channel, idt)
+                                                    if not idx % 3:
+                                                        asyncio.sleep(3)
                                     else:
                                         await self.send_message(message.channel, attempt)
                                 else:
@@ -182,16 +189,12 @@ class AngelBot(discord.Client):
                                     else:
                                         await self.send_message(message.channel, ret)
 
-    # We need to clean settings and Oauth on server remove for security
     async def on_server_remove(self, server):
         await self.references['Admin'].cleanconfig(server.name)
 
     async def on_server_join(self, server):
         async with self.redis.get() as dbp:
             await self.references["Admin"].createnewserver(server.id, dbp)
-
-    async def on_ready(self):
-        return
 
     def update_carbon(self):
         self.loop.create_task(self._update_carbon())
