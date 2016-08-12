@@ -33,11 +33,21 @@ class DBParser:
                 return msgs
 
     async def searchid(self, name):
+        isid = None
+        try:
+            int(name)
+            isid = True
+        except ValueError:
+            isid = False
         data = {'string': name}
         url = self.apiurl + '/search'
         with aiohttp.ClientSession() as session:
             async with session.get(url, params=data, headers={'User-Agent': 'AngelBot ( aiohttp 0.26.1 python 3.5.1 )'}) as response:
                 jsd = await response.json()
+                if isid:
+                    for x in [x for x in list(jsd.keys()) if jsd[x]['total']]:
+                        async with session.get(url, params={'string': jsd[x]['results'][0]['name']}, headers={'User-Agent': 'AngelBot ( aiohttp 0.26.1 python 3.5.1 )'}) as response:
+                            jsd = await response.json()
                 return jsd
 
     async def searchitem(self, message):
@@ -319,89 +329,3 @@ class DBParser:
                 return "{0} didn't match a recipe.".format(name)
             else:
                 return await self.parserecipe(str(jd['recipes']['results'][0]['id']))
-
-    async def parsewdif(self, name):
-        jd = await self.searchid(" ".join(name.content.split(" ")[1:]))
-        print(jd)
-        if 'items' in jd:
-            achievements = []
-            if 'achievements' in jd:
-                if jd['achievements']['total']:
-                    for item in jd['achievements']['results']:
-                        achievements.append([item['name'], item['id']])
-            instances = []
-            if 'instances' in jd:
-                if jd['instances']['total']:
-                    for item in jd['instances']['results']:
-                        instances.append(item['name'])
-            quests = []
-            if 'quests' in jd:
-                if jd['quests']['total']:
-                    for item in jd['quests']['results']:
-                        quests.append([item['name'], item['id']])
-            shops = []
-            if 'shops' in jd:
-                if jd['shops']['total']:
-                    for item in jd['shops']['results']:
-                        for npc in item['npcs']:
-                            shops.append(
-                                [npc['name'], npc['placename']['name'], npc['position']['x'], npc['position']['y']])
-            craftable = []
-            if 'craftable' in jd:
-                if jd['craftable']['total']:
-                    for item in jd['craftable']['results']:
-                        craftable.append([item['name'], item['id'], item['classjob']['name'], item['level']])
-            enemies = []
-            if 'enemies' in jd:
-                if jd['enemies']['total']:
-                    for item in jd['enemies']['results']:
-                        temp = [item['name'], item['id']]
-                        if 'zones' in item:
-                            for zone in item['zones']:
-                                if 'region' in zone:
-                                    temp.append(zone['region']['name'])
-                                if 'placename' in zone:
-                                    temp.append(zone['placename']['name'])
-                        enemies.append(temp)
-            gathering = []
-            if 'gathering' in jd:
-                if jd['gathering']['total']:
-                    for item in jd['gathering']['results']:
-                        gathering.append(
-                            '{0} Lv.{1} (Node ID: {2})'.format(item['type_name'], item['level'], item['id']))
-            message = ""
-            if len(achievements):
-                message += "Obtained from Achievements ->\n"
-                for item in achievements:
-                    message += "   {0} (ID: {1})\n".format(item[0], item[1])
-            if len(instances):
-                message += "Obtained from Dungeons ->\n"
-                for item in instances:
-                    message += "   {0}\n".format(item)
-            if len(quests):
-                message += "Obtained from Quests ->\n"
-                for item in quests:
-                    message += "   {0} (ID: {1})\n".format(item[0], item[1])
-            if len(shops):
-                message += "Obtained from Shops ->\n"
-                for item in shops:
-                    message += "   {0} in {1} at {2}x {3}y\n".format(item[0], item[1], item[2], item[3])
-            if len(craftable):
-                message += "Can be Crafted ->\n"
-                for item in craftable:
-                    message += "   {0} (ID: {1}) {2} Lv.{3}\n".format(item[0], item[1], item[2], item[3])
-            if len(enemies):
-                message += "Dropped from Enemies ->\n"
-                for item in enemies:
-                    message += "{0} (ID: {1}) in {2}{3}".format(item[0], item[1], item[2] if len(item) > 2 else "",
-                                                                item[3] if len(item) > 3 else "")
-            if len(gathering):
-                message += "Can be Gathered ->\n"
-                for item in gathering:
-                    message += item + "\n"
-            if len(message):
-                return message
-            else:
-                return "Item found but no location information is recorded."
-        else:
-            return "No match found."
