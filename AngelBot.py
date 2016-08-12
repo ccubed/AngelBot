@@ -22,7 +22,7 @@ class AngelBot(discord.Client):
         self.btoken = None
         self.creator = None
         self.references = {}
-        self.testing = True
+        self.testing = False
         self.token_bucket = {}
 
     async def setup(self):
