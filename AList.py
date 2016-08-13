@@ -5,6 +5,7 @@ import json
 import encryption
 from secret import *
 from AList_ProfileProcessor import profile_preprocessor
+import random
 
 
 class AList:
@@ -49,14 +50,17 @@ class AList:
                         cid = await dbp.hget("AniList", "ClientID")
                         csec = await dbp.hget("AniList", "ClientSecret")
                         params = {'grant_type': 'refresh_token', 'client_id': cid, 'client_secret': csec, 'refresh_token': refresh}
+                        print(params)
                         with aiohttp.ClientSession() as session:
                             async with session.post("https://anilist.co/api/auth/access_token", data=params) as response:
                                 text = await response.text()
                                 if text == "\n" or response.status == 404:
                                     return 0
                                 else:
+                                    print(response.status)
+                                    print(text)
                                     jsd = json.loads(text)
-                                    await dbp.hset(id, "Anilist_Expires", jsd['expires'])
+                                    await dbp.hset(id, "Anilist_Expires", time.time()+3600)
                                     await dbp.hset(id, "Anilist_Token", self.enc.encrypt(jsd['access_token']))
                                     return jsd['access_token']
                     else:
@@ -707,7 +711,7 @@ class AList:
                     jsd = await response.json()
                     jsd = jsd['lists']['reading']
                     pids = []
-                    msg = "{} is currently reading ->\n"
+                    msg = "{} is currently reading ->\n".format(name.replace("%20", " "))
                     if len(jsd) > 20:
                         while len(pids) < 20:
                             randid = random.randint(0, len(jsd) - 1)
