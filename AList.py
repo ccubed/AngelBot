@@ -60,7 +60,7 @@ class AList:
                                     print(response.status)
                                     print(text)
                                     jsd = json.loads(text)
-                                    await dbp.hset(id, "Anilist_Expires", time.time()+3600)
+                                    await dbp.hset(id, "Anilist_Expires", int(time.time())+3600)
                                     await dbp.hset(id, "Anilist_Token", self.enc.encrypt(jsd['access_token']))
                                     return jsd['access_token']
                     else:
@@ -276,6 +276,8 @@ class AList:
                         if response.status == 404 or text == "\n":
                             return "Anilist says you don't exist."
                         else:
+                            print(text)
+                            print(response.status)
                             jsd = json.loads(text)
                             if 'about' in jsd and jsd['about']:
                                 about = await profile_preprocessor(jsd['about'])

@@ -63,7 +63,7 @@ def oauth_callback(provider):
                 access = enc.encrypt(gaj['access_token'])
                 rtoken = gaj['refresh_token']
                 rcon.hset(request.args.get('state'), 'Anilist_Token', access)
-                rcon.hset(request.args.get('state'), 'Anilist_Expires', time.time()+3600)
+                rcon.hset(request.args.get('state'), 'Anilist_Expires', int(time.time())+3600)
                 rcon.hset(request.args.get('state'), 'Anilist_Refresh', rtoken)
                 return redirect(url_for('static', filename='html/oauth_success.html'), code=303)
             else:
