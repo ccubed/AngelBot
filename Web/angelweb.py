@@ -25,7 +25,6 @@ def generate_oauth_handshake(provider, userid):
         return redirect(url)
     elif provider == "AniList":
         url = "https://anilist.co/api/auth/authorize?grant_type=authorization_code&client_id={0}&redirect_uri={1}&response_type=code&state={2}".format(oauth['alist']['cid'], "https://angelbot.vertinext.com/oauth/oauthcallback/anilist", userid)
-        print(url)
         return redirect(url)
     else:
         return redirect(url_for('static', filename='html/oauth_security.html', values=None), code=303)
@@ -60,7 +59,6 @@ def oauth_callback(provider):
             params = {'grant_type': 'authorization_code', 'client_id': oauth['alist']['cid'], 'client_secret': oauth['alist']['csecret'], 'redirect_uri': 'https://angelbot.vertinext.com/oauth/oauthcallback/anilist', 'code': atoken, 'state': request.args.get('state')}
             ga = requests.post("https://anilist.co/api/auth/access_token", data=params)
             gaj = ga.json()
-            print(gaj)
             if 'access_token' in gaj:
                 access = enc.encrypt(gaj['access_token'])
                 rtoken = gaj['refresh_token']
