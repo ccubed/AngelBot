@@ -61,7 +61,7 @@ class Currency:
                     jsd = await response.json()
                     if len(jsd['rates']) > 0:
                         conversion = amt * float(jsd['rates'][currency_to])
-                        return "{} {} is {} {} based on data as of {}.".format(amt, self.currencies[currency_from], conversion, self.currencies[currency_to], jsd['date'])
+                        return "{} {} is {} {} based on data as of {}.".format(amt, self.currencies[currency_from], round(conversion, 2), self.currencies[currency_to], jsd['date'])
                     else:
                         return "I can't convert {} to {} because Fixer.io has no currency rate information on that specific combination.".format(self.currencies[currency_from], self.currencies[currency_to])
 
