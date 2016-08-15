@@ -35,7 +35,8 @@ class Currency:
                            'PHP': 'Philippine Peso',
                            'SGD': 'Singapore Dollar',
                            'THB': 'Thai Baht',
-                           'ZAR': 'South African Rand'}
+                           'ZAR': 'South African Rand',
+                           'EUR': 'Euro'}
         self.commands = [['convert', self.convert], ['currencies', self.currencylist], ['rates', self.latest]]
 
     async def convert(self, message):
@@ -43,10 +44,10 @@ class Currency:
         #convert x [currency] to [other currency base]
         """
         currency_from = " ".join(message.content.split("to")[0].split()[2:])
-        currency_to = message.content.split("to")[1]
+        currency_to = message.content.split("to")[1].strip()
         if currency_from not in self.currencies.keys() or currency_to not in self.currencies.keys():
             msgs = ["Please make sure to enter a valid currency. Valid currencies are as follows."]
-            msg = await self.currencyList(message)
+            msg = await self.currencylist(message)
             msgs.append(msg)
             return msgs
         amt = message.content.split("to")[0].split()[1]
