@@ -3,7 +3,7 @@ import aiohttp
 
 class Currency:
 
-    def __init__(self):
+    def __init__(self, redis):
         self.apiurl = "https://api.fixer.io"
         self.currencies = {'USD': 'US Dollar',
                            'JPY': 'Japanese Yen',
