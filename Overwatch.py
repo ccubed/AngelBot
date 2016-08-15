@@ -3,11 +3,10 @@ import aiohttp
 class OWAPI:
     def __init__(self, pool):
         self.apiurl = "https://owapi.net/api/v2/u/"
-        self.apiurlheroes = "https://owapi.net/api/v1/u/"  # Use this until heroes is built into v2
         # Map Numbers to names
-        self.index = {1: 'Roadhog', 2: 'Junkrat', 3: 'Lucio', 4: 'Soldier: 76', 5: 'Zarya', 6: 'McCree', 7: 'Tracer', 8: 'Reaper',
-                      9: 'Widowmaker', 10: 'Winston', 11: 'Pharah', 12: 'Reinhardt', 13: 'Symmetra', 14: 'Torbjorn', 15: 'Bastion',
-                      16: 'Hanzo', 17: 'Mercy', 18: 'Zenyatta', 20: 'Mei', 21: 'Genji', 22: 'D.Va'}
+        self.index = {1: 'roadhog', 2: 'junkrat', 3: 'lucio', 4: 'soldier76', 5: 'zarya', 6: 'mccree', 7: 'tracer', 8: 'reaper',
+                      9: 'widowmaker', 10: 'winston', 11: 'pharah', 12: 'reinhardt', 13: 'symmetra', 14: 'torbjorn', 15: 'bastion',
+                      16: 'hanzo', 17: 'mercy', 18: 'zenyatta', 20: 'mei', 21: 'genji', 22: 'dva'}
         # Map names to Numbers
         self.characters = [{'names': ['roadhog', 'birdie'], 'id': 1}, {'names': ['junkrat', 'crocodile dun dee'], 'id': 2},
                            {'names': ['lucio', 'lúcio', 'drop the beats'], 'id': 3}, {'names': ['soldier: 76', 'cod', 'blops'], 'id': 4},
@@ -24,7 +23,7 @@ class OWAPI:
         self.header = {'User-Agent': "AngelBot AioHttp Python3.5"}
 
     async def ow(self, message):
-        name = " ".join(message.content.split(" ")[1:])
+        name = " ".join(message.content.split(" ")[1:]).replace('#', '-')
         with aiohttp.ClientSession() as session:
             async with session.get(self.apiurl + "{}/stats/general".format(name), headers=self.header) as response:
                 if response.status == 404:
@@ -55,38 +54,39 @@ class OWAPI:
                     return messages
 
     async def owheroes(self, message):
-        name = " ".join(message.content.split(" ")[1:])
+        name = " ".join(message.content.split(" ")[1:]).replace('#', '-')
         with aiohttp.ClientSession() as session:
-            async with session.get(self.apiurlheroes + "{}/heroes".format(name), headers=self.header) as response:
+            async with session.get(self.apiurl + "{}/heroes/general".format(name), headers=self.header) as response:
                 if response.status == 404:
                     return "Battletag not found."
                 elif response.status == 500:
                     return "Server under heavy load. Please try again later."
                 else:
                     jsd = await response.json()
-                    message = "{}'s top 5 played heroes.\n```xl\n".format(jsd['battletag'])
-                    for hero in jsd['heroes']:
-                        message += "{}\n    KPD: {}\n    Games: {}\n    Win %: {}\n".format(hero['name'], hero['kpd'],
-                                                                                            hero['games'], hero['winrate'])
+                    message = "{}'s Heroes.\n```xl\n".format(jsd['battletag'])
+                    for hero in [x for x in jsd['heroes'] if jsd['heroes'][x] > 0]:
+                        message += "{} - Win %: {}\n".format(hero, jsd['heroes'][hero]*100)
                     return message + '```'
 
     async def owhero(self, message):
-        name = " ".join(message.content.split(" ")[1:]).split(":")[0]
+        name = " ".join(message.content.split(" ")[1:]).split(":")[0].replace('#', '-')
         hname = " ".join(message.content.split(" ")[1:]).split(":")[1]
-        hid = 0
         if hname.isdigit():
             if hname not in self.index:
                 return "That's not a valid hero id."
             else:
-                hid = hname
+                hname = self.index[hname]
         else:
+            found = False
             for hero in self.characters:
                 if hname.lower() in hero['names']:
-                    hid = hero['id']
-            if hid == 0:
+                    hname = self.index[hero['id']]
+                    found = True
+                    break
+            if not found:
                 return "Couldn't find a hero with that name."
         with aiohttp.ClientSession() as session:
-            async with session.get(self.apiurlheroes + "{}/heroes/{}".format(name, hid), headers=self.header, params={'region': 'us'}) as response:
+            async with session.get(self.apiurl + "{}/heroes/{}".format(name, hname), headers=self.header) as response:
                 if response.status == 404:
                     return "Couldn't find that battletag."
                 elif response.status == 500:
@@ -94,11 +94,14 @@ class OWAPI:
                 else:
                     jsd = await response.json()
                     messages = []
-                    message = "{}'s stats for {}\n".format(name, self.index[hid])
+                    message = "{}'s stats for {}\n".format(name, hname)
                     messages.append(message)
-                    for type in jsd['stats']:
-                        message = '{}\n```xl\n'.format(type['name'])
-                        for stat in type['stats']:
-                            message += '{}: {}\n'.format(stat['name'], stat['value'])
-                        messages.append(message + "```")
+                    msg = "General Stats\n"
+                    for stat in [x for x in jsd['general_stats'] if 'guid' not in x]:
+                        msg += "   {}: {}\n".format(stat, jsd['general_stats'][stat])
+                    messages.append(msg)
+                    msg = "Hero Specific Stats\n"
+                    for stat in [x for x in jsd['hero_stats'] if 'guid' not in x]:
+                        msg += "   {}: {}\n".format(stat, jsd['hero_stats'][stat])
+                    messages.append(msg)
                     return messages

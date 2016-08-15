@@ -1,7 +1,9 @@
 Overwatch
 =========
 
-This module allows you to grab stats for battletags across the US or EU regions.
+This module allows you to grab stats for battletags across the US or EU region. You can write battletags as name#ID or name-ID. The API expects name-ID but we're used to name#ID.
+
+**NOTE**: Cross region works now. I'm no longer forcing US lookups since the timeouts related to the EU lookups on Blizzard's end seem to be gone.
 
 Features
 --------

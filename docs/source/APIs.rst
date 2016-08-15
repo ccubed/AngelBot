@@ -44,3 +44,10 @@ Overwatch
 * Documentation: :doc:`Overwatch`
 * Module Name: Overwatch
 * Oauth: No
+
+Fixer.io
+--------
+* Features: Currency Rates, Conversion
+* Documentation: :doc:`Currency`
+* Module Name: Currency
+* Oauth: No

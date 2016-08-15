@@ -2,6 +2,7 @@ XIVDB
 =====
 
 This is the API interface to XIVDB's API. Keep in mind that all of these commands should be prefaced with the command prefix defined for your server or the global command prefix of $.
+With the advent of XIVDB 2 and some changes to their Database, the way information is being returned has changed drastically. W(here) D(o) I F(ind) may not be possible anymore. I'm still investigating this. For now it has been removed.
 
 Commands
 --------
@@ -59,8 +60,3 @@ hdim [name or id]
     Return the recipe for thing. Name is the thing you want to make. ID, if you have it, is the Numeric ID assigned by XIVDB. This is a utility function. It's equivalent to $recipe.
 
     Example: Maple Clogs
-
-wdif [name or id]
-    Where do I find thing. Name is what you want to find. ID, if you have it, is the Numeric ID assigned by XIVDB. This will tell you all the ways you can find thing.
-
-    Example: Curtana
