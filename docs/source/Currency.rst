@@ -7,7 +7,7 @@ Commands
 --------
 
 currencies
-    Show a list of currencies that the European Central Bank tracks and their identifier. When using functions in this module use the identifies. IE: GBP or USD.
+    Show a list of currencies that the European Central Bank tracks and their identifier. When using functions in this module use the identifiers. IE: GBP or USD.
 
 rates [Currency]
     Show a list of the latest exchange rates against a given base currency. By default, since the information is based on the European Central Bank, this returns exchange rates against the Euro. You can ask for any currency available in currencies however. For instance: USD or JPY.

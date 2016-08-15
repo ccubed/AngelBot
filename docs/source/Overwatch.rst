@@ -12,7 +12,7 @@ ow <battletag>
     Pull stats for a battletag. Can be EU or US.
 
 owheroes <battletag>
-    Pull stats for top 5 most played heroes for a battletag
+    This endpoint has changed. It now returns heroes and win rates, but no other data. This now returns any played hero on a battletag with a win rate greater than 0%.
 
 owhero <battletag>:<hero>
     Pull stats for a specific hero for a battletag. This is where the easter eggs are. See if you can find some of my funny names for the heroes. Also accepts IDs.
