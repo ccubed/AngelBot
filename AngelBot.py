@@ -1,15 +1,15 @@
 import asyncio
-import logging
 import importlib
 import inspect
-import sys
 import json
+import logging
+import re
+import sys
+import time
 import aiohttp
 import aioredis
 import discord
-import time
 from datetime import timedelta
-from types import ModuleType
 
 
 
@@ -24,6 +24,7 @@ class AngelBot(discord.Client):
         self.references = {}
         self.testing = False
         self.token_bucket = {}
+        self.codeblock_regex = re.compile("```.{0,4}")
 
     async def setup(self):
         self.redis = await aioredis.create_pool(('localhost', 6379), db=1, minsize=1, maxsize=10, encoding="utf-8")
@@ -95,17 +96,70 @@ class AngelBot(discord.Client):
                     await self.send_message(message.author, "Assuming you want a join link: https://discordapp.com/oauth2/authorize?client_id={0}&scope=bot&permissions=0".format(cid))
         elif message.content.startswith("owl") and message.author.id == self.creator:
             if message.content.lower().startswith("owldebug"):
-                    # Rewrite this whole thing to be able to await things seriously
-                    await self.send_message(message.channel, eval(message.content[9:]))
-            elif message.content.lower().startswith("owlhotload"):
-                ret = self.references['Code'].hotload(message)
-                if isinstance(ret, str):
-                    await self.send_message(message.channel, ret)
-                elif isinstance(ret, ModuleType):
-                    self.references[message.content[11:]] = inspect.getmembers(ret, inspect.isclass)[0][1]()
-                    await self.send_message(message.channel, "Hotloaded Module {0}.".format(message.content[11:]))
+                gist_data = {"description": "AngelBot Debug ran {}".format(time.strftime("%a, %d %b %Y %H:%M:%S", time.gmtime())),
+                             "public": True}
+                if '|' in message.content:
+                    command = message.content.split("|")[0]
+                    content = message.content.split("|")[1]
+                    runner = None
+                    container = None
+                    for reference in self.references:
+                        if any([x for x in reference.commands if x[0] == command]):
+                            runner = [x for x in reference.commands if x[0] == command][0][1]
+                            container = reference.__name__
+                            break
+                    if runner is None:
+                        await self.send_message(message.channel, "Attempted to debug a non-existent command.")
+                    else:
+                        try:
+                            result = await runner(content)
+                        except Exception as e:
+                            gist_data['files'] = {
+                                'input.txt': {
+                                    'content': "Debugging the {} command inside the {} module.\n\nMessage Content Given:{}".format(runner.__name__, container, content)
+                                },
+                                'exception.txt': {
+                                    'content': str(e)
+                                }
+                            }
+                            gist_url = await self.create_gist(gist_data)
+                            await self.send_message(message.channel, "Encountered an error testing that command.\nSee {}".format(gist_url))
+                        gist_data['files'] = {
+                            'input.txt': {
+                                'content': "Debugging the {} command inside the {} module.\n\nMessage Content Given:{}".format(runner.__name__, container, content)
+                            },
+                            'result.txt': {
+                                'content': result
+                            }
+                        }
+                        gist_url = await self.create_gist(gist_data)
+                        await self.send_message(message.channel, "Finished running that command.\nSee {}".format(gist_url))
                 else:
-                    await self.send_message(message.channel, "Lol what?")
+                    codeblock = re.split(self.codeblock_regex, message.content)[1]
+                    result = None
+                    try:
+                        result = eval(codeblock)
+                    except SyntaxError as ex:
+                        gist_data['files'] = {
+                            "input.py": {
+                                "content": codeblock
+                            },
+                            "Exception.txt": {
+                                "content": str(ex)
+                            }
+                        }
+                        gist_url = await self.create_gist(gist_data)
+                        await self.send_message(message.channel, "Execution of that code encountered an error.\nSee {}".format(gist_url))
+                    gist_data['files'] = {
+                        "input.py": {
+                            "content": codeblock
+                        },
+                        "result.txt": {
+                            "content": result
+                        }
+                    }
+                    gist_url = await self.create_gist(gist_data)
+                    await self.send_message(message.channel, "Execution of that code was completed.\nSee {}".format(gist_url))
             elif message.content.lower().startswith("owlstats"):
                 up = timedelta(seconds=(time.time() - self.uptime))
                 await self.send_message(message.channel,
@@ -117,7 +171,6 @@ class AngelBot(discord.Client):
                     fstream = open(file, 'rb')
                 except IOError:
                     await self.send_message(message.channel, "File not found.")
-                    return
                 else:
                     imgbd = fstream.read()
                     fstream.close()
@@ -221,6 +274,7 @@ class AngelBot(discord.Client):
         stats['servers'] = len(self.servers)
         stats['cmdssec'] = '{:.1f}'.format(self.commands/stats['uptime'])
         stats['totalcmds'] = self.commands
+        self.commands = 0
         self.loop.create_task(self._update_stats(stats))
         self.loop.call_later(900, self.update_stats)
 
@@ -230,7 +284,7 @@ class AngelBot(discord.Client):
             await dbp.hset('stats', 'users', stats['users'])
             await dbp.hset('stats', 'servers', stats['servers'])
             await dbp.hset('stats', 'cmdssec', stats['cmdssec'])
-            await dbp.hset('stats', 'totalcmds', stats['totalcmds'])
+            await dbp.hincrby('stats', 'totalcmds', stats['totalcmds'])
 
     def update_tokens(self):
         if len(list(self.token_bucket.keys())) > 0:
@@ -263,6 +317,19 @@ class AngelBot(discord.Client):
                     self.token_bucket.pop(module)
         if tokens:  #  We need to come back and keep clearing
             self.loop.call_later(20, self.update_tokens)
+
+    async def create_gist(self, content):
+        headers = {'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json'}
+        async with self.redis.get() as dbp:
+            token = await dbp.get("GitToken")
+            headers['Authorization'] = 'Token {}'.format(token)
+            async with aiohttp.ClientSession() as sess:
+                async with sess.post('https://api.github.com/gists', data=json.dumps(content), headers=headers) as r:
+                    if r.status == 201:
+                        jsd = await r.json()
+                        return jsd['html_url']
+                    else:
+                        return None
 
 
 if __name__ == "__main__":
