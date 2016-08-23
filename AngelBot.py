@@ -98,66 +98,34 @@ class AngelBot(discord.Client):
             if message.content.lower().startswith("owldebug"):
                 gist_data = {"description": "AngelBot Debug ran {}".format(time.strftime("%a, %d %b %Y %H:%M:%S", time.gmtime())),
                              "public": True}
-                if '|' in message.content:
-                    command = message.content.split("|")[0].split("owldebug")[1].strip()
-                    content = message.content.split("|")[1].strip()
-                    runner = None
-                    container = None
-                    for reference in self.references:
-                        if any([x for x in reference.commands if x[0] == command]):
-                            runner = [x for x in reference.commands if x[0] == command][0][1]
-                            container = reference.__name__
-                            break
-                    if runner is None:
-                        await self.send_message(message.channel, "Attempted to debug a non-existent command.")
-                    else:
-                        try:
-                            result = await runner(content)
-                        except Exception as e:
-                            gist_data['files'] = {
-                                'input.txt': {
-                                    'content': "Debugging the {} command inside the {} module.\n\nMessage Content Given:{}".format(runner.__name__, container, content)
-                                },
-                                'exception.txt': {
-                                    'content': str(e)
-                                }
-                            }
-                            gist_url = await self.create_gist(gist_data)
-                            await self.send_message(message.channel, "Encountered an error testing that command.\nSee {}".format(gist_url))
-                        gist_data['files'] = {
-                            'input.txt': {
-                                'content': "Debugging the {} command inside the {} module.\n\nMessage Content Given:{}".format(runner.__name__, container, content)
-                            },
-                            'result.txt': {
-                                'content': result
-                            }
-                        }
-                        gist_url = await self.create_gist(gist_data)
-                        await self.send_message(message.channel, "Finished running that command.\nSee {}".format(gist_url))
-                else:
-                    codeblock = message.content.split("owldebug")[0]
+                codeblock = message.content.split("owldebug")[1].strip()
+                if '`' in codeblock:
                     codeblock = re.split(self.codeblock_regex, codeblock)[1]
-                    await self.send_message(message.channel, "DEBUG: {}".format(codeblock))
-                    result = None
-                    try:
-                        result = eval(codeblock)
-                        gist_data['files'] = {
-                            "input.py": {
-                                "content": codeblock
-                            },
-                            "result.txt": {
-                                "content": result
-                            }
+                await self.send_message(message.channel, "DEBUG: {}".format(codeblock))
+                result = None
+                try:
+                    result = eval(codeblock)
+                    gist_data['files'] = {
+                        "input.py": {
+                            "content": codeblock
+                        },
+                        "result.txt": {
+                            "content": str(result)
                         }
-                        gist_url = await self.create_gist(gist_data)
-                        await self.send_message(message.channel, "Execution of that code was completed.\nSee {}".format(gist_url))
-                    except SyntaxError as ex:
+                    }
+                    gist_url = await self.create_gist(gist_data)
+                    await self.send_message(message.channel, "Execution of that code was completed.\nSee {}".format(gist_url))
+                except SyntaxError:
+                    # Get the real error
+                    try:
+                        exec(codeblock)
+                    except Exception as Ex:
                         gist_data['files'] = {
                             "input.py": {
                                 "content": codeblock
                             },
                             "Exception.txt": {
-                                "content": str(ex)
+                                "content": str(Ex)
                             }
                         }
                         gist_url = await self.create_gist(gist_data)
