@@ -99,8 +99,8 @@ class AngelBot(discord.Client):
                 gist_data = {"description": "AngelBot Debug ran {}".format(time.strftime("%a, %d %b %Y %H:%M:%S", time.gmtime())),
                              "public": True}
                 if '|' in message.content:
-                    command = message.content.split("|")[0]
-                    content = message.content.split("|")[1]
+                    command = message.content.split("|")[0].split("owldebug")[1].strip()
+                    content = message.content.split("|")[1].strip()
                     runner = None
                     container = None
                     for reference in self.references:
@@ -135,10 +135,22 @@ class AngelBot(discord.Client):
                         gist_url = await self.create_gist(gist_data)
                         await self.send_message(message.channel, "Finished running that command.\nSee {}".format(gist_url))
                 else:
-                    codeblock = re.split(self.codeblock_regex, message.content)[1]
+                    codeblock = message.content.split("owldebug")[0]
+                    codeblock = re.split(self.codeblock_regex, codeblock)[1]
+                    await self.send_message(message.channel, "DEBUG: {}".format(codeblock))
                     result = None
                     try:
                         result = eval(codeblock)
+                        gist_data['files'] = {
+                            "input.py": {
+                                "content": codeblock
+                            },
+                            "result.txt": {
+                                "content": result
+                            }
+                        }
+                        gist_url = await self.create_gist(gist_data)
+                        await self.send_message(message.channel, "Execution of that code was completed.\nSee {}".format(gist_url))
                     except SyntaxError as ex:
                         gist_data['files'] = {
                             "input.py": {
@@ -150,16 +162,6 @@ class AngelBot(discord.Client):
                         }
                         gist_url = await self.create_gist(gist_data)
                         await self.send_message(message.channel, "Execution of that code encountered an error.\nSee {}".format(gist_url))
-                    gist_data['files'] = {
-                        "input.py": {
-                            "content": codeblock
-                        },
-                        "result.txt": {
-                            "content": result
-                        }
-                    }
-                    gist_url = await self.create_gist(gist_data)
-                    await self.send_message(message.channel, "Execution of that code was completed.\nSee {}".format(gist_url))
             elif message.content.lower().startswith("owlstats"):
                 up = timedelta(seconds=(time.time() - self.uptime))
                 await self.send_message(message.channel,
