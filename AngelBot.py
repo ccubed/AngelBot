@@ -101,7 +101,6 @@ class AngelBot(discord.Client):
                 codeblock = message.content.split("owldebug")[1].strip()
                 if '`' in codeblock:
                     codeblock = re.split(self.codeblock_regex, codeblock)[1]
-                await self.send_message(message.channel, "DEBUG: {}".format(codeblock))
                 result = None
                 try:
                     result = eval(codeblock)
