@@ -241,7 +241,7 @@ class AngelBot(discord.Client):
         stats['uptime'] = time.time() - self.uptime
         stats['users'] = sum(x.member_count for x in self.servers)
         stats['servers'] = len(self.servers)
-        stats['cmdssec'] = '{:.1f}'.format(self.commands/stats['uptime'])
+        stats['cmdssec'] = '{:.1f}'.format(self.commands/900)
         stats['totalcmds'] = self.commands
         self.commands = 0
         self.loop.create_task(self._update_stats(stats))
