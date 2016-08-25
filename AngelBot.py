@@ -133,7 +133,8 @@ class AngelBot(discord.Client):
                 up = timedelta(seconds=(time.time() - self.uptime))
                 await self.send_message(message.channel,
                                         "```AngelBot Statistics\n{} Servers\n{} Users\nUptime: {}\n{} commands total\n{:.1f} commands a second```".format(
-                                            len(self.servers), sum(x.member_count for x in self.servers), str(up).split(".")[0], self.commands, self.commands/up.total_seconds()))
+                                            len(self.servers), sum(x.member_count for x in self.servers), str(up).split(".")[0], self.commands,
+                                            self.commands / (up.total_seconds() % 900)))
             elif message.content.lower().startswith("owlavatar"):
                 file = message.content[10:]
                 try:
