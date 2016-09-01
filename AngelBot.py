@@ -58,7 +58,7 @@ class AngelBot(discord.Client):
         elif self.user in message.mentions:
             if 'info' in message.content:
                 await self.send_message(message.channel,
-                                        "```AngelBot\nVersion: 2.0\nLibrary: Discord.py\nURL: https://angelbot.vertinext.com\nOwner: 66257033204080640\nHelp: http://angelbot.rtfd.org\nServer: https://discord.gg/0wjevYU2RBlo7JpF```")
+                                        "```AngelBot\nVersion: 2.0\nLibrary: Discord.py\nURL: https://angelbot.vertinext.com\nOwner: 66257033204080640\nHelp: http://angelbot.rtfd.org\nServer: https://discord.gg/7uhFnxk\nReport Problems: https://git.vertinext.com/ccubed/AngelBot```")
             elif 'help' in message.content:
                 await self.send_message(message.channel,
                                         "```Usage: @AngelBot [category]\n\nCategory - Description\nconfig   - Help with setting angelbot up\nxivdb    - Help for searching XIVDB\nxkcd     - Help for grabbing XKCD Comics\nanilist  - Help with Anilist Commands\nriot  - Help with the Riot Games commands\now   - Help with the Overwatch commands\ncurrency   - Help with the currency commands\n\nAlso see our documentation at: http://angelbot.rtfd.io```")
