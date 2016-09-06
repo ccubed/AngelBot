@@ -64,7 +64,7 @@ class OWAPI:
                     jsd = await response.json()
                     message = "{}'s Heroes.\n```xl\n".format(jsd['battletag'])
                     for hero in [x for x in jsd['heroes'] if jsd['heroes'][x] > 0]:
-                        message += "{} - Time Played(Hrs): {}\n".format(hero, jsd['heroes'][hero])
+                        message += "{} - Time Played(Hrs): {}\n".format(hero, round(jsd['heroes'][hero], 2))
                     return message + '```'
 
     async def owhero(self, message):
