@@ -33,24 +33,23 @@ class OWAPI:
                 else:
                     jsd = await response.json()
                     messages = []
-                    message = "{}'s General Stats\n```xl\n".format(jsd['battletag'])
+                    messages.append(jsd['overall_stats']['avatar'] or "No avatar found for this user.")
+                    message = "{} [Level {} | Rank {}]\n```xl\n".format(jsd['battletag'].replace("-", "#"), jsd['overall_stats']['level'], jsd['overall_stats']['comprank'] or '0')
                     message += "Damage Done: {}    Deaths: {}\n".format(jsd['game_stats']['damage_done'], jsd['game_stats']['deaths'])
                     message += "Eliminations: {}    Final Blows: {}\n".format(jsd['game_stats']['eliminations'], jsd['game_stats']['final_blows'])
-                    message += "Games Played: {}    Games Won: {}\n".format(jsd['game_stats']['games_played'], jsd['game_stats']['games_won'])
-                    message += "Win Percentage: {}%\n```".format(jsd['overall_stats']['win_rate'])
+                    message += "Games Played: {}    Games Won: {}\n".format(jsd['overall_stats']['games'], jsd['overall_stats']['wins'])
+                    message += "Win Percentage: {}%\n```".format(round(jsd['overall_stats']['win_rate']*100, 2))
                     messages.append(message)
-                    message = "{}'s Kill Stats\n```xl\n".format(jsd['battletag'])
-                    message += "Solo Kills: {}    Objective Kills: {}\n".format(jsd['game_stats']['solo_kills'], jsd['game_stats']['objective_kills'])
+                    message = "```xl\nSolo Kills: {}    Objective Kills: {}\n".format(jsd['game_stats']['solo_kills'], jsd['game_stats']['objective_kills'])
                     message += "Offensive Assists: {}    Defensive Assists: {}\n".format(jsd['game_stats']['offensive_assists'], jsd['game_stats']['defensive_assists'])
                     message += "Recon Assists: {}\n```".format(jsd['game_stats']['recon_assists'])
                     messages.append(message)
-                    message = "{}'s Medal Stats\n```xl\n".format(jsd['battletag'])
-                    message += "Total Medals: {}\nGold Medals: {}\nSilver Medals: {}\nBronze Medals: {}\nTotal Time Played: {}\n```".format(jsd['game_stats']['medals'],
-                                                                                                                                            jsd['game_stats']['medals_gold'],
-                                                                                                                                            jsd['game_stats']['medals_silver'],
-                                                                                                                                            jsd['game_stats']['medals_bronze'],
-                                                                                                                                            jsd['game_stats']['time_played'])
+                    message = "```xl\nTotal Medals: {}\nGold Medals: {}\nSilver Medals: {}\nBronze Medals: {}\n```".format(jsd['game_stats']['medals'],
+                                                                                                                           jsd['game_stats']['medals_gold'],
+                                                                                                                           jsd['game_stats']['medals_silver'],
+                                                                                                                           jsd['game_stats']['medals_bronze'])
                     messages.append(message)
+                    messages.append("Please note that currently Overwatch is returning 0 games played for everyone. Therefore games played and win percentage are broken.")
                     return messages
 
     async def owheroes(self, message):
@@ -65,7 +64,7 @@ class OWAPI:
                     jsd = await response.json()
                     message = "{}'s Heroes.\n```xl\n".format(jsd['battletag'])
                     for hero in [x for x in jsd['heroes'] if jsd['heroes'][x] > 0]:
-                        message += "{} - Win %: {}\n".format(hero, jsd['heroes'][hero]*100)
+                        message += "{} - Time Played(Hrs): {}\n".format(hero, jsd['heroes'][hero])
                     return message + '```'
 
     async def owhero(self, message):
