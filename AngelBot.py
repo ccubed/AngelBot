@@ -92,7 +92,7 @@ class AngelBot(discord.Client):
                 await self.send_message(message.author, "To begin this process visit the following link:\nhttps://angelbot.vertinext.com/oauth/AniList/{0}".format(message.author.id))
             else:
                 async with self.redis.get() as dbp:
-                    cid = dbp.get("DiscordCID")
+                    cid = await dbp.get("DiscordCID")
                     await self.send_message(message.author, "Assuming you want a join link: https://discordapp.com/oauth2/authorize?client_id={0}&scope=bot&permissions=0".format(cid))
         elif message.content.startswith("owl") and message.author.id == self.creator:
             if message.content.lower().startswith("owldebug"):
