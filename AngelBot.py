@@ -232,9 +232,16 @@ class AngelBot(discord.Client):
     async def _update_carbon(self):
         async with self.redis.get() as dbp:
             ckey = await dbp.get("CarbonKey")
-            data = {'key': ckey, 'servercount': len(self.servers)}
+            lbk = await dbp.get("ListBoat")
+            servc = len(self.servers)
+            data = {'key': ckey, 'servercount': servc}
             with aiohttp.ClientSession() as session:
-                async with session.post("https://www.carbonitex.net/discord/data/botdata.php", data=json.dumps(data)) as resp:
+                async with session.post("https://www.carbonitex.net/discord/data/botdata.php",
+                                        data=json.dumps(data)) as resp:
+                    await resp.release()
+                async with session.post("https://bots.discord.pw/api/bots/168925517079248896/stats",
+                                        data=json.dumps({'server_count': servc}),
+                                        headers={'Authorization': lbk}) as resp:
                     await resp.release()
 
     def update_stats(self):
