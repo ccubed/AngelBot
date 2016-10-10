@@ -238,10 +238,12 @@ class AngelBot(discord.Client):
             with aiohttp.ClientSession() as session:
                 async with session.post("https://www.carbonitex.net/discord/data/botdata.php",
                                         data=json.dumps(data)) as resp:
+                    print(resp.status)
                     await resp.release()
                 async with session.post("https://bots.discord.pw/api/bots/168925517079248896/stats",
                                         data=json.dumps({'server_count': servc}),
                                         headers={'Authorization': lbk}) as resp:
+                    print(resp.status)
                     await resp.release()
 
     def update_stats(self):
