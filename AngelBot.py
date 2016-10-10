@@ -44,8 +44,8 @@ class AngelBot(discord.Client):
                         else:
                             self.loop.call_later(event[1], event[0], self.loop)
             if not self.testing:
-                self.loop.call_soon_threadsafe(self.update_stats)
-                self.loop.call_soon_threadsafe(self.update_carbon)
+                self.loop.call_later(1500, self.update_stats)  # It takes time to chunk
+                self.loop.call_later(1500, self.update_carbon)  # It takes time to chunk
                 self.loop.call_soon_threadsafe(self.update_tokens)
 
     async def on_message(self, message):
@@ -234,16 +234,15 @@ class AngelBot(discord.Client):
             ckey = await dbp.get("CarbonKey")
             lbk = await dbp.get("ListBoat")
             servc = len(self.servers)
-            data = {'key': ckey, 'servercount': servc}
             with aiohttp.ClientSession() as session:
                 async with session.post("https://www.carbonitex.net/discord/data/botdata.php",
-                                        data=json.dumps(data)) as resp:
-                    print(resp.status)
+                                        data=json.dumps({'key': ckey, 'servercount': servc}),
+                                        headers={'Content-Type': 'application/json'}) as resp:
+                    print("Carbon: {}".format(resp.status))
                     await resp.release()
                 async with session.post("https://bots.discord.pw/api/bots/168925517079248896/stats",
                                         data=json.dumps({'server_count': servc}),
-                                        headers={'Authorization': lbk}) as resp:
-                    print(resp.status)
+                                        headers={'Authorization': lbk, 'Content-Type': 'application/json'}) as resp:
                     await resp.release()
 
     def update_stats(self):
