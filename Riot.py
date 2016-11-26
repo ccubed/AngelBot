@@ -275,14 +275,16 @@ class Riot:
         return data
 
     async def summoner_stats(self, message):
+        br = False
         if len(message.content.split()) == 1:
             return "Need a summoner name or ID."
-        if len(message.content.split()) == 3:
-            sid = "%20".join(message.content.split()[1:2])
+        if 'br' in message.content.lower():
+            sid = "%20".join(message.content.split()[1:][0:-1])
+            br = True
         else:
             sid = "%20".join(message.content.split()[1:])
         if not sid.isdigit():
-            sid = await self.get_summoner_id(sid)
+            sid = await self.get_summoner_id(sid, br)
             if isinstance(sid, dict):  #  429 - Ratelimited!
                 sid['message'] = message
                 sid['command'] = self.summoner_stats
@@ -291,21 +293,31 @@ class Riot:
             return "Couldn't find that summoner."
         async with self.pools.get() as dbp:
             key = await dbp.get("RiotGames")
-            test = await dbp.exists("LOLStats{}".format(sid))
+            if br:
+                test = await dbp.exists("LOLStatsBR{}".format(sid))
+            else:
+                test = await dbp.exists("LOLStats{}".format(sid))
             stats = 0
             if test:
-                stats = await dbp.get("LOLStats{}".format(sid))
+                if br:
+                    stats = await dbp.get("LOLStatsBR{}".format(sid))
+                else:
+                    stats = await dbp.get("LOLStats{}".format(sid))
                 stats = await self.parse_summoner_stat_data(json.loads(stats))
             else:
-                url = self.apiurls['na'] + "/na/v1.3/stats/by-summoner/{}/summary".format(sid) if len(message.content.split()) == 2 else self.apiurls['br'] + "/br/v1.3/stats/by-summoner/{}/summary".format(sid)
+                url = self.apiurls['na'] + "/na/v1.3/stats/by-summoner/{}/summary".format(sid) if br else self.apiurls['br'] + "/br/v1.3/stats/by-summoner/{}/summary".format(sid)
                 with aiohttp.ClientSession() as session:
                     async with session.get(url, params={'api_key': key}, headers=self.header) as response:
                         if response.status == 429:
                             return {'message': message, 'module': 'Riot', 'command': self.summoner_stats,
                                     'time_to_retry': time.time() + int(response.headers['retry-after'])}
                         stats = await response.json()
-                        await dbp.set("LOLStats{}".format(sid), json.dumps(stats))
-                        await dbp.expire("LOLStats{}".format(sid), 86400)
+                        if br:
+                            await dbp.set("LOLStatsBR{}".format(sid), json.dumps(stats))
+                            await dbp.expire("LOLStatsBR{}".format(sid), 86400)
+                        else:
+                            await dbp.set("LOLStats{}".format(sid), json.dumps(stats))
+                            await dbp.expire("LOLStats{}".format(sid), 86400)
                         stats = await self.parse_summoner_stat_data(stats)
             msg = "Stat Summary for {}\n".format(" ".join(message.content.split(" ")[1:]))
             msg += "Unranked\n```xl\n  Jungle Minion Kills: {}\n  Minion Kills: {}\n  Champion Kills: {}\n  Assists: {}\n  Towers Destroyed: {}\n  Wins: {}\n```".format(stats['Unranked']['totalNeutralMinionsKilled'],
@@ -323,14 +335,16 @@ class Riot:
             return msg
 
     async def match_list(self, message):
+        br = False
         if len(message.content.split()) == 1:
             return "Need a summoner name or ID."
-        if len(message.content.split()) == 3:
-            sid = "%20".join(message.content.split()[1:2])
+        if 'br' in message.content.lower():
+            sid = "%20".join(message.content.split()[1:][0:-1])
+            br = True
         else:
             sid = "%20".join(message.content.split()[1:])
         if not sid.isdigit():
-            sid = await self.get_summoner_id(sid)
+            sid = await self.get_summoner_id(sid, br)
             if isinstance(sid, dict):  #  429 - ratelimited!
                 sid['message'] = message
                 sid['command'] = self.match_list
@@ -339,21 +353,31 @@ class Riot:
             return "Couldn't find that summoner."
         async with self.pools.get() as dbp:
             key = await dbp.get("RiotGames")
-            test = await dbp.exists("LOLMatches{}".format(sid))
+            if br:
+                test = await dbp.exists("LOLMatchesBR{}".format(sid))
+            else:
+                test = await dbp.exists("LOLMatches{}".format(sid))
             data = 0
             if test:
-                data = await dbp.get("LOLMatches{}".format(sid))
+                if br:
+                    data = await dbp.get("LOLMatchesBR{}".format(sid))
+                else:
+                    data = await dbp.get("LOLMatches{}".format(sid))
                 data = json.loads(data)
             else:
-                url = self.apiurls['na'] + "/na/v1.3/game/by-summoner/{}/recent".format(sid) if len(message.content.split()) == 2 else self.apiurls['br'] + "/br/v1.3/game/by-summoner/{}/recent".format(sid)
+                url = self.apiurls['na'] + "/na/v1.3/game/by-summoner/{}/recent".format(sid) if br else self.apiurls['br'] + "/br/v1.3/game/by-summoner/{}/recent".format(sid)
                 with aiohttp.ClientSession() as session:
                     async with session.get(url, params={'api_key': key}, headers=self.header) as response:
                         if response.status == 429:
                             return {'message': message, 'module': 'Riot', 'command': self.match_list,
                                     'time_to_retry': time.time() + int(response.headers['retry-after'])}
                         data = await response.json()
-                        await dbp.set("LOLMatches{}".format(sid), json.dumps(data))
-                        await dbp.expire("LOLMatches{}".format(sid), 86400)
+                        if br:
+                            await dbp.set("LOLMatchesBR{}".format(sid), json.dumps(data))
+                            await dbp.expire("LOLMatchesBR{}".format(sid), 86400)
+                        else:
+                            await dbp.set("LOLMatches{}".format(sid), json.dumps(data))
+                            await dbp.expire("LOLMatches{}".format(sid), 86400)
             msg = "Recent Games\n"
             for x in data['games'][:10]:
                 msg += "```xl\n   {} on {} (ID:{}) - {}\n```".format(x['gameMode'], self.maps[x['mapId']], x['gameId'], "Won" if x['stats']['win'] else "Lost")
