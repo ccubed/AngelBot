@@ -220,10 +220,10 @@ class Riot:
                     tempmsg += "  Team {}\n".format(x)
                     if x == 'A':
                         for y in teams[100]:
-                            tempmsg += "    '{}' playing '{}'\n".format(y['name'], champs.get(str(y['champion']), default="Unknown"))
+                            tempmsg += "    '{}' playing '{}'\n".format(y['name'], champs.get(str(y['champion']), "Unknown"))
                     else:
                         for y in teams[200]:
-                            tempmsg += "    '{}' playing '{}'\n".format(y['name'], champs.get(str(y['champion']), default="Unknown"))
+                            tempmsg += "    '{}' playing '{}'\n".format(y['name'], champs.get(str(y['champion']), "Unknown"))
                 msg.append(tempmsg + "```")
             return msg
 
