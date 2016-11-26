@@ -173,7 +173,7 @@ class Riot:
         async with self.pools.get() as dbp:
             key = await dbp.get("RiotGames")
             br = False
-            if len(message.split()) == 1:
+            if len(message.content.split()) == 1:
                 test = await dbp.exists("LOLFeatured")
             else:
                 test = await dbp.exists("LOLFeaturedBR")
@@ -299,7 +299,7 @@ class Riot:
             else:
                 url = self.apiurls['na'] + "/na/v1.3/stats/by-summoner/{}/summary".format(sid) if len(message.content.split()) == 2 else self.apiurls['br'] + "/br/v1.3/stats/by-summoner/{}/summary".format(sid)
                 with aiohttp.ClientSession() as session:
-                    async with session.get(sid, params={'api_key': key}, headers=self.header) as response:
+                    async with session.get(url, params={'api_key': key}, headers=self.header) as response:
                         if response.status == 429:
                             return {'message': message, 'module': 'Riot', 'command': self.summoner_stats,
                                     'time_to_retry': time.time() + int(response.headers['retry-after'])}
