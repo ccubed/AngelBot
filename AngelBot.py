@@ -209,7 +209,7 @@ class AngelBot(discord.Client):
                                                         asyncio.sleep(3)
                                     else:
                                         await self.send_message(message.channel, attempt)
-                                elif isinstance(ret, Embed):
+                                elif isinstance(ret, discord.Embed):
                                     await self.send_message(message.channel, embed=ret)
                                 else:
                                     if len(ret) > 2000:
