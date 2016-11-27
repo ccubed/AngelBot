@@ -97,7 +97,7 @@ class Riot:
                             await dbp.set("LOL"+region, json.dumps(jsd))
                             await dbp.expire("LOL"+region, 3600)  # Cache clears every hour
                             for service in jsd['services']:
-                                embed.add_field(name=jsd['name'], value="{} {}".format(service['name'], ":ok_hand:" if jsd['status'] == "online" else ":red_circle:"))
+                                embed.add_field(name=jsd['name'], value="{} {}".format(service['name'], ":ok_hand:" if service['status'] == "online" else ":red_circle:"))
             return embed
 
     async def free_rotation(self, message):
