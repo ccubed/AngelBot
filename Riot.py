@@ -2,6 +2,7 @@ import aiohttp
 import json
 from datetime import timedelta
 import time
+from discord import embeds
 
 
 class Riot:
@@ -16,8 +17,9 @@ class Riot:
         """
         # API Endpoints: Global is used for static data. NA is North America NA1. Status is for Shard Status endpoints.
         self.apiurls = {'global': 'https://global.api.pvp.net/api/lol', 'na': 'https://na.api.pvp.net/api/lol',
-                        'status': 'http://status.leagueoflegends.com/', 'observer': 'https://na.api.pvp.net/observer-mode/rest/featured',
-                        'brobserver': 'https://br.api.pvp.net/observer-mode/rest/featured', 'br': 'https://br.api.pvp.net/api/lol'}
+                        'status': 'http://status.leagueoflegends.com/', 'observer': 'https://na.api.pvp.net/observer-mode', 
+                        'brobserver': 'https://br.api.pvp.net/observer-mode', 'br': 'https://br.api.pvp.net/api/lol'}
+        self.exturls = {'lkreplay': 'http://www.lolking.net/replay/{}/{}', 'lkplayer': 'http://www.lolking.net/summoner/{}/{}'}
         self.pools = redis
         self.commands = [['islolup', self.status], ['lolfree', self.free_rotation], ['lolstatus', self.region_status],
                          ['lolfeatures', self.featured_games], ['lolrecent', self.match_list], ['lolstats', self.summoner_stats]]
@@ -77,18 +79,14 @@ class Riot:
         :return: a message containing the status of the shards for League of Legends
         """
         async with self.pools.get() as dbp:
-            msgs = []
+            embed = Embed(description="League of Legends Status")
             for region in self.regions:
                 test = await dbp.exists("LOL"+region)
                 if test:
                     jsd = await dbp.get("LOL"+region)
                     jsd = json.loads(jsd)
-                    msg = '```xl\n' + jsd['name'] + '\n'
                     for service in jsd['services']:
-                        msg += ' '*4 + service['name'] + ' "' + service['status'] + '"\n'
-                        if len(service['incidents']):
-                            msg += '    '*2 + 'Currently there {} {} {}\n'.format('is' if len(service['incidents']) == 1 else 'are', len(service['incidents']), 'Incident' if len(service['incidents']) == 1 else 'Incidents')
-                    msgs.append(msg + '\n```')
+                        embed.add_field(name=jsd['name'], value="{} {}".format(service['name'], ":ok_hand:" if jsd['status'] == "online" else ":red_circle:"))
                 else:
                     with aiohttp.ClientSession() as session:
                         async with session.get(self.apiurls['status'] + "shards/{}".format(region), headers=self.header) as response:
@@ -98,13 +96,9 @@ class Riot:
                             jsd = await response.json()
                             await dbp.set("LOL"+region, json.dumps(jsd))
                             await dbp.expire("LOL"+region, 3600)  # Cache clears every hour
-                            msg = '```xl\n' + jsd['name'] + '\n'
                             for service in jsd['services']:
-                                msg += ' '*4 + service['name'] + ' "' + service['status'] + '"\n'
-                                if len(service['incidents']):
-                                    msg += '    '*2 + 'Currently there {} {} {}\n'.format('is' if len(service['incidents']) == 1 else 'are', len(service['incidents']), 'Incident' if len(service['incidents']) == 1 else 'Incidents')
-                            msgs.append(msg + '\n```')
-            return msgs
+                                embed.add_field(name=jsd['name'], value="{} {}".format(service['name'], ":ok_hand:" if jsd['status'] == "online" else ":red_circle:"))
+            return embed
 
     async def free_rotation(self, message):
         """
@@ -188,7 +182,7 @@ class Riot:
             else:
                 url = self.apiurls['observer'] if not br else self.apiurls['brobserver']
                 with aiohttp.ClientSession() as session:
-                    async with session.get(url, params={'api_key': key}, headers=self.header) as response:
+                    async with session.get(self.apiurls['observer'] + "/rest/featured", params={'api_key': key}, headers=self.header) as response:
                         if response.status == 429:
                             return {'message': message, 'module': 'Riot', 'command': self.featured_games,
                                     'time_to_retry': time.time() + int(response.headers['retry-after'])}
@@ -230,26 +224,22 @@ class Riot:
     async def get_summoner_id(self, name, br=False):
         async with self.pools.get() as dbp:
             key = await dbp.get("RiotGames")
-            if br:
-                test = await dbp.exists("LOLSUMBR{}".format(name.lower().replace('%20', '')))
-            else:
-                test = await dbp.exists("LOLSUM{}".format(name.lower().replace('%20', '')))
+            test = await dbp.exists(name.lower().replace('%20', ''))
             if test:
                 return await dbp.get(name.lower())
             with aiohttp.ClientSession() as session:
                 url = self.apiurls['na'] + "/na/v1.4/summoner/by-name/{}".format(name) if not br else self.apiurls['br'] + "/br/v1.4/summoner/by-name/{}".format(name)
                 async with session.get(url, params={'api_key': key}, headers=self.header) as response:
                     if response.status == 429:
-                        return {'message': None, 'module': 'Riot', 'command': None,
-                                'time_to_retry': time.time() + int(response.headers['retry-after'])}
+                        if response.status == 429:
+                            return {'message': None, 'module': 'Riot', 'command': None,
+                                    'time_to_retry': time.time() + int(response.headers['retry-after'])}
                     if response.status == 404:
                         return 0
                     else:
                         jsd = await response.json()
-                        if br:
-                            await dbp.set("LOLSUMBR{}".format(name.lower().replace('%20', '')), jsd[name.lower().replace("%20", "")]['id'])
-                        else:
-                            await dbp.set("LOLSUM{}".format(name.lower().replace('%20', '')), jsd[name.lower().replace("%20", "")]['id'])
+                        await dbp.set(name.lower().replace('%20', ''), jsd[name.lower().replace('%20', '')]['id'])
+                        await dbp.set("LOLSUM{}".format(jsd[name.lower().replace('%20', '')]['id']), json.dumps(jsd))
                         return jsd[name.lower().replace('%20', '')]['id']
 
     @staticmethod
@@ -284,6 +274,7 @@ class Riot:
             return "Need a summoner name or ID."
         if 'br' in message.content.lower():
             sid = "%20".join(message.content.split()[1:][0:-1])
+            print(sid)
             br = True
         else:
             sid = "%20".join(message.content.split()[1:])
@@ -309,7 +300,7 @@ class Riot:
                     stats = await dbp.get("LOLStats{}".format(sid))
                 stats = await self.parse_summoner_stat_data(json.loads(stats))
             else:
-                url = self.apiurls['na'] + "/na/v1.3/stats/by-summoner/{}/summary".format(sid) if not br else self.apiurls['br'] + "/br/v1.3/stats/by-summoner/{}/summary".format(sid)
+                url = self.apiurls['na'] + "/na/v1.3/stats/by-summoner/{}/summary".format(sid) if br else self.apiurls['br'] + "/br/v1.3/stats/by-summoner/{}/summary".format(sid)
                 with aiohttp.ClientSession() as session:
                     async with session.get(url, params={'api_key': key}, headers=self.header) as response:
                         if response.status == 429:
@@ -323,7 +314,7 @@ class Riot:
                             await dbp.set("LOLStats{}".format(sid), json.dumps(stats))
                             await dbp.expire("LOLStats{}".format(sid), 86400)
                         stats = await self.parse_summoner_stat_data(stats)
-            msg = "Stat Summary for {}\n".format(" ".join(message.content.split()[1:][0:-1]))
+            msg = "Stat Summary for {}\n".format(" ".join(message.content.split(" ")[1:]))
             msg += "Unranked\n```xl\n  Jungle Minion Kills: {}\n  Minion Kills: {}\n  Champion Kills: {}\n  Assists: {}\n  Towers Destroyed: {}\n  Wins: {}\n```".format(stats['Unranked']['totalNeutralMinionsKilled'],
                                                                                                                                                                      stats['Unranked']['totalMinionKills'],
                                                                                                                                                                      stats['Unranked']['totalChampionKills'],
@@ -369,7 +360,7 @@ class Riot:
                     data = await dbp.get("LOLMatches{}".format(sid))
                 data = json.loads(data)
             else:
-                url = self.apiurls['na'] + "/na/v1.3/game/by-summoner/{}/recent".format(sid) if not br else self.apiurls['br'] + "/br/v1.3/game/by-summoner/{}/recent".format(sid)
+                url = self.apiurls['na'] + "/na/v1.3/game/by-summoner/{}/recent".format(sid) if br else self.apiurls['br'] + "/br/v1.3/game/by-summoner/{}/recent".format(sid)
                 with aiohttp.ClientSession() as session:
                     async with session.get(url, params={'api_key': key}, headers=self.header) as response:
                         if response.status == 429:
