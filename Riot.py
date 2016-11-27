@@ -133,7 +133,7 @@ class Riot:
             embed = embeds.Embed()
             embed.title = "Free Rotation"
             for x in jsd:
-                embed.add_field(name=x['name'], value="[Details]({})".format(x['name'], self.exturls['lkchampions'].format(x['name'])))
+                embed.add_field(name=x['name'], value="[Details]({})".format(self.exturls['lkchampions'].format(x['name'])))
             return embed
 
     async def region_status(self, message):
