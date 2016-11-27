@@ -310,10 +310,9 @@ class Riot:
                     stats = await dbp.get("LOLStats{}".format(sid))
                 stats = await self.parse_summoner_stat_data(json.loads(stats))
             else:
-                url = self.apiurls['na'] + "/na/v1.3/stats/by-summoner/{}/summary".format(sid) if br else self.apiurls['br'] + "/br/v1.3/stats/by-summoner/{}/summary".format(sid)
+                url = self.apiurls['na'] + "/na/v1.3/stats/by-summoner/{}/summary".format(sid) if not br else self.apiurls['br'] + "/br/v1.3/stats/by-summoner/{}/summary".format(sid)
                 with aiohttp.ClientSession() as session:
                     async with session.get(url, params={'api_key': key}, headers=self.header) as response:
-                        print("Searched for stats on {} under {}".format(sid, "NA" if not br else "BR"))
                         if response.status == 429:
                             return {'message': message, 'module': 'Riot', 'command': self.summoner_stats,
                                     'time_to_retry': time.time() + int(response.headers['retry-after'])}
