@@ -86,7 +86,7 @@ class Riot:
                     jsd = await dbp.get("LOL"+region)
                     jsd = json.loads(jsd)
                     for service in jsd['services']:
-                        embed.add_field(name=jsd['name'], value="{} {}".format(service['name'], ":ok_hand:" if jsd['status'] == "online" else ":red_circle:"))
+                        embed.add_field(name=jsd['name'], value="{} {}".format(service['name'], ":ok_hand:" if service['status'] == "online" else ":red_circle:"))
                 else:
                     with aiohttp.ClientSession() as session:
                         async with session.get(self.apiurls['status'] + "shards/{}".format(region), headers=self.header) as response:
