@@ -19,7 +19,8 @@ class Riot:
         self.apiurls = {'global': 'https://global.api.pvp.net/api/lol', 'na': 'https://na.api.pvp.net/api/lol',
                         'status': 'http://status.leagueoflegends.com/', 'observer': 'https://na.api.pvp.net/observer-mode', 
                         'brobserver': 'https://br.api.pvp.net/observer-mode', 'br': 'https://br.api.pvp.net/api/lol'}
-        self.exturls = {'lkreplay': 'http://www.lolking.net/replay/{}/{}', 'lkplayer': 'http://www.lolking.net/summoner/{}/{}'}
+        self.exturls = {'lkreplay': 'http://www.lolking.net/replay/{}/{}', 'lkplayer': 'http://www.lolking.net/summoner/{}/{}', 
+                        'lkchampions': 'http://www.lolking.net/champions/{}'}
         self.pools = redis
         self.commands = [['islolup', self.status], ['lolfree', self.free_rotation], ['lolstatus', self.region_status],
                          ['lolfeatures', self.featured_games], ['lolrecent', self.match_list], ['lolstats', self.summoner_stats]]
@@ -76,7 +77,7 @@ class Riot:
         This will query the status of the League of Legends shards. This is cached for an hour at a time.
 
         :class message: A discord.py message class
-        :return: a message containing the status of the shards for League of Legends
+        :return: a rich embed containing the status of the League Shards
         """
         async with self.pools.get() as dbp:
             embed = embeds.Embed()
@@ -88,7 +89,14 @@ class Riot:
                     jsd = json.loads(jsd)
                     msg = ""
                     for service in jsd['services']:
-                        msg += "{} {}\n".format(service['name'], ":ok_hand:" if service['status'] == "online" else ":red_circle:")
+                        msg += service['name']
+                        if service['status'].lower() == 'online':
+                            if len(service['incidents']):
+                                msg += " :large_orange_diamond:\n"
+                            else:
+                                msg += " :large_blue_circle:\n"
+                        else:
+                            msg += " :red_circle:\n"
                     embed.add_field(name=jsd['name'], value=msg)
                 else:
                     with aiohttp.ClientSession() as session:
@@ -101,7 +109,14 @@ class Riot:
                             await dbp.expire("LOL"+region, 3600)  # Cache clears every hour
                             msg = ""
                             for service in jsd['services']:
-                                msg += "{} {}\n".format(service['name'], ":ok_hand:" if service['status'] == "online" else ":red_circle:")
+                                msg += service['name']
+                                if service['status'].lower() == 'online':
+                                    if len(service['incidents']):
+                                        msg += " :large_orange_diamond:\n"
+                                    else:
+                                        msg += " :large_blue_circle:\n"
+                                else:
+                                    msg += " :red_circle:\n"
                             embed.add_field(name=jsd['name'], value=msg)
             return embed
 
@@ -115,10 +130,11 @@ class Riot:
         async with self.pools.get() as dbp:
             jsd = await dbp.get("LOLFreeRotation")
             jsd = json.loads(jsd)
-            msg = "The current free rotation is ->\n"
+            embed = embeds.Embed()
+            embed.title = "Free Rotation"
             for x in jsd:
-                msg += '    {} ({})\n'.format(x['name'], x['id'])
-            return msg
+                embed.add_field(name="[{}]({})".format(x['name'], self.exturls['lkchampions'].format(x['name'])))
+            return embed
 
     async def region_status(self, message):
         """
@@ -137,12 +153,20 @@ class Riot:
                     if test:
                         jsd = await dbp.get("LOL"+region)
                         jsd = json.loads(jsd)
-                        msg = "```xl\nStatus for {}\n".format(jsd['name'])
+                        embed = embeds.Embed()
+                        embed.title = "Status for {}".format(jsd['name'])
+                        msg = ""
                         for service in jsd['services']:
-                            msg += ' ' * 4 + service['name'] + ' "' + service['status'] + '"\n'
-                            if len(service['incidents']):
-                                msg += '    ' * 2 + 'Currently there {} {} {}\n'.format('is' if len(service['incidents']) == 1 else 'are', len(service['incidents']), 'Incident' if len(service['incidents']) == 1 else 'Incidents')
-                        return msg + "```"
+                            msg += service['name']
+                            if service['status'].lower() == 'online':
+                                if len(service['incidents']):
+                                    msg += " :large_orange_diamond:\n"
+                                else:
+                                    msg += " :large_blue_circle:\n"
+                            else:
+                                msg += " :red_circle:\n"
+                        embed.add_field(name="Services", value=msg)
+                        return embed
                     else:
                         with aiohttp.ClientSession() as session:
                             async with session.get(self.apiurls['status'] + "shards/{}".format(region), headers=self.header) as response:
@@ -152,12 +176,19 @@ class Riot:
                                 jsd = await response.json()
                                 await dbp.set("LOL" + region, json.dumps(jsd))
                                 await dbp.expire("LOL" + region, 3600)  # Cache clears every hour
-                                msg = "```xl\nStatus for {}\n".format(jsd['name'])
+                                embed = embeds.Embed()
+                                embed.title = "Status for {}".format(jsd['name'])
                                 for service in jsd['services']:
-                                    msg += ' ' * 4 + service['name'] + ' "' + service['status'] + '"\n'
-                                    if len(service['incidents']):
-                                        msg += '    ' * 2 + 'Currently there {} {} {}\n'.format('is' if len(service['incidents']) == 1 else 'are', len(service['incidents']), 'Incident' if len(service['incidents']) == 1 else 'Incidents')
-                                return msg + "```"
+                                    msg += service['name']
+                                    if service['status'].lower() == 'online':
+                                        if len(service['incidents']):
+                                            msg += " :large_orange_diamond:\n"
+                                        else:
+                                            msg += " :large_blue_circle:\n"
+                                    else:
+                                        msg += " :red_circle:\n"
+                                embed.add_field(name="Services", value=msg)
+                                return embed
             else:
                 return "Region must be one of {}".format(",".join(self.regions))
 
