@@ -369,7 +369,7 @@ class Riot:
                     data = await dbp.get("LOLMatches{}".format(sid))
                 data = json.loads(data)
             else:
-                url = self.apiurls['na'] + "/na/v1.3/game/by-summoner/{}/recent".format(sid) if br else self.apiurls['br'] + "/br/v1.3/game/by-summoner/{}/recent".format(sid)
+                url = self.apiurls['na'] + "/na/v1.3/game/by-summoner/{}/recent".format(sid) if not br else self.apiurls['br'] + "/br/v1.3/game/by-summoner/{}/recent".format(sid)
                 with aiohttp.ClientSession() as session:
                     async with session.get(url, params={'api_key': key}, headers=self.header) as response:
                         if response.status == 429:
