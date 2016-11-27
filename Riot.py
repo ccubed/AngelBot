@@ -228,7 +228,6 @@ class Riot:
             return msg
 
     async def get_summoner_id(self, name, br=False):
-        print("Searching for {} on {}".format(name, "BR" if br else "NA"))
         async with self.pools.get() as dbp:
             key = await dbp.get("RiotGames")
             if br:
@@ -238,7 +237,7 @@ class Riot:
             if test:
                 return await dbp.get(name.lower())
             with aiohttp.ClientSession() as session:
-                url = self.apiurls['na'] + "/na/v1.4/summoner/by-name/{}".format(name.replace("%20", " ")) if not br else self.apiurls['br'] + "/br/v1.4/summoner/by-name/{}".format(name.replace("%20", " "))
+                url = self.apiurls['na'] + "/na/v1.4/summoner/by-name/{}".format(name) if not br else self.apiurls['br'] + "/br/v1.4/summoner/by-name/{}".format(name)
                 async with session.get(url, params={'api_key': key}, headers=self.header) as response:
                     if response.status == 429:
                         return {'message': None, 'module': 'Riot', 'command': None,
