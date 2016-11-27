@@ -209,6 +209,8 @@ class AngelBot(discord.Client):
                                                         asyncio.sleep(3)
                                     else:
                                         await self.send_message(message.channel, attempt)
+                                elif isinstance(ret, Embed):
+                                    await self.send_message(message.channel, embed=ret)
                                 else:
                                     if len(ret) > 2000:
                                         await self.send_message(message.channel, "The result of that was larger than 2000 characters. Sorry, I discarded it.")
