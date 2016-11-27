@@ -79,7 +79,8 @@ class Riot:
         :return: a message containing the status of the shards for League of Legends
         """
         async with self.pools.get() as dbp:
-            embed = embeds.Embed(description="League of Legends Status")
+            embed = embeds.Embed()
+            embed.title = "League of Legends Status"
             for region in self.regions:
                 test = await dbp.exists("LOL"+region)
                 if test:
