@@ -85,8 +85,10 @@ class Riot:
                 if test:
                     jsd = await dbp.get("LOL"+region)
                     jsd = json.loads(jsd)
+                    msg = ""
                     for service in jsd['services']:
-                        embed.add_field(name=jsd['name'], value="{} {}".format(service['name'], ":ok_hand:" if service['status'] == "online" else ":red_circle:"))
+                        msg += "{} {}\n".format(service['name'], ":ok_hand:" if service['status'] == "online" else ":red_circle:")
+                    embed.add_field(name=jsd['name'], value=msg)
                 else:
                     with aiohttp.ClientSession() as session:
                         async with session.get(self.apiurls['status'] + "shards/{}".format(region), headers=self.header) as response:
@@ -96,8 +98,10 @@ class Riot:
                             jsd = await response.json()
                             await dbp.set("LOL"+region, json.dumps(jsd))
                             await dbp.expire("LOL"+region, 3600)  # Cache clears every hour
+                            msg = ""
                             for service in jsd['services']:
-                                embed.add_field(name=jsd['name'], value="{} {}".format(service['name'], ":ok_hand:" if service['status'] == "online" else ":red_circle:"))
+                                msg += "{} {}\n".format(service['name'], ":ok_hand:" if service['status'] == "online" else ":red_circle:")
+                            embed.add_field(name=jsd['name'], value=msg)
             return embed
 
     async def free_rotation(self, message):
