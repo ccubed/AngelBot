@@ -192,6 +192,7 @@ class Riot:
                         if response.status == 429:
                             return {'message': message, 'module': 'Riot', 'command': self.featured_games,
                                     'time_to_retry': time.time() + int(response.headers['retry-after'])}
+                        print("Observer Response: {}".format(response.status))
                         data = await response.json()
                         if not br:
                             await dbp.set("LOLFeatured", json.dumps(data))
@@ -200,6 +201,7 @@ class Riot:
                             await dbp.set("LOLFeaturedBR", json.dumps(data))
                             await dbp.expire("LOLFeaturedBR", 1800)
             msg = []
+            print(data)
             for game in data['gameList']:
                 tempmsg = ""
                 if game['gameMode'] == "TUTORIAL" or game['gameType'] == "TUTORIAL_GAME":
