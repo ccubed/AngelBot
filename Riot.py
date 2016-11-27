@@ -202,6 +202,7 @@ class Riot:
                             await dbp.expire("LOLFeaturedBR", 1800)
             msg = []
             print(data)
+            print(key)
             for game in data['gameList']:
                 tempmsg = ""
                 if game['gameMode'] == "TUTORIAL" or game['gameType'] == "TUTORIAL_GAME":
