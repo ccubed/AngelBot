@@ -103,9 +103,8 @@ class Riot:
                                 msg += ' '*4 + service['name'] + ' "' + service['status'] + '"\n'
                                 if len(service['incidents']):
                                     msg += '    '*2 + 'Currently there {} {} {}\n'.format('is' if len(service['incidents']) == 1 else 'are', len(service['incidents']), 'Incident' if len(service['incidents']) == 1 else 'Incidents')
-                                msgs.append(msg + '\n```')
-            print(msgs)
-            return "Currently Debugging this Feature"
+                            msgs.append(msg + '\n```')
+            return msgs
 
     async def free_rotation(self, message):
         """
@@ -189,7 +188,7 @@ class Riot:
             else:
                 url = self.apiurls['observer'] if not br else self.apiurls['brobserver']
                 with aiohttp.ClientSession() as session:
-                    async with session.get(self.apiurls['observer'] + "/rest/featured", params={'api_key': key}, headers=self.header) as response:
+                    async with session.get(url, params={'api_key': key}, headers=self.header) as response:
                         if response.status == 429:
                             return {'message': message, 'module': 'Riot', 'command': self.featured_games,
                                     'time_to_retry': time.time() + int(response.headers['retry-after'])}
