@@ -16,8 +16,8 @@ class Riot:
         """
         # API Endpoints: Global is used for static data. NA is North America NA1. Status is for Shard Status endpoints.
         self.apiurls = {'global': 'https://global.api.pvp.net/api/lol', 'na': 'https://na.api.pvp.net/api/lol',
-                        'status': 'http://status.leagueoflegends.com/', 'observer': 'https://na.api.pvp.net/observer-mode', 
-                        'brobserver': 'https://br.api.pvp.net/observer-mode', 'br': 'https://br.api.pvp.net/api/lol'}
+                        'status': 'http://status.leagueoflegends.com/', 'observer': 'https://na.api.pvp.net/observer-mode/rest/featured',
+                        'brobserver': 'https://br.api.pvp.net/observer-mode/rest/featured', 'br': 'https://br.api.pvp.net/api/lol'}
         self.pools = redis
         self.commands = [['islolup', self.status], ['lolfree', self.free_rotation], ['lolstatus', self.region_status],
                          ['lolfeatures', self.featured_games], ['lolrecent', self.match_list], ['lolstats', self.summoner_stats]]
