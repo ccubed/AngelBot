@@ -2,7 +2,6 @@ import asyncio
 import importlib
 import inspect
 import json
-import logging
 import re
 import sys
 import time
@@ -196,7 +195,6 @@ class AngelBot(discord.Client):
                                         if len(ret) <= 3:
                                             for retstring in ret:
                                                 if len(retstring) > 2000:
-                                                    logger.warning("Item was more than 2000 characters. Skipped.")
                                                     await self.send_message(message.channel, "Received a list of things to return, but one of them was over 2000 characters. Ignored.")
                                                 else:
                                                     await self.send_message(message.channel, retstring)
@@ -213,7 +211,6 @@ class AngelBot(discord.Client):
                                         await self.send_message(message.channel, attempt)
                                 else:
                                     if len(ret) > 2000:
-                                        logger.warning("Item was more than 2000 characters. Skipped.")
                                         await self.send_message(message.channel, "The result of that was larger than 2000 characters. Sorry, I discarded it.")
                                     else:
                                         await self.send_message(message.channel, ret)
@@ -288,7 +285,6 @@ class AngelBot(discord.Client):
                                 await self.send_message(this_task[1].channel, x)
                         elif isinstance(ret, dict):
                             #  anoooother 429.
-                            logger.critical("Got another 429 while processing command {} after ratelimit wait.".format(this_task[1].content))
                             await self.send_message(this_task[1].channel, "I attempted to process a held command for this channel but hit another ratelimit so I cleared the command. Dang man, them ratelimits.")
                             continue
                 else:

@@ -104,7 +104,8 @@ class Riot:
                                 if len(service['incidents']):
                                     msg += '    '*2 + 'Currently there {} {} {}\n'.format('is' if len(service['incidents']) == 1 else 'are', len(service['incidents']), 'Incident' if len(service['incidents']) == 1 else 'Incidents')
                                 msgs.append(msg + '\n```')
-            return msgs
+            print(msgs)
+            return "Currently Debugging this Feature"
 
     async def free_rotation(self, message):
         """
