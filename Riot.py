@@ -228,24 +228,29 @@ class Riot:
             return msg
 
     async def get_summoner_id(self, name, br=False):
+        print("Searching for {} on {}".format(name, "BR" if br else "NA"))
         async with self.pools.get() as dbp:
             key = await dbp.get("RiotGames")
-            test = await dbp.exists(name.lower().replace('%20', ''))
+            if br:
+                test = await dbp.exists("LOLSUMBR{}".format(name.lower().replace('%20', '')))
+            else:
+                test = await dbp.exists("LOLSUM{}".format(name.lower().replace('%20', '')))
             if test:
                 return await dbp.get(name.lower())
             with aiohttp.ClientSession() as session:
-                url = self.apiurls['na'] + "/na/v1.4/summoner/by-name/{}".format(name) if not br else self.apiurls['br'] + "/br/v1.4/summoner/by-name/{}".format(name)
+                url = self.apiurls['na'] + "/na/v1.4/summoner/by-name/{}".format(name.replace("%20", " ")) if not br else self.apiurls['br'] + "/br/v1.4/summoner/by-name/{}".format(name.replace("%20", " "))
                 async with session.get(url, params={'api_key': key}, headers=self.header) as response:
                     if response.status == 429:
-                        if response.status == 429:
-                            return {'message': None, 'module': 'Riot', 'command': None,
-                                    'time_to_retry': time.time() + int(response.headers['retry-after'])}
+                        return {'message': None, 'module': 'Riot', 'command': None,
+                                'time_to_retry': time.time() + int(response.headers['retry-after'])}
                     if response.status == 404:
                         return 0
                     else:
                         jsd = await response.json()
-                        await dbp.set(name.lower().replace('%20', ''), jsd[name.lower().replace('%20', '')]['id'])
-                        await dbp.set("LOLSUM{}".format(jsd[name.lower().replace('%20', '')]['id']), json.dumps(jsd))
+                        if br:
+                            await dbp.set("LOLSUMBR{}".format(name.lower().replace('%20', '')), jsd[name.lower().replace("%20", "")]['id'])
+                        else:
+                            await dbp.set("LOLSUM{}".format(name.lower().replace('%20', '')), jsd[name.lower().replace("%20", "")]['id'])
                         return jsd[name.lower().replace('%20', '')]['id']
 
     @staticmethod
