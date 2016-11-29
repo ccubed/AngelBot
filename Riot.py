@@ -262,7 +262,7 @@ class Riot:
             key = await dbp.get("RiotGames")
             test = await dbp.exists(name.lower().replace('%20', ''))
             if test:
-                return await dbp.get(name.lower())
+                return await dbp.get(name.lower().replace('%20', ''))
             with aiohttp.ClientSession() as session:
                 url = self.apiurls['na'] + "/na/v1.4/summoner/by-name/{}".format(name) if not br else self.apiurls['br'] + "/br/v1.4/summoner/by-name/{}".format(name)
                 async with session.get(url, params={'api_key': key}, headers=self.header) as response:
