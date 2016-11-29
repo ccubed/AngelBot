@@ -266,6 +266,7 @@ class Riot:
             with aiohttp.ClientSession() as session:
                 url = self.apiurls['na'] + "/na/v1.4/summoner/by-name/{}".format(name) if not br else self.apiurls['br'] + "/br/v1.4/summoner/by-name/{}".format(name)
                 async with session.get(url, params={'api_key': key}, headers=self.header) as response:
+                    print("Looked up {} on {} and got {} back.".format(name, "BR" if br else "NA", response.status))
                     if response.status == 429:
                         if response.status == 429:
                             return {'message': None, 'module': 'Riot', 'command': None,
@@ -275,7 +276,10 @@ class Riot:
                     else:
                         jsd = await response.json()
                         await dbp.set(name.lower().replace('%20', ''), jsd[name.lower().replace('%20', '')]['id'])
-                        await dbp.set("LOLSUM{}".format(jsd[name.lower().replace('%20', '')]['id']), json.dumps(jsd))
+                        if not br:
+                            await dbp.set("LOLSUM{}".format(jsd[name.lower().replace('%20', '')]['id']), json.dumps(jsd))
+                        else:
+                            await dbp.set("LOLSUMBR{}".format(jsd[name.lower().replace('%20', '')]['id']), json.dumps(jsd))
                         return jsd[name.lower().replace('%20', '')]['id']
 
     @staticmethod
