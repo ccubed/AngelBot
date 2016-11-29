@@ -350,7 +350,7 @@ class Riot:
                             await dbp.set("LOLStats{}".format(sid), json.dumps(stats))
                             await dbp.expire("LOLStats{}".format(sid), 86400)
                         stats = await self.parse_summoner_stat_data(stats)
-            msg = "Stat Summary for {}\n".format(" ".join(message.content.split(" ")[1:]))
+            msg = "Stat Summary for {}\n".format(sid.replace("%20", " "))
             msg += "Unranked\n```xl\n  Jungle Minion Kills: {}\n  Minion Kills: {}\n  Champion Kills: {}\n  Assists: {}\n  Towers Destroyed: {}\n  Wins: {}\n```".format(stats['Unranked']['totalNeutralMinionsKilled'],
                                                                                                                                                                      stats['Unranked']['totalMinionKills'],
                                                                                                                                                                      stats['Unranked']['totalChampionKills'],
