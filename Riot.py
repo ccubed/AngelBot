@@ -2,6 +2,7 @@ import aiohttp
 import json
 from datetime import timedelta
 import time
+import random
 from discord import embeds
 
 
@@ -15,10 +16,11 @@ class Riot:
 
         :RedisPool redis: The global aioredis connection pool used by AngelBot
         """
-        # API Endpoints: Global is used for static data. NA is North America NA1. Status is for Shard Status endpoints.
+        # API Endpoints: Global is used for static data. NA is North America NA1. Status is for Shard Status endpoints. BR is for Brazil.
         self.apiurls = {'global': 'https://global.api.pvp.net/api/lol', 'na': 'https://na.api.pvp.net/api/lol',
                         'status': 'http://status.leagueoflegends.com/', 'observer': 'https://na.api.pvp.net/observer-mode', 
                         'brobserver': 'https://br.api.pvp.net/observer-mode', 'br': 'https://br.api.pvp.net/api/lol'}
+        # API Endpoitns for lolking. replay - region, game id. players - region, player id. champs - name.
         self.exturls = {'lkreplay': 'http://www.lolking.net/replay/{}/{}', 'lkplayer': 'http://www.lolking.net/summoner/{}/{}', 
                         'lkchampions': 'http://www.lolking.net/champions/{}'}
         self.pools = redis
@@ -133,7 +135,8 @@ class Riot:
             embed = embeds.Embed()
             embed.title = "Free Rotation"
             for x in jsd:
-                embed.add_field(name=x['name'], value="[Details]({})".format(self.exturls['lkchampions'].format(x['name'].lower())))
+                embed.add_field(name="[{}]({})".format(x['name'], self.exturls['lkchampions'].format(x['name'].lower())),
+                                value="\u200b")
             return embed
 
     async def region_status(self, message):
@@ -178,6 +181,7 @@ class Riot:
                                 await dbp.expire("LOL" + region, 3600)  # Cache clears every hour
                                 embed = embeds.Embed()
                                 embed.title = "Status for {}".format(jsd['name'])
+                                msg = ""
                                 for service in jsd['services']:
                                     msg += service['name']
                                     if service['status'].lower() == 'online':
@@ -229,33 +233,40 @@ class Riot:
                         else:
                             await dbp.set("LOLFeaturedBR", json.dumps(data))
                             await dbp.expire("LOLFeaturedBR", 1800)
-            msg = []
-            for game in data['gameList']:
-                tempmsg = ""
-                if game['gameMode'] == "TUTORIAL" or game['gameType'] == "TUTORIAL_GAME":
-                    continue
-                tempmsg += "{} on {} ({}) [{}]\n```xl\n".format(game['gameMode'], self.maps[game['mapId']], game['gameId'], str(timedelta(seconds=game['gameLength'])))
-                teams = {}
-                for player in game['participants']:
-                    if player['bot']:
-                        continue
-                    if player['teamId'] in teams:
-                        teams[player['teamId']].append({'name': player['summonerName'], 'champion': player['championId']})
-                    else:
-                        teams[player['teamId']] = [{'name': player['summonerName'], 'champion': player['championId']}]
-                champs = await dbp.get("LOLCHAMPS")
-                champs = json.loads(champs)
-                champs = champs['keys']
-                for x in ['A', 'B']:
-                    tempmsg += "  Team {}\n".format(x)
-                    if x == 'A':
-                        for y in teams[100]:
-                            tempmsg += "    '{}' playing '{}'\n".format(y['name'], champs.get(str(y['champion']), "Unknown"))
-                    else:
-                        for y in teams[200]:
-                            tempmsg += "    '{}' playing '{}'\n".format(y['name'], champs.get(str(y['champion']), "Unknown"))
-                msg.append(tempmsg + "```")
-            return msg
+            game = random.choice([x for x in data['gameList'] if x['gameMode'] != "TUTORIAL_GAME"])
+            teams = {}
+            champs = await dbp.get("LOLCHAMPS")
+            champs = json.loads(champs)
+            champs = champs['keys']
+            for player in [x for x in game['participants'] if not x['bot']]:
+                if player['teamId'] in teams:
+                    teams[player['teamId']].append({'name': player['summonerName'],
+                                                    'champion': champs.get(str(player['championId']), "Unknown")})
+                else:
+                    teams[player['teamId']] = [{'name': player['summonerName'],
+                                                'champion': champs.get(str(player['championId']), "Unknown")}]
+            embed = embeds.Embed(description="{} on {}".format(game['gameMode'], self.maps[game['mapId']]))
+            embed.title = "Riot Featured Game"
+            embed.colour = 0x738bd7
+            embed.add_field(name="ID", value=game['gameId'])
+            embed.add_field(name="Duration", value=str(timedelta(seconds=game['gameLength'])))
+            embed.add_field(name="Region", value="North America" if not br else "Brazil")
+            tempmsg = ""
+            for player in teams[100]:
+                sid = await self.get_summoner_id(player['name'].replace(" ", "%20"), br)
+                tempmsg += "[{}]({}) playing {}\n".format(player['name'],
+                                                          self.exturls['lkplayer'].format("na" if not br else "br", sid),
+                                                          player['champion'])
+            embed.add_field(name="Team One", value=tempmsg)
+            tempmsg = ""
+            for player in teams[200]:
+                sid = await self.get_summoner_id(player['name'].replace(" ", "%20"), br)
+                tempmsg += "[{}]({}) playing {}\n".format(player['name'],
+                                                          self.exturls['lkplayer'].format("na" if not br else "br", sid),
+                                                          player['champion'])
+            embed.add_field(name="Team Two", value=tempmsg)
+            return embed
+
 
     async def get_summoner_id(self, name, br=False):
         async with self.pools.get() as dbp:
