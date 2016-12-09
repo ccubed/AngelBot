@@ -357,6 +357,8 @@ class Riot:
                         if response.status == 429:
                             return {'message': message, 'module': 'Riot', 'command': self.summoner_stats,
                                     'time_to_retry': time.time() + int(response.headers['retry-after'])}
+                        elif response.status == 404:
+                            return "I couldn't find your stats."
                         stats = await response.json()
                         if br:
                             await dbp.set("LOLStatsBR{}".format(sid), json.dumps(stats))
@@ -420,6 +422,8 @@ class Riot:
                         if response.status == 429:
                             return {'message': message, 'module': 'Riot', 'command': self.match_list,
                                     'time_to_retry': time.time() + int(response.headers['retry-after'])}
+                        elif response.status == 404:
+                            return "I couldn't find your recent matches."
                         data = await response.json()
                         if br:
                             await dbp.set("LOLMatchesBR{}".format(sid), json.dumps(data))
