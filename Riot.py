@@ -365,20 +365,23 @@ class Riot:
                             await dbp.set("LOLStats{}".format(sid), json.dumps(stats))
                             await dbp.expire("LOLStats{}".format(sid), 86400)
                         stats = await self.parse_summoner_stat_data(stats)
-            msg = "Stat Summary for {}\n".format(" ".join(message.content.split()[1:]) if not br else " ".join(message.content.split()[1:][0:-1]))
-            msg += "Unranked\n```xl\n  Jungle Minion Kills: {}\n  Minion Kills: {}\n  Champion Kills: {}\n  Assists: {}\n  Towers Destroyed: {}\n  Wins: {}\n```".format(stats['Unranked']['totalNeutralMinionsKilled'],
-                                                                                                                                                                     stats['Unranked']['totalMinionKills'],
-                                                                                                                                                                     stats['Unranked']['totalChampionKills'],
-                                                                                                                                                                     stats['Unranked']['totalAssists'],
-                                                                                                                                                                     stats['Unranked']['totalTurretsKilled'],
-                                                                                                                                                                     stats['Unranked']['wins'])
-            msg += "Ranked\n```xl\n  Jungle Minion Kills: {}\n  Minion Kills: {}\n  Champion Kills: {}\n  Assists: {}\n  Towers Destroyed: {}\n  Wins: {}\n```".format(stats['Ranked']['totalNeutralMinionsKilled'],
-                                                                                                                                                                   stats['Ranked']['totalMinionKills'],
-                                                                                                                                                                   stats['Ranked']['totalChampionKills'],
-                                                                                                                                                                   stats['Ranked']['totalAssists'],
-                                                                                                                                                                   stats['Ranked']['totalTurretsKilled'],
-                                                                                                                                                                   stats['Ranked']['wins'])
-            return msg
+            embed = embeds.Embed(description="Stat Summary for [{}]({})\n".format(" ".join(message.content.split()[1:]) if not br else " ".join(message.content.split()[1:][0:-1]),
+                                                                                  self.exturls['lkplayer'].format("na" if not br else "br", sid)))
+            msg = "Jungle Minion Kills: {}\n  Minion Kills: {}\n  Champion Kills: {}\n  Assists: {}\n  Towers Destroyed: {}\n  Wins: {}".format(stats['Unranked']['totalNeutralMinionsKilled'],
+                                                                                                                                                stats['Unranked']['totalMinionKills'],
+                                                                                                                                                stats['Unranked']['totalChampionKills'],
+                                                                                                                                                stats['Unranked']['totalAssists'],
+                                                                                                                                                stats['Unranked']['totalTurretsKilled'],
+                                                                                                                                                stats['Unranked']['wins'])
+            embed.add_field(name="Unranked", value=msg)
+            msg = "Jungle Minion Kills: {}\n  Minion Kills: {}\n  Champion Kills: {}\n  Assists: {}\n  Towers Destroyed: {}\n  Wins: {}".format(stats['Ranked']['totalNeutralMinionsKilled'],
+                                                                                                                                                stats['Ranked']['totalMinionKills'],
+                                                                                                                                                stats['Ranked']['totalChampionKills'],
+                                                                                                                                                stats['Ranked']['totalAssists'],
+                                                                                                                                                stats['Ranked']['totalTurretsKilled'],
+                                                                                                                                                stats['Ranked']['wins'])
+            embed.add_field(name="Ranked", value=msg)
+            return embed
 
     async def match_list(self, message):
         br = False
