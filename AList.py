@@ -125,7 +125,7 @@ class AList:
     async def searchcharacter(self, message):
         name = "%20".join(message.content.split(" ")[1:])
         if name.isdigit():
-            return await self.parsecharacter(name)
+            await self.bot.send_message(message.channel, await self.parsecharacter(name))
         async with self.pools.get() as pool:
             token = await pool.hget("ALReadOnly", "AccessToken")
             data = {'access_token': token}
@@ -153,7 +153,7 @@ class AList:
             with aiohttp.ClientSession() as session:
                 async with session.get(url, params=data) as response:
                     jsd = await response.json()
-                    return " {0} {1}\nInfo: {2}\n{3}".format(jsd['name_first'], jsd.get('name_last', ''),
+                    return "{0} {1}\nInfo: {2}\n{3}".format(jsd['name_first'], jsd.get('name_last', ''),
                                                             jsd['info'], jsd['image_url_med'])
 
     async def searchanime(self, message):

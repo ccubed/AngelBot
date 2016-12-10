@@ -1,4 +1,5 @@
 import aiohttp
+from discord import embeds
 
 class OWAPI:
     def __init__(self, client):
@@ -33,15 +34,16 @@ class OWAPI:
                     return "Server under heavy load. Please try again later."
                 else:
                     jsd = await response.json()
-                    messages = []
-                    messages.append(jsd['overall_stats']['avatar'] or "No avatar found for this user.")
-                    message = "{} [Level {} | Rank {}]\n```xl\n".format(jsd['battletag'].replace("-", "#"), jsd['overall_stats']['level'], jsd['overall_stats']['comprank'] or '0')
-                    message += "Damage Done: {}    Deaths: {}\n".format(jsd['game_stats']['damage_done'], jsd['game_stats']['deaths'])
-                    message += "Eliminations: {}    Final Blows: {}\n".format(jsd['game_stats']['eliminations'], jsd['game_stats']['final_blows'])
-                    message += "Games Played: {}    Games Won: {}\n".format(jsd['overall_stats']['games'], jsd['overall_stats']['wins'])
-                    message += "Win Percentage: {}%\n```".format(round(jsd['overall_stats']['win_rate']*100, 2))
-                    messages.append(message)
-                    await self.bot.send_message(message.channel, "\n".join(messages))
+                    embed = embeds.Embed(description="Overwatch Stat Summary".format(jsd['battletag']))
+                    embed.title = jsd['battletag']
+                    if jsd['overall_stats']['avatar']:
+                        embed.set_thumbnail(url=jsd['overall_stats']['avatar'])
+                    embed.add_field(name="Rank and Level", value="**Level:** {}\n**Rank:** {}\n".format(jsd['overall_stats']['level'], jsd['overall_stats']['comprank'] or 0))
+                    embed.add_field(name="Pain Caused", value="**{}**".format(jsd['game_stats']['damage_done']))
+                    embed.add_field(name="Sad Endings", value="**{}**".format(jsd['game_stats']['deaths']))
+                    embed.add_field(name="Eliminations", value="**{}**".format(jsd['game_stats']['eliminations']))
+                    embed.add_field(name="Killshots", value="**{}**".format(jsd['game_stats']['final_blows']))
+                    await self.bot.send_message(message.channel, embed=embed)
 
     async def owheroes(self, message):
         name = " ".join(message.content.split(" ")[1:]).replace('#', '-')
