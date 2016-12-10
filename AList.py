@@ -325,6 +325,7 @@ class AList:
                     else:
                         jsd = json.loads(text)
                         msg = "Notifications ->\n"
+                        print(len(jsd))
                         for item in jsd:
                             print(item.keys())
                             msg += "{0}({1}) {2}".format(item['user']['display_name'], item['user']['id'], item['value'])
