@@ -51,15 +51,12 @@ class AList:
                         cid = await dbp.hget("AniList", "ClientID")
                         csec = await dbp.hget("AniList", "ClientSecret")
                         params = {'grant_type': 'refresh_token', 'client_id': cid, 'client_secret': csec, 'refresh_token': refresh}
-                        print(params)
                         with aiohttp.ClientSession() as session:
                             async with session.post("https://anilist.co/api/auth/access_token", data=params) as response:
                                 text = await response.text()
                                 if text == "\n" or response.status == 404:
                                     return 0
                                 else:
-                                    print(response.status)
-                                    print(text)
                                     jsd = json.loads(text)
                                     await dbp.hset(id, "Anilist_Expires", int(time.time())+3600)
                                     await dbp.hset(id, "Anilist_Token", self.enc.encrypt(jsd['access_token']))
@@ -87,15 +84,18 @@ class AList:
                     if response.status == 404 or text == "\n":
                         await self.bot.send_message(message.channel, "What character? You don't even know the name of your waifu? The shame.")
                     jsd = json.loads(text)
-                    if isinstance(jsd, list) and len(jsd) > 0:
-                        jsd = jsd[0]
-                    elif isinstance(jsd, list) and len(jsd) == 0:
-                        print("[" + jsd + "\n" + response.status + "]")
-                    whc = "{0} confesses their undying devotion to their waifu {1}{2}!\n{3}".format(message.author.name,
-                                                                                                    jsd['name_first'],
-                                                                                                    ' ' + jsd['name_last'] if jsd['name_last'] is not None else '',
-                                                                                                    jsd['image_url_med'])
-                    await self.bot.send_message(message.channel, whc)
+                    if 'error' in jsd:
+                        await self.bot.send_message(message.channel, "What character? You don't even know the name of your waifu? The shame.")
+                    else:
+                        if isinstance(jsd, list) and len(jsd) > 0:
+                            jsd = jsd[0]
+                        elif isinstance(jsd, list) and len(jsd) == 0:
+                            print("[" + jsd + "\n" + response.status + "]")
+                        whc = "{0} confesses their undying devotion to their waifu {1}{2}!\n{3}".format(message.author.name,
+                                                                                                        jsd['name_first'],
+                                                                                                        ' ' + jsd['name_last'] if jsd['name_last'] is not None else '',
+                                                                                                        jsd['image_url_med'])
+                        await self.bot.send_message(message.channel, whc)
 
     async def husbando(self, message):
         name = "%20".join(message.content.split(" ")[1:])
@@ -112,15 +112,18 @@ class AList:
                     if text == "\n" or response.status == 404:
                         await self.bot.send_message(message.channel, "What character? You don't even know the name of your husbando? The shame.")
                     jsd = json.loads(text)
-                    if isinstance(jsd, list) and len(jsd) > 0:
-                        jsd = jsd[0]
-                    elif isinstance(jsd, list) and len(jsd) == 0:
-                        print("[" + jsd + "\n" + response.status + "]")
-                    whc = "{0} confesses their undying devotion to their husbando {1}{2}!\n{3}".format(message.author.name,
-                                                                                                       jsd['name_first'],
-                                                                                                       ' ' + jsd['name_last'] if jsd['name_last'] is not None else '',
-                                                                                                       jsd['image_url_med'])
-                    await self.bot.send_message(message.channel, whc)
+                    if 'error' in jsd:
+                        await self.bot.send_message(message.channel, "What character? You don't even know the name of your husbando? The shame.")
+                    else:
+                        if isinstance(jsd, list) and len(jsd) > 0:
+                            jsd = jsd[0]
+                        elif isinstance(jsd, list) and len(jsd) == 0:
+                            print("[" + jsd + "\n" + response.status + "]")
+                        whc = "{0} confesses their undying devotion to their husbando {1}{2}!\n{3}".format(message.author.name,
+                                                                                                           jsd['name_first'],
+                                                                                                           ' ' + jsd['name_last'] if jsd['name_last'] is not None else '',
+                                                                                                           jsd['image_url_med'])
+                        await self.bot.send_message(message.channel, whc)
 
     async def searchcharacter(self, message):
         name = "%20".join(message.content.split(" ")[1:])
@@ -137,13 +140,16 @@ class AList:
                         await self.bot.send_message(message.channel, "[ANILIST] No results for a character named {0} in Anilist.".format(name))
                     else:
                         jsd = json.loads(text)
-                        if len(jsd) > 1:
-                            msg = "Found these characters ->\n"
-                            for i in jsd:
-                                msg += " {0}{1} (ID: {2})\n".format(i['name_first'], '\b' + i.get('name_last', ''), i['id'])
-                            await self.bot.send_message(message.channel, msg)
-                        elif len(jsd) == 1:
-                            await self.bot.send_message(message.channel, await self.parsecharacter(jsd[0]['id']))
+                        if 'error' in jsd:
+                            await self.bot.send_message(message.channel, "[ANILIST] No results for a character named {0} in Anilist.".format(name))
+                        else:
+                            if len(jsd) > 1:
+                                msg = "Found these characters ->\n"
+                                for i in jsd:
+                                    msg += " {0}{1} (ID: {2})\n".format(i['name_first'], '\b' + i.get('name_last', ''), i['id'])
+                                await self.bot.send_message(message.channel, msg)
+                            elif len(jsd) == 1:
+                                await self.bot.send_message(message.channel, await self.parsecharacter(jsd[0]['id']))
 
     async def parsecharacter(self, id):
         async with self.pools.get() as pool:
@@ -171,13 +177,16 @@ class AList:
                         await self.bot.send_message(message.channel, "[ANILIST] No results found on Anilist for Anime {0}".format(name.replace("%20", " ")))
                     else:
                         jsd = json.loads(text)
-                        if len(jsd) > 1:
-                            msg = "Found these Anime ->\n"
-                            for i in jsd:
-                                msg += " {0} (ID: {1})\n".format(i['title_english'], i['id'])
-                            return msg
-                        elif len(jsd) == 1:
-                            await self.bot.send_message(message.channel, await self.parseanime(jsd[0]['id']))
+                        if 'error' in jsd:
+                            await self.bot.send_message(message.channel, "[ANILIST] No results found on Anilist for Anime {0}".format(name.replace("%20", " ")))    
+                        else:
+                            if len(jsd) > 1:
+                                msg = "Found these Anime ->\n"
+                                for i in jsd:
+                                    msg += " {0} (ID: {1})\n".format(i['title_english'], i['id'])
+                                return msg
+                            elif len(jsd) == 1:
+                                await self.bot.send_message(message.channel, await self.parseanime(jsd[0]['id']))
 
     async def parseanime(self, id):
         async with self.pools.get() as pool:
@@ -222,13 +231,16 @@ class AList:
                         await self.bot.send_message(message.channel, "[ANILIST] No results found for {0} in Manga.".format(name))
                     else:
                         jsd = json.loads(text)
-                        if len(jsd) == 1:
-                            await self.bot.send_message(message.channel, await self.parsemanga(jsd[0]['id']))
-                        elif len(jsd) > 1:
-                            msg = "Found these Manga ->\n"
-                            for i in jsd:
-                                msg += " {0} (ID: {1})\n".format(i['title_english'], i['id'])
-                            await self.bot.send_message(message.channel, msg)
+                        if 'error' in jsd:
+                            await self.bot.send_message(message.channel, "[ANILIST] No results found for {0} in Manga.".format(name))
+                        else:
+                            if len(jsd) == 1:
+                                await self.bot.send_message(message.channel, await self.parsemanga(jsd[0]['id']))
+                            elif len(jsd) > 1:
+                                msg = "Found these Manga ->\n"
+                                for i in jsd:
+                                    msg += " {0} (ID: {1})\n".format(i['title_english'], i['id'])
+                                await self.bot.send_message(message.channel, msg)
 
     async def parsemanga(self, id):
         async with self.pools.get() as pool:
@@ -301,7 +313,7 @@ class AList:
         url = self.apiurl + "/user/notifications"
         key = await self.get_oauth(message.author.id)
         if key == 0:
-            return "Notifications require you to verify your account with Oauth. PM me about anilist to do that."
+            await self.bot.send_message(message.channel, "Notifications require you to verify your account with Oauth. PM me about anilist to do that.")
         else:
             header = self.headers
             header['Authorization'] = 'Bearer {0}'.format(key)
@@ -312,6 +324,7 @@ class AList:
                         await self.bot.send_message(message.channel, "Something went wrong. I wasn't able to get your notifications.")
                     else:
                         jsd = json.loads(text)
+                        print(jsd)
                         msg = "Notifications ->\n"
                         for item in jsd:
                             msg += "{0}({1}) {2}".format(item['user']['display_name'], item['user']['id'], item['value'])
