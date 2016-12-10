@@ -2,7 +2,6 @@ import asyncio
 import importlib
 import inspect
 import json
-import re
 import sys
 import time
 import aiohttp
@@ -22,8 +21,7 @@ class AngelBot(discord.Client):
         self.creator = None
         self.references = {}
         self.testing = False
-        self.token_bucket = {}
-        self.codeblock_regex = re.compile("```.{0,4}")
+        self.cid = 0
 
     async def setup(self):
         self.redis = await aioredis.create_pool(('localhost', 6379), db=1, minsize=1, maxsize=10, encoding="utf-8")
@@ -31,21 +29,14 @@ class AngelBot(discord.Client):
             modules = await dbp.lrange("BotModules", 0, -1)
             self.btoken = await dbp.get("BotToken")
             self.creator = await dbp.get("Creator")
+            self.cid = await dbp.get("DiscordCID")
             for mod in modules:
                 globals()[mod] = importlib.import_module(mod)
             for mod in modules:
-                self.references[mod] = inspect.getmembers(globals()[mod], inspect.isclass)[0][1](self.redis)
-            for mod in self.references:
-                if 'events' in self.references[mod].__dict__:
-                    for event in self.references[mod].events:
-                        if event[1] == 0:
-                            self.loop.call_soon_threadsafe(event[0], self.loop)
-                        else:
-                            self.loop.call_later(event[1], event[0], self.loop)
+                self.references[mod] = inspect.getmembers(globals()[mod], inspect.isclass)[0][1](self)
             if not self.testing:
                 self.loop.call_later(1500, self.update_stats)  # It takes time to chunk
                 self.loop.call_later(1500, self.update_carbon)  # It takes time to chunk
-                self.loop.call_soon_threadsafe(self.update_tokens)
 
     async def on_message(self, message):
         self.commands += 1
@@ -92,45 +83,9 @@ class AngelBot(discord.Client):
             elif 'anilist' in message.content.lower():
                 await self.send_message(message.author, "To begin this process visit the following link:\nhttps://angelbot.vertinext.com/oauth/AniList/{0}".format(message.author.id))
             else:
-                async with self.redis.get() as dbp:
-                    cid = await dbp.get("DiscordCID")
-                    await self.send_message(message.author, "Assuming you want a join link: https://discordapp.com/oauth2/authorize?client_id={0}&scope=bot&permissions=0".format(cid))
+                await self.send_message(message.author, "Assuming you want a join link: https://discordapp.com/oauth2/authorize?client_id={0}&scope=bot&permissions=0".format(self.cid))
         elif message.content.startswith("owl") and message.author.id == self.creator:
-            if message.content.lower().startswith("owldebug"):
-                gist_data = {"description": "AngelBot Debug ran {}".format(time.strftime("%a, %d %b %Y %H:%M:%S", time.gmtime())),
-                             "public": True}
-                codeblock = message.content.split("owldebug")[1].strip()
-                if '`' in codeblock:
-                    codeblock = re.split(self.codeblock_regex, codeblock)[1]
-                result = None
-                try:
-                    result = eval(codeblock)
-                    gist_data['files'] = {
-                        "input.py": {
-                            "content": codeblock
-                        },
-                        "result.txt": {
-                            "content": str(result)
-                        }
-                    }
-                    gist_url = await self.create_gist(gist_data)
-                    await self.send_message(message.channel, "Execution of that code was completed.\nSee {}".format(gist_url))
-                except SyntaxError:
-                    # Get the real error
-                    try:
-                        exec(codeblock)
-                    except Exception as Ex:
-                        gist_data['files'] = {
-                            "input.py": {
-                                "content": codeblock
-                            },
-                            "Exception.txt": {
-                                "content": str(Ex)
-                            }
-                        }
-                        gist_url = await self.create_gist(gist_data)
-                        await self.send_message(message.channel, "Execution of that code encountered an error.\nSee {}".format(gist_url))
-            elif message.content.lower().startswith("owlstats"):
+            if message.content.lower().startswith("owlstats"):
                 up = timedelta(seconds=(time.time() - self.uptime))
                 await self.send_message(message.channel,
                                         "```AngelBot Statistics\n{} Servers\n{} Users\nUptime: {}\n{} commands total\n{:.1f} commands a second```".format(
@@ -155,16 +110,12 @@ class AngelBot(discord.Client):
                     if message.author.id in admin.split("|") or message.channel.permissions_for(message.author).manage_server:
                         for command in self.references['Admin'].commands:
                             if message.content.lower().startswith("ard" + command[0]):
-                                ret = await command[1](message)
-                                await self.send_message(message.channel, ret)
-                                return
+                                await command[1](message)
                 elif message.channel.permissions_for(message.author).manage_server:
                     # Well they can manage the server so they can manage the bot, deal with it
                     for command in self.references['Admin'].commands:
                         if message.content.lower().startswith("ard" + command[0]):
-                            ret = await command[1](message)
-                            await self.send_message(message.channel, ret)
-                            return
+                            await command[1](message)
         else:
             prefix = "$"
             async with self.redis.get() as dbp:
@@ -177,47 +128,7 @@ class AngelBot(discord.Client):
                         check = message.content.split(" ")[0].lower()
                         for command in self.references[item].commands:
                             if check == prefix + command[0]:
-                                ret = await command[1](message)
-                                if isinstance(ret, dict):
-                                    if ret['module'] in self.token_bucket:
-                                        await self.token_bucket[ret['module']]['commands'].put([ret['command'], ret['message']])
-                                        self.token_bucket[ret['module']]['servers'][ret['message'].server.id] = True
-                                        if self.token_bucket[ret['module']]['time_to_retry'] > ret['time_to_retry']:
-                                            self.token_bucket[ret['module']]['time_to_retry'] = ret['time_to_retry']
-                                        await self.send_message(ret['message'].server.id, "Oh no, we done got ratelimited! Please wait {}. Messages will automatically process then.".format(timedelta(seconds=self.token_bucket[ret['module']]['time_to_rety'])))
-                                    else:
-                                        self.token_bucket[ret['module']] = {'servers': {ret['message'].server.id: True},
-                                                                            'time_to_retry': ret['time_to_retry']}
-                                        self.token_bucket[ret['module']]['commands'] = asyncio.Queue(loop=self.loop)
-                                        await self.token_bucket[ret['module']]['commands'].put([ret['command'], ret['message']])
-                                        await self.send_message(ret['message'].server.id, "Oh no, we done got ratelimited! Please wait {}. Messages will automatically process then.".format(timedelta(seconds=ret['time_to_rety'])))
-                                elif isinstance(ret, list):
-                                    attempt = "\n".join(ret)
-                                    if len(attempt) > 2000:
-                                        if len(ret) <= 3:
-                                            for retstring in ret:
-                                                if len(retstring) > 2000:
-                                                    await self.send_message(message.channel, "Received a list of things to return, but one of them was over 2000 characters. Ignored.")
-                                                else:
-                                                    await self.send_message(message.channel, retstring)
-                                        else:
-                                            await self.send_message(message.channel, "Received a list of items to return. I will return them slowly over the next few seconds.")
-                                            for idx, idt in enumerate(ret):
-                                                    if len(idt) > 2000:
-                                                        await self.send_message(message.channel, "Received a list of things to return, but one of them was over 2000 characters. Ignored.")
-                                                    else:
-                                                        await self.send_message(message.channel, idt)
-                                                    if not idx % 3:
-                                                        asyncio.sleep(3)
-                                    else:
-                                        await self.send_message(message.channel, attempt)
-                                elif isinstance(ret, discord.Embed):
-                                    await self.send_message(message.channel, embed=ret)
-                                else:
-                                    if len(ret) > 2000:
-                                        await self.send_message(message.channel, "The result of that was larger than 2000 characters. Sorry, I discarded it.")
-                                    else:
-                                        await self.send_message(message.channel, ret)
+                                await command[1](message)
 
     async def on_server_remove(self, server):
         await self.references['Admin'].cleanconfig(server.name)
@@ -239,7 +150,6 @@ class AngelBot(discord.Client):
                 async with session.post("https://www.carbonitex.net/discord/data/botdata.php",
                                         data=json.dumps({'key': ckey, 'servercount': servc}),
                                         headers={'Content-Type': 'application/json'}) as resp:
-                    print("Carbon: {}".format(resp.status))
                     await resp.release()
                 async with session.post("https://bots.discord.pw/api/bots/168925517079248896/stats",
                                         data=json.dumps({'server_count': servc}),
@@ -264,51 +174,6 @@ class AngelBot(discord.Client):
             await dbp.hset('stats', 'servers', stats['servers'])
             await dbp.hset('stats', 'cmdssec', stats['cmdssec'])
             await dbp.hincrby('stats', 'totalcmds', stats['totalcmds'])
-
-    def update_tokens(self):
-        if len(list(self.token_bucket.keys())) > 0:
-            #  We got ratelimits
-            self.loop.create_task(self._clear_tokens)
-        else:
-            #  We ain't got no ratelimits, whatever
-            self.loop.call_later(300, self.update_tokens)
-
-    async def _clear_tokens(self):
-        tokens = False
-        for module in self.token_bucket.keys():
-            if time.time() > self.token_bucket[module]['time_to_retry']:
-                if self.token_bucket[module]['commands'].qsize() > 0:
-                    tokens = True
-                    for x in range(0, 4):  # 5 at a time or b1nzy will send me angry pms
-                        this_task = await self.token_bucket[module]['commands'].get()
-                        ret = await this_task[0](this_task[1])
-                        if isinstance(ret, str):
-                            await self.send_message(this_task[1].channel, ret)
-                        elif isinstance(ret, list):
-                            for x in ret:
-                                await self.send_message(this_task[1].channel, x)
-                        elif isinstance(ret, dict):
-                            #  anoooother 429.
-                            await self.send_message(this_task[1].channel, "I attempted to process a held command for this channel but hit another ratelimit so I cleared the command. Dang man, them ratelimits.")
-                            continue
-                else:
-                    self.token_bucket.pop(module)
-        if tokens:  #  We need to come back and keep clearing
-            self.loop.call_later(20, self.update_tokens)
-
-    async def create_gist(self, content):
-        headers = {'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json'}
-        async with self.redis.get() as dbp:
-            token = await dbp.get("GitToken")
-            headers['Authorization'] = 'Token {}'.format(token)
-            async with aiohttp.ClientSession() as sess:
-                async with sess.post('https://api.github.com/gists', data=json.dumps(content), headers=headers) as r:
-                    if r.status == 201:
-                        jsd = await r.json()
-                        return jsd['html_url']
-                    else:
-                        return None
-
 
 if __name__ == "__main__":
     try:

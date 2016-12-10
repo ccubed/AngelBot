@@ -3,7 +3,7 @@ import aiohttp
 
 class Currency:
 
-    def __init__(self, redis):
+    def __init__(self, client):
         self.apiurl = "https://api.fixer.io"
         self.currencies = {'USD': 'US Dollar',
                            'JPY': 'Japanese Yen',
@@ -38,6 +38,7 @@ class Currency:
                            'ZAR': 'South African Rand',
                            'EUR': 'Euro'}
         self.commands = [['convert', self.convert], ['currencies', self.currencylist], ['rates', self.latest]]
+        self.bot = client
 
     async def convert(self, message):
         """
@@ -46,24 +47,22 @@ class Currency:
         currency_from = " ".join(message.content.split("to")[0].split()[2:])
         currency_to = message.content.split("to")[1].strip()
         if currency_from not in self.currencies.keys() or currency_to not in self.currencies.keys():
-            msgs = ["Please make sure to enter a valid currency. Valid currencies are as follows."]
-            msg = await self.currencylist(message)
-            msgs.append(msg)
-            return msgs
+            await self.bot.send_message(message.channel, "Please make sure to enter a valid currency. Valid currencies are as follows.")
+            await self.bot.send_message(message.channel, await self.currencylist())
         amt = message.content.split("to")[0].split()[1]
         try:
             amt = self.convertcurrency(amt)
         except ValueError:
-            return "Amount to convert needs to be a number."
+            await self.bot.send_message(message.channel, "Amount to convert needs to be a number.")
         async with aiohttp.ClientSession() as session:
             async with session.get(self.apiurl+"/latest", params={"base": currency_from, "symbols": currency_to}, headers={'User-Agent': 'AngelBot 2 (Python 3.5.1 AioHTTP)'}) as response:
                 if response.status == 200:
                     jsd = await response.json()
                     if len(jsd['rates']) > 0:
                         conversion = amt * float(jsd['rates'][currency_to])
-                        return "{} {} is {} {} based on data as of {}.".format(amt, self.currencies[currency_from], round(conversion, 2), self.currencies[currency_to], jsd['date'])
+                        await self.bot.send_message(message.channel, "{} {} is {} {} based on data as of {}.".format(amt, self.currencies[currency_from], round(conversion, 2), self.currencies[currency_to], jsd['date']))
                     else:
-                        return "I can't convert {} to {} because Fixer.io has no currency rate information on that specific combination.".format(self.currencies[currency_from], self.currencies[currency_to])
+                        await self.bot.send_message(message.channel, "I can't convert {} to {} because Fixer.io has no currency rate information on that specific combination.".format(self.currencies[currency_from], self.currencies[currency_to]))
 
     async def latest(self, message):
         """
@@ -79,11 +78,11 @@ class Currency:
                     jsd = await response.json()
                     msg = "Conversion rates against 1 {} as of {}\n".format(self.currencies[jsd['base']], jsd['date'])
                     msg += "\n".join(["{}: {}".format(self.currencies[x], jsd['rates'][x]) for x in jsd['rates']])
-                    return msg
+                    await self.bot.send_message(message.channel, msg)
                 else:
-                    return "I wasn't able to query Fixer.io for currency data from the European Central Bank right now. Please try again later."
+                    await self.bot.send_message(message.channel, "I wasn't able to query Fixer.io for currency data from the European Central Bank right now. Please try again later.")
 
-    async def currencylist(self, message):
+    async def currencylist(self):
         return "\n".join(["{}: {}".format(x, self.currencies[x]) for x in self.currencies])
 
     @staticmethod

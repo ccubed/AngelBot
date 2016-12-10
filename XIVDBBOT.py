@@ -1,7 +1,7 @@
 import aiohttp
 
 class DBParser:
-    def __init__(self, redis):
+    def __init__(self, client):
         self.apiurl = "https://api.xivdb.com"
         self.shortnames = {'ARC': 'Archer', 'GLA': 'Gladiator', 'LNC': 'Lancer', 'MRD': 'Marauder', 'PGL': 'Pugilist',
                            'ACN': 'Arcanist', 'CNJ': 'Conjurer', 'THM': 'Thaumaturge', 'ROG': 'Rogue',
@@ -16,6 +16,7 @@ class DBParser:
                          ['mats', self.searchmats], ['npc', self.searchnpc], ['effect', self.searchstatus],
                          ['minion', self.searchminion], ['achievement', self.searchachievement],
                          ['hdim', self.parsehdim]]
+        self.bot = client
 
     async def searchall(self, message):
         data = {'string': " ".join(message.content.split(' ')[1:])}
@@ -23,14 +24,13 @@ class DBParser:
         with aiohttp.ClientSession() as session:
             async with session.get(url, params=data, headers={'User-Agent': 'AngelBot ( aiohttp 0.26.1 python 3.5.1 )'}) as response:
                 jsd = await response.json()
-                msgs = []
+                msg = ""
                 for key in jsd:
                     if jsd[key]['total'] > 0:
-                        msg = "Found {} {}\n".format(jsd[key]['total'], key if key != "gathering" else "mats")
+                        msg += "Found {} {}\n".format(jsd[key]['total'], key if key != "gathering" else "mats")
                         for item in jsd[key]['results']:
                             msg += "   {0[name]} ({0[id]})\n".format(item)
-                        msgs.append(msg)
-                return msgs
+                await self.bot.send_message(message.channel, msg)
 
     async def searchid(self, name):
         isid = None
@@ -57,16 +57,16 @@ class DBParser:
             async with session.get(url, params=data, headers={'User-Agent': 'AngelBot ( aiohttp 0.26.1 python 3.5.1 )'}) as response:
                 jsd = await response.json()
                 if jsd['items']['total'] == 0:
-                    return "No results for {0} in items.".format(" ".join(message.content.split(" ")[1:]))
+                    await self.bot.send_message(message.channel, "No results for {0} in items.".format(" ".join(message.content.split(" ")[1:])))
                 elif jsd['items']['total'] == 1:
-                    return await self.parseitem(str(jsd['items']['results'][0]['id']))
+                    await self.bot.send_message(message.channel, await self.parseitem(str(jsd['items']['results'][0]['id'])))
                 elif jsd['items']['total'] <= 5:
                     message = "Matched more than one item. Try searching by ID.\n"
                     for items in jsd['items']['results']:
                         message += "{0} (ID: {1})\n".format(items['name'], items['id'])
-                    return message
+                        await self.bot.send_message(message.channel, message)
                 else:
-                    return "Returned {0} results. Add more words to search.".format(jsd['items']['total'])
+                    await self.bot.send_message(message.channel, "Returned {0} results. Add more words to search.".format(jsd['items']['total']))
 
     async def searchquest(self, message):
         data = {'string': " ".join(message.content.split(' ')[1:]), 'one': 'quests'}
@@ -75,16 +75,16 @@ class DBParser:
             async with session.get(url, params=data, headers={'User-Agent': 'AngelBot ( aiohttp 0.26.1 python 3.5.1 )'}) as response:
                 jsd = await response.json()
                 if jsd['quests']['total'] == 0:
-                    return "No results for {0} in quests.".format(" ".join(message.content.split(" ")[1:]))
+                    await self.bot.send_message(message.channel, "No results for {0} in quests.".format(" ".join(message.content.split(" ")[1:])))
                 elif jsd['quests']['total'] == 1:
-                    return await self.parsequest(str(jsd['quests']['results'][0]['id']))
+                    await self.bot.send_message(message.channel, await self.parsequest(str(jsd['quests']['results'][0]['id'])))
                 elif jsd['quests']['total'] <= 5:
                     message = "Matched more than one quest. Try searching by ID.\n"
                     for quests in jsd['quests']['results']:
                         message += "{0} (ID: {1})\n".format(quests['name'], quests['id'])
-                    return message
+                        await self.bot.send_message(message.channel, message)
                 else:
-                    return "Returned {0} results. Add more words to search.".format(jsd['quests']['total'])
+                    await self.bot.send_message(message.channel, "Returned {0} results. Add more words to search.".format(jsd['quests']['total']))
 
     async def searchrecipe(self, message):
         data = {'string': " ".join(message.content.split(' ')[1:]), 'one': 'recipes'}
@@ -93,16 +93,16 @@ class DBParser:
             async with session.get(url, params=data, headers={'User-Agent': 'AngelBot ( aiohttp 0.26.1 python 3.5.1 )'}) as response:
                 jsd = await response.json()
                 if jsd['recipes']['total'] == 0:
-                    return "No results for {0} in recipes.".format(" ".join(message.content.split(" ")[1:]))
+                    await self.bot.send_message(message.channel, "No results for {0} in recipes.".format(" ".join(message.content.split(" ")[1:])))
                 elif jsd['recipes']['total'] == 1:
-                    return await self.parserecipe(str(jsd['recipes']['results'][0]['id']))
+                    await self.bot.send_message(message.channel, await self.parserecipe(str(jsd['recipes']['results'][0]['id'])))
                 elif jsd['recipes']['total'] <= 5:
                     message = "Matched more than one recipe. Try searching by ID.\n"
                     for recipes in jsd['recipes']['results']:
                         message += "{0} (ID: {1})\n".format(recipes['name'], recipes['id'])
-                    return message
+                        await self.bot.send_message(message.channel, message)
                 else:
-                    return "Returned {0} results. Add more words to search.".format(jsd['recipes']['total'])
+                    await self.bot.send_message(message.channel, "Returned {0} results. Add more words to search.".format(jsd['recipes']['total']))
 
     async def searchaction(self, message):
         data = {'string': " ".join(message.content.split(' ')[1:]), 'one': 'actions'}
@@ -111,16 +111,16 @@ class DBParser:
             async with session.get(url, params=data, headers={'User-Agent': 'AngelBot ( aiohttp 0.26.1 python 3.5.1 )'}) as response:
                 jsd = await response.json()
                 if jsd['actions']['total'] == 0:
-                    return "No results for {0} in actions.".format(" ".join(message.content.split(" ")[1:]))
+                    await self.bot.send_message(message.channel, "No results for {0} in actions.".format(" ".join(message.content.split(" ")[1:])))
                 elif jsd['actions']['total'] == 1:
-                    return await self.parseaction(str(jsd['actions']['results'][0]['id']))
+                    await self.bot.send_message(message.channel, await self.parseaction(str(jsd['actions']['results'][0]['id'])))
                 elif jsd['actions']['total'] <= 5:
                     message = "Matched more than one action. Try searching by ID.\n"
                     for actions in jsd['actions']['results']:
                         message += "{0} (ID: {1})\n".format(actions['name'], actions['id'])
-                    return message
+                        await self.bot.send_message(message.channel, message)
                 else:
-                    return "Returned {0} results. Add more words to search.".format(jsd['actions']['total'])
+                    await self.bot.send_message(message.channel, "Returned {0} results. Add more words to search.".format(jsd['actions']['total']))
 
     async def searchmats(self, message):
         data = {'string': " ".join(message.content.split(' ')[1:]), 'one': 'gathering'}
@@ -129,16 +129,16 @@ class DBParser:
             async with session.get(url, params=data, headers={'User-Agent': 'AngelBot ( aiohttp 0.26.1 python 3.5.1 )'}) as response:
                 jsd = await response.json()
                 if jsd['gathering']['total'] == 0:
-                    return "No results for {0} in gathering.".format(" ".join(message.content.split(" ")[1:]))
+                    await self.bot.send_message(message.channel, "No results for {0} in gathering.".format(" ".join(message.content.split(" ")[1:])))
                 elif jsd['gathering']['total'] == 1:
-                    return await self.parsegather(str(jsd['gathering']['results'][0]['id']))
+                    await self.bot.send_message(message.channel, await self.parsegather(str(jsd['gathering']['results'][0]['id'])))
                 elif jsd['gathering']['total'] <= 5:
                     message = "Matched more than one material. Try searching by ID.\n"
                     for gathering in jsd['gathering']['results']:
                         message += "{0} (ID: {1})\n".format(gathering['name'], gathering['id'])
-                    return message
+                        await self.bot.send_message(message.channel, message)
                 else:
-                    return "Returned {0} results. Add more words to search.".format(jsd['gathering']['total'])
+                    await self.bot.send_message(message.channel, "Returned {0} results. Add more words to search.".format(jsd['gathering']['total']))
 
     async def searchnpc(self, message):
         data = {'string': " ".join(message.content.split(' ')[1:]), 'one': 'npcs'}
@@ -147,16 +147,16 @@ class DBParser:
             async with session.get(url, params=data, headers={'User-Agent': 'AngelBot ( aiohttp 0.26.1 python 3.5.1 )'}) as response:
                 jsd = await response.json()
                 if jsd['npcs']['total'] == 0:
-                    return "No results for {0} in npcs.".format(" ".join(message.content.split(" ")[1:]))
+                    await self.bot.send_message(message.channel, "No results for {0} in npcs.".format(" ".join(message.content.split(" ")[1:])))
                 elif jsd['npcs']['total'] == 1:
-                    return await self.parsenpc(str(jsd['npcs']['results'][0]['id']))
+                    await self.bot.send_message(message.channel, await self.parsenpc(str(jsd['npcs']['results'][0]['id'])))
                 elif jsd['npcs']['total'] <= 5:
                     message = "Matched more than one npc. Try searching by ID.\n"
                     for npcs in jsd['npcs']['results']:
                         message += "{0} (ID: {1})\n".format(npcs['name'], npcs['id'])
-                    return message
+                        await self.bot.send_message(message.channel, message)
                 else:
-                    return "Returned {0} results. Add more words to search.".format(jsd['npcs']['total'])
+                    await self.bot.send_message(message.channel, "Returned {0} results. Add more words to search.".format(jsd['npcs']['total']))
 
     async def searchstatus(self, message):
         data = {'string': " ".join(message.content.split(' ')[1:]), 'one': 'status'}
@@ -165,16 +165,16 @@ class DBParser:
             async with session.get(url, params=data, headers={'User-Agent': 'AngelBot ( aiohttp 0.26.1 python 3.5.1 )'}) as response:
                 jsd = await response.json()
                 if jsd['status']['total'] == 0:
-                    return "No results for {0} in status.".format(" ".join(message.content.split(" ")[1:]))
+                    await self.bot.send_message(message.channel, "No results for {0} in status.".format(" ".join(message.content.split(" ")[1:])))
                 elif jsd['status']['total'] == 1:
-                    return await self.parsestatus(str(jsd['status']['results'][0]['id']))
+                    await self.bot.send_message(message.channel, await self.parsestatus(str(jsd['status']['results'][0]['id'])))
                 elif jsd['status']['total'] <= 5:
                     message = "Matched more than one status effect. Try searching by ID.\n"
                     for status in jsd['status']['results']:
                         message += "{0} (ID: {1})\n".format(status['name'], status['id'])
-                    return message
+                        await self.bot.send_message(message.channel, message)
                 else:
-                    return "Returned {0} results. Add more words to search.".format(jsd['status']['total'])
+                    await self.bot.send_message(message.channel, "Returned {0} results. Add more words to search.".format(jsd['status']['total']))
 
     async def searchminion(self, message):
         data = {'string': " ".join(message.content.split(' ')[1:]), 'one': 'minions'}
@@ -183,16 +183,16 @@ class DBParser:
             async with session.get(url, params=data, headers={'User-Agent': 'AngelBot ( aiohttp 0.26.1 python 3.5.1 )'}) as response:
                 jsd = await response.json()
                 if jsd['minions']['total'] == 0:
-                    return "No results for {0} in minions.".format(" ".join(message.content.split(" ")[1:]))
+                    await self.bot.send_message(message.channel, "No results for {0} in minions.".format(" ".join(message.content.split(" ")[1:])))
                 elif jsd['minions']['total'] == 1:
-                    return await self.parseminion(str(jsd['minions']['results'][0]['id']))
+                    await self.bot.send_message(message.channel, await self.parseminion(str(jsd['minions']['results'][0]['id'])))
                 elif jsd['minions']['total'] <= 5:
                     message = "Matched more than one minion. Try searching by ID.\n"
                     for minions in jsd['minions']['results']:
                         message += "{0} (ID: {1})\n".format(minions['name'], minions['id'])
-                    return message
+                        await self.bot.send_message(message.channel, message)
                 else:
-                    return "Returned {0} results. Add more words to search.".format(jsd['minion']['total'])
+                    await self.bot.send_message(message.channel, "Returned {0} results. Add more words to search.".format(jsd['minion']['total']))
 
     async def searchachievement(self, message):
         data = {'string': " ".join(message.content.split(' ')[1:]), 'one': 'achievements'}
@@ -201,16 +201,16 @@ class DBParser:
             async with session.get(url, params=data, headers={'User-Agent': 'AngelBot ( aiohttp 0.26.1 python 3.5.1 )'}) as response:
                 jsd = await response.json()
                 if jsd['achievements']['total'] == 0:
-                    return "No results for {0} in achievements.".format(" ".join(message.content.split(" ")[1:]))
+                    await self.bot.send_message(message.channel, "No results for {0} in achievements.".format(" ".join(message.content.split(" ")[1:])))
                 elif jsd['achievements']['total'] == 1:
-                    return await self.parseachievement(str(jsd['achievements']['results'][0]['id']))
+                    await self.bot.send_message(message.channel, await self.parseachievement(str(jsd['achievements']['results'][0]['id'])))
                 elif jsd['achievements']['total'] <= 5:
                     message = "Matched more than one achievement. Try searching by ID.\n"
                     for achievements in jsd['achievements']['results']:
                         message += "{0} (ID: {1})\n".format(achievements['name'], achievements['id'])
-                    return message
+                        await self.bot.send_message(message.channel, message)
                 else:
-                    return "Returned {0} results. Add more words to search.".format(jsd['achievements']['total'])
+                    await self.bot.send_message(message.channel, "Returned {0} results. Add more words to search.".format(jsd['achievements']['total']))
 
     async def parseitem(self, name):
         url = self.apiurl + '/item/' + name

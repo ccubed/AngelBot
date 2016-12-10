@@ -10,7 +10,7 @@ class Riot:
     """
     This class handles the Riot API and stores variables and calls related to that API.
     """
-    def __init__(self, redis):
+    def __init__(self, client):
         """
         Initialize the API and store API variables and the global connection pool for redis.
 
@@ -23,14 +23,15 @@ class Riot:
         # API Endpoitns for lolking. replay - region, game id. players - region, player id. champs - name.
         self.exturls = {'lkreplay': 'http://www.lolking.net/replay/{}/{}', 'lkplayer': 'http://www.lolking.net/summoner/{}/{}', 
                         'lkchampions': 'http://www.lolking.net/champions/{}'}
-        self.pools = redis
+        self.pools = client.redis
         self.commands = [['islolup', self.status], ['lolfree', self.free_rotation], ['lolstatus', self.region_status],
                          ['lolfeatures', self.featured_games], ['lolrecent', self.match_list], ['lolstats', self.summoner_stats]]
         self.regions = ['na', 'lan', 'las', 'br', 'oce', 'eune', 'tr', 'ru', 'euw', 'kr']
         self.header = {'User-Agent': 'AngelBot ( aiohttp 0.26.1 python 3.5.1 )'}
-        self.events = [[self.update_freerotation, 0]]
         self.maps = {1: "Summoner's Rift (Original Summer)", 2: "Summoner's Rift (Original Autumn)", 4: 'Twisted Treeline (Original)',
                      8: 'The Crystal Scar', 10: 'Twisted Treeline', 11: "Summoner's Rift", 12: 'Howling Abyss', 14: "Butcher's Bridge"}
+        self.bot = client
+        self.bot.loop.call_soon_threadsafe(self.update_freerotation, self.bot.loop)
 
     def update_freerotation(self, loop):
         """
@@ -104,8 +105,7 @@ class Riot:
                     with aiohttp.ClientSession() as session:
                         async with session.get(self.apiurls['status'] + "shards/{}".format(region), headers=self.header) as response:
                             if response.status == 429:
-                                return {'message': message, 'module': 'Riot', 'command': self.status,
-                                        'time_to_retry': time.time() + int(response.headers['retry-after'])}
+                                await self.bot.send_message(message.channel, "We done got ratelimited!")
                             jsd = await response.json()
                             await dbp.set("LOL"+region, json.dumps(jsd))
                             await dbp.expire("LOL"+region, 3600)  # Cache clears every hour
@@ -120,7 +120,7 @@ class Riot:
                                 else:
                                     msg += " :red_circle:\n"
                             embed.add_field(name=jsd['name'], value=msg)
-            return embed
+            await self.bot.send_message(message.channel, embed=embed)
 
     async def free_rotation(self, message):
         """
@@ -137,7 +137,7 @@ class Riot:
             for x in jsd:
                 embed.add_field(name="[{}]({})".format(x['name'], self.exturls['lkchampions'].format(x['name'].lower())),
                                 value="\u200b")
-            return embed
+            await self.bot.send_message(message.channel, embed=embed)
 
     async def region_status(self, message):
         """
@@ -147,7 +147,7 @@ class Riot:
         :return:
         """
         if len(message.content.split(" ")) == 1:
-            return "Need to provide a region. These are: {}.".format(', '.join(self.regions))
+            await self.bot.send_message(message.channel, "Need to provide a region. These are: {}.".format(', '.join(self.regions)))
         else:
             region = message.content.split(" ")[1]
             if region in self.regions:
@@ -169,13 +169,12 @@ class Riot:
                             else:
                                 msg += " :red_circle:\n"
                         embed.add_field(name="Services", value=msg)
-                        return embed
+                        await self.bot.send_message(message.channel, embed=embed)
                     else:
                         with aiohttp.ClientSession() as session:
                             async with session.get(self.apiurls['status'] + "shards/{}".format(region), headers=self.header) as response:
                                 if response.status == 429:
-                                    return {'message': message, 'module': 'Riot', 'command': self.region_status,
-                                            'time_to_retry': time.time() + int(response.headers['retry-after'])}
+                                    await self.bot.send_message(message.channel, "We done got ratelimited!")
                                 jsd = await response.json()
                                 await dbp.set("LOL" + region, json.dumps(jsd))
                                 await dbp.expire("LOL" + region, 3600)  # Cache clears every hour
@@ -192,9 +191,9 @@ class Riot:
                                     else:
                                         msg += " :red_circle:\n"
                                 embed.add_field(name="Services", value=msg)
-                                return embed
+                                await self.bot.send_message(message.channel, embed=embed)
             else:
-                return "Region must be one of {}".format(",".join(self.regions))
+                await self.bot.send_message(message.channel, "Region must be one of {}".format(",".join(self.regions)))
 
     async def featured_games(self, message):
         """
@@ -224,8 +223,7 @@ class Riot:
                 with aiohttp.ClientSession() as session:
                     async with session.get(url + "/rest/featured", params={'api_key': key}, headers=self.header) as response:
                         if response.status == 429:
-                            return {'message': message, 'module': 'Riot', 'command': self.featured_games,
-                                    'time_to_retry': time.time() + int(response.headers['retry-after'])}
+                            await self.bot.send_message(message.channel, "We done got ratelimited.")
                         data = await response.json()
                         if not br:
                             await dbp.set("LOLFeatured", json.dumps(data))
@@ -265,7 +263,7 @@ class Riot:
                                                           self.exturls['lkplayer'].format("na" if not br else "br", sid),
                                                           player['champion'])
             embed.add_field(name="Team Two", value=tempmsg)
-            return embed
+            await self.bot.send_message(message.channel, embed=embed)
 
 
     async def get_summoner_id(self, name, br=False):
@@ -277,11 +275,9 @@ class Riot:
             with aiohttp.ClientSession() as session:
                 url = self.apiurls['na'] + "/na/v1.4/summoner/by-name/{}".format(name) if not br else self.apiurls['br'] + "/br/v1.4/summoner/by-name/{}".format(name)
                 async with session.get(url, params={'api_key': key}, headers=self.header) as response:
-                    print("Looked up {} on {} and got {} back.".format(name, "BR" if br else "NA", response.status))
                     if response.status == 429:
                         if response.status == 429:
-                            return {'message': None, 'module': 'Riot', 'command': None,
-                                    'time_to_retry': time.time() + int(response.headers['retry-after'])}
+                            return 0
                     if response.status == 404:
                         return 0
                     else:
@@ -322,7 +318,7 @@ class Riot:
     async def summoner_stats(self, message):
         br = False
         if len(message.content.split()) == 1:
-            return "Need a summoner name or ID."
+            await self.bot.send_message(message.channel, "Need a summoner name or ID.")
         if 'br' in message.content.lower():
             sid = "%20".join(message.content.split()[1:][0:-1])
             print(sid)
@@ -336,7 +332,7 @@ class Riot:
                 sid['command'] = self.summoner_stats
                 return sid
         if sid == 0 or sid is None:
-            return "Couldn't find that summoner."
+            await self.bot.send_message(message.channel, "Couldn't find that summoner.")
         async with self.pools.get() as dbp:
             key = await dbp.get("RiotGames")
             if br:
@@ -354,12 +350,10 @@ class Riot:
                 url = self.apiurls['na'] + "/na/v1.3/stats/by-summoner/{}/summary".format(sid) if not br else self.apiurls['br'] + "/br/v1.3/stats/by-summoner/{}/summary".format(sid)
                 with aiohttp.ClientSession() as session:
                     async with session.get(url, params={'api_key': key}, headers=self.header) as response:
-                        print(response.status)
                         if response.status == 429:
-                            return {'message': message, 'module': 'Riot', 'command': self.summoner_stats,
-                                    'time_to_retry': time.time() + int(response.headers['retry-after'])}
+                            await self.bot.send_message(message.channel, "We done got ratelimited!")
                         elif response.status == 404:
-                            return "I couldn't find your stats."
+                            await self.bot.send_message(message.channel, "I couldn't find your stats.")
                         stats = await response.json()
                         if br:
                             await dbp.set("LOLStatsBR{}".format(sid), json.dumps(stats))
@@ -387,12 +381,12 @@ class Riot:
                                                                                    stats['Ranked']['totalTurretsKilled'],
                                                                                    stats['Ranked']['wins']))
             embed.add_field(name="\u200b", value="\u200b")
-            return embed
+            await self.bot.send_message(message.channel, embed=embed)
 
     async def match_list(self, message):
         br = False
         if len(message.content.split()) == 1:
-            return "Need a summoner name or ID."
+            await self.bot.send_message(message.channel, "Need a summoner name or ID.")
         if 'br' in message.content.lower():
             sid = "%20".join(message.content.split()[1:][0:-1])
             br = True
@@ -405,7 +399,7 @@ class Riot:
                 sid['command'] = self.match_list
                 return sid
         if sid == 0:
-            return "Couldn't find that summoner."
+            await self.bot.send_message(message.channel, "Couldn't find that summoner.")
         async with self.pools.get() as dbp:
             key = await dbp.get("RiotGames")
             if br:
@@ -424,10 +418,9 @@ class Riot:
                 with aiohttp.ClientSession() as session:
                     async with session.get(url, params={'api_key': key}, headers=self.header) as response:
                         if response.status == 429:
-                            return {'message': message, 'module': 'Riot', 'command': self.match_list,
-                                    'time_to_retry': time.time() + int(response.headers['retry-after'])}
+                            await self.bot.send_message(message.channel, "We done got ratelimited!")
                         elif response.status == 404:
-                            return "I couldn't find your recent matches."
+                            await self.bot.send_message(message.channel, "I couldn't find your recent matches.")
                         data = await response.json()
                         if br:
                             await dbp.set("LOLMatchesBR{}".format(sid), json.dumps(data))
@@ -438,4 +431,4 @@ class Riot:
             msg = "Recent Games\n"
             for x in data['games'][:10]:
                 msg += "```xl\n   {} on {} (ID:{}) - {}\n```".format(x['gameMode'], self.maps[x['mapId']], x['gameId'], "Won" if x['stats']['win'] else "Lost")
-            return msg
+            await self.bot.send_message(message.channel, msg)
