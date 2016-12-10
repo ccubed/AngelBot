@@ -324,7 +324,9 @@ class AList:
                         await self.bot.send_message(message.channel, "Something went wrong. I wasn't able to get your notifications.")
                     else:
                         jsd = json.loads(text)
+                        print(type(jsd))
                         print(jsd.keys())
+                        print(jsd)
                         msg = "Notifications ->\n"
                         for item in jsd:
                             msg += "{0}({1}) {2}".format(item['user']['display_name'], item['user']['id'], item['value'])
