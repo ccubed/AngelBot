@@ -1,4 +1,5 @@
 import aiohttp
+from discord import embeds
 
 class DBParser:
     def __init__(self, client):
@@ -24,13 +25,15 @@ class DBParser:
         with aiohttp.ClientSession() as session:
             async with session.get(url, params=data, headers={'User-Agent': 'AngelBot ( aiohttp 0.26.1 python 3.5.1 )'}) as response:
                 jsd = await response.json()
-                msg = ""
+                embed = embeds.Embed()
+                embed.title = "Search Results"
                 for key in jsd:
                     if jsd[key]['total'] > 0:
-                        msg += "Found {} {}\n".format(jsd[key]['total'], key if key != "gathering" else "mats")
+                        msg = ""
                         for item in jsd[key]['results']:
-                            msg += "   {0[name]} ({0[id]})\n".format(item)
-                await self.bot.send_message(message.channel, msg)
+                            msg += "{0[name]} [ID:*{0[id]}*]\n".format(item)
+                        embed.add_field(name=key if key != "gathering" else "mats", value=msg)
+                await self.bot.send_message(message.channel, embed=embed)
 
     async def searchid(self, name):
         isid = None
@@ -61,10 +64,10 @@ class DBParser:
                 elif jsd['items']['total'] == 1:
                     await self.bot.send_message(message.channel, await self.parseitem(str(jsd['items']['results'][0]['id'])))
                 elif jsd['items']['total'] <= 5:
-                    message = "Matched more than one item. Try searching by ID.\n"
+                    msg = "Matched more than one item. Try searching by ID.\n"
                     for items in jsd['items']['results']:
-                        message += "{0} (ID: {1})\n".format(items['name'], items['id'])
-                        await self.bot.send_message(message.channel, message)
+                        msg += "{0} (ID: {1})\n".format(items['name'], items['id'])
+                        await self.bot.send_message(message.channel, msg)
                 else:
                     await self.bot.send_message(message.channel, "Returned {0} results. Add more words to search.".format(jsd['items']['total']))
 
@@ -79,10 +82,10 @@ class DBParser:
                 elif jsd['quests']['total'] == 1:
                     await self.bot.send_message(message.channel, await self.parsequest(str(jsd['quests']['results'][0]['id'])))
                 elif jsd['quests']['total'] <= 5:
-                    message = "Matched more than one quest. Try searching by ID.\n"
+                    msg = "Matched more than one quest. Try searching by ID.\n"
                     for quests in jsd['quests']['results']:
-                        message += "{0} (ID: {1})\n".format(quests['name'], quests['id'])
-                        await self.bot.send_message(message.channel, message)
+                        msg += "{0} (ID: {1})\n".format(quests['name'], quests['id'])
+                        await self.bot.send_message(message.channel, msg)
                 else:
                     await self.bot.send_message(message.channel, "Returned {0} results. Add more words to search.".format(jsd['quests']['total']))
 
@@ -97,10 +100,10 @@ class DBParser:
                 elif jsd['recipes']['total'] == 1:
                     await self.bot.send_message(message.channel, await self.parserecipe(str(jsd['recipes']['results'][0]['id'])))
                 elif jsd['recipes']['total'] <= 5:
-                    message = "Matched more than one recipe. Try searching by ID.\n"
+                    msg = "Matched more than one recipe. Try searching by ID.\n"
                     for recipes in jsd['recipes']['results']:
-                        message += "{0} (ID: {1})\n".format(recipes['name'], recipes['id'])
-                        await self.bot.send_message(message.channel, message)
+                        msg += "{0} (ID: {1})\n".format(recipes['name'], recipes['id'])
+                        await self.bot.send_message(message.channel, msg)
                 else:
                     await self.bot.send_message(message.channel, "Returned {0} results. Add more words to search.".format(jsd['recipes']['total']))
 
@@ -115,10 +118,10 @@ class DBParser:
                 elif jsd['actions']['total'] == 1:
                     await self.bot.send_message(message.channel, await self.parseaction(str(jsd['actions']['results'][0]['id'])))
                 elif jsd['actions']['total'] <= 5:
-                    message = "Matched more than one action. Try searching by ID.\n"
+                    msg = "Matched more than one action. Try searching by ID.\n"
                     for actions in jsd['actions']['results']:
-                        message += "{0} (ID: {1})\n".format(actions['name'], actions['id'])
-                        await self.bot.send_message(message.channel, message)
+                        msg += "{0} (ID: {1})\n".format(actions['name'], actions['id'])
+                        await self.bot.send_message(message.channel, msg)
                 else:
                     await self.bot.send_message(message.channel, "Returned {0} results. Add more words to search.".format(jsd['actions']['total']))
 
@@ -133,10 +136,10 @@ class DBParser:
                 elif jsd['gathering']['total'] == 1:
                     await self.bot.send_message(message.channel, await self.parsegather(str(jsd['gathering']['results'][0]['id'])))
                 elif jsd['gathering']['total'] <= 5:
-                    message = "Matched more than one material. Try searching by ID.\n"
+                    msg = "Matched more than one material. Try searching by ID.\n"
                     for gathering in jsd['gathering']['results']:
-                        message += "{0} (ID: {1})\n".format(gathering['name'], gathering['id'])
-                        await self.bot.send_message(message.channel, message)
+                        msg += "{0} (ID: {1})\n".format(gathering['name'], gathering['id'])
+                        await self.bot.send_message(message.channel, msg)
                 else:
                     await self.bot.send_message(message.channel, "Returned {0} results. Add more words to search.".format(jsd['gathering']['total']))
 
@@ -151,10 +154,10 @@ class DBParser:
                 elif jsd['npcs']['total'] == 1:
                     await self.bot.send_message(message.channel, await self.parsenpc(str(jsd['npcs']['results'][0]['id'])))
                 elif jsd['npcs']['total'] <= 5:
-                    message = "Matched more than one npc. Try searching by ID.\n"
+                    msg = "Matched more than one npc. Try searching by ID.\n"
                     for npcs in jsd['npcs']['results']:
-                        message += "{0} (ID: {1})\n".format(npcs['name'], npcs['id'])
-                        await self.bot.send_message(message.channel, message)
+                        msg += "{0} (ID: {1})\n".format(npcs['name'], npcs['id'])
+                        await self.bot.send_message(message.channel, msg)
                 else:
                     await self.bot.send_message(message.channel, "Returned {0} results. Add more words to search.".format(jsd['npcs']['total']))
 
@@ -169,10 +172,10 @@ class DBParser:
                 elif jsd['status']['total'] == 1:
                     await self.bot.send_message(message.channel, await self.parsestatus(str(jsd['status']['results'][0]['id'])))
                 elif jsd['status']['total'] <= 5:
-                    message = "Matched more than one status effect. Try searching by ID.\n"
+                    msg = "Matched more than one status effect. Try searching by ID.\n"
                     for status in jsd['status']['results']:
-                        message += "{0} (ID: {1})\n".format(status['name'], status['id'])
-                        await self.bot.send_message(message.channel, message)
+                        msg += "{0} (ID: {1})\n".format(status['name'], status['id'])
+                        await self.bot.send_message(message.channel, msg)
                 else:
                     await self.bot.send_message(message.channel, "Returned {0} results. Add more words to search.".format(jsd['status']['total']))
 
@@ -187,10 +190,10 @@ class DBParser:
                 elif jsd['minions']['total'] == 1:
                     await self.bot.send_message(message.channel, await self.parseminion(str(jsd['minions']['results'][0]['id'])))
                 elif jsd['minions']['total'] <= 5:
-                    message = "Matched more than one minion. Try searching by ID.\n"
+                    msg = "Matched more than one minion. Try searching by ID.\n"
                     for minions in jsd['minions']['results']:
-                        message += "{0} (ID: {1})\n".format(minions['name'], minions['id'])
-                        await self.bot.send_message(message.channel, message)
+                        msg += "{0} (ID: {1})\n".format(minions['name'], minions['id'])
+                        await self.bot.send_message(message.channel, msg)
                 else:
                     await self.bot.send_message(message.channel, "Returned {0} results. Add more words to search.".format(jsd['minion']['total']))
 
@@ -205,10 +208,10 @@ class DBParser:
                 elif jsd['achievements']['total'] == 1:
                     await self.bot.send_message(message.channel, await self.parseachievement(str(jsd['achievements']['results'][0]['id'])))
                 elif jsd['achievements']['total'] <= 5:
-                    message = "Matched more than one achievement. Try searching by ID.\n"
+                    msg = "Matched more than one achievement. Try searching by ID.\n"
                     for achievements in jsd['achievements']['results']:
-                        message += "{0} (ID: {1})\n".format(achievements['name'], achievements['id'])
-                        await self.bot.send_message(message.channel, message)
+                        msg += "{0} (ID: {1})\n".format(achievements['name'], achievements['id'])
+                        await self.bot.send_message(message.channel, msg)
                 else:
                     await self.bot.send_message(message.channel, "Returned {0} results. Add more words to search.".format(jsd['achievements']['total']))
 
