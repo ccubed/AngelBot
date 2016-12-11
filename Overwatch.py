@@ -1,7 +1,8 @@
 import aiohttp
+from discord import embeds
 
 class OWAPI:
-    def __init__(self, pool):
+    def __init__(self, client):
         self.apiurl = "https://owapi.net/api/v2/u/"
         # Map Numbers to names
         self.index = {1: 'roadhog', 2: 'junkrat', 3: 'lucio', 4: 'soldier76', 5: 'zarya', 6: 'mccree', 7: 'tracer', 8: 'reaper',
@@ -21,6 +22,7 @@ class OWAPI:
                            {'names': ['D.Va', 'twitch streamer', 'gamer girl'], 'id': 22}]
         self.commands = [['ow', self.ow], ['owheroes', self.owheroes], ['owhero', self.owhero]]
         self.header = {'User-Agent': "AngelBot AioHttp Python3.5"}
+        self.bot = client
 
     async def ow(self, message):
         name = " ".join(message.content.split(" ")[1:]).replace('#', '-')
@@ -32,47 +34,38 @@ class OWAPI:
                     return "Server under heavy load. Please try again later."
                 else:
                     jsd = await response.json()
-                    messages = []
-                    messages.append(jsd['overall_stats']['avatar'] or "No avatar found for this user.")
-                    message = "{} [Level {} | Rank {}]\n```xl\n".format(jsd['battletag'].replace("-", "#"), jsd['overall_stats']['level'], jsd['overall_stats']['comprank'] or '0')
-                    message += "Damage Done: {}    Deaths: {}\n".format(jsd['game_stats']['damage_done'], jsd['game_stats']['deaths'])
-                    message += "Eliminations: {}    Final Blows: {}\n".format(jsd['game_stats']['eliminations'], jsd['game_stats']['final_blows'])
-                    message += "Games Played: {}    Games Won: {}\n".format(jsd['overall_stats']['games'], jsd['overall_stats']['wins'])
-                    message += "Win Percentage: {}%\n```".format(round(jsd['overall_stats']['win_rate']*100, 2))
-                    messages.append(message)
-                    message = "```xl\nSolo Kills: {}    Objective Kills: {}\n".format(jsd['game_stats']['solo_kills'], jsd['game_stats']['objective_kills'])
-                    message += "Offensive Assists: {}    Defensive Assists: {}\n".format(jsd['game_stats']['offensive_assists'], jsd['game_stats']['defensive_assists'])
-                    message += "Recon Assists: {}\n```".format(jsd['game_stats']['recon_assists'])
-                    messages.append(message)
-                    message = "```xl\nTotal Medals: {}\nGold Medals: {}\nSilver Medals: {}\nBronze Medals: {}\n```".format(jsd['game_stats']['medals'],
-                                                                                                                           jsd['game_stats']['medals_gold'],
-                                                                                                                           jsd['game_stats']['medals_silver'],
-                                                                                                                           jsd['game_stats']['medals_bronze'])
-                    messages.append(message)
-                    messages.append("Please note that currently Overwatch is returning 0 games played for everyone. Therefore games played and win percentage are broken.")
-                    return messages
+                    embed = embeds.Embed(description="Overwatch Stat Summary".format(jsd['battletag']))
+                    embed.title = jsd['battletag']
+                    if jsd['overall_stats']['avatar']:
+                        embed.set_thumbnail(url=jsd['overall_stats']['avatar'])
+                    embed.add_field(name="Rank and Level", value="**Level:** {}\n**Rank:** {}\n".format(jsd['overall_stats']['level'], jsd['overall_stats']['comprank'] or 0))
+                    embed.add_field(name="Pain Caused", value="**{}**".format(jsd['game_stats']['damage_done']))
+                    embed.add_field(name="Sad Endings", value="**{}**".format(jsd['game_stats']['deaths']))
+                    embed.add_field(name="Eliminations", value="**{}**".format(jsd['game_stats']['eliminations']))
+                    embed.add_field(name="Killshots", value="**{}**".format(jsd['game_stats']['final_blows']))
+                    await self.bot.send_message(message.channel, embed=embed)
 
     async def owheroes(self, message):
         name = " ".join(message.content.split(" ")[1:]).replace('#', '-')
         with aiohttp.ClientSession() as session:
             async with session.get(self.apiurl + "{}/heroes/general".format(name), headers=self.header) as response:
                 if response.status == 404:
-                    return "Battletag not found."
+                    await self.bot.send_message(message.channel, "Battletag not found.")
                 elif response.status == 500:
-                    return "Server under heavy load. Please try again later."
+                    await self.bot.send_message(message.channel, "Server under heavy load. Please try again later.")
                 else:
                     jsd = await response.json()
                     message = "{}'s Heroes.\n```xl\n".format(jsd['battletag'])
                     for hero in [x for x in jsd['heroes'] if jsd['heroes'][x] > 0]:
                         message += "{} - Time Played(Hrs): {}\n".format(hero, round(jsd['heroes'][hero], 2))
-                    return message + '```'
+                    await self.bot.send_message(message.channel, message + '```')
 
     async def owhero(self, message):
         name = " ".join(message.content.split(" ")[1:]).split(":")[0].replace('#', '-')
         hname = " ".join(message.content.split(" ")[1:]).split(":")[1]
         if hname.isdigit():
             if hname not in self.index:
-                return "That's not a valid hero id."
+                await self.bot.send_message(message.channel, "That's not a valid hero id.")
             else:
                 hname = self.index[hname]
         else:
@@ -83,13 +76,13 @@ class OWAPI:
                     found = True
                     break
             if not found:
-                return "Couldn't find a hero with that name."
+                await self.bot.send_message(message.channel, "Couldn't find a hero with that name.")
         with aiohttp.ClientSession() as session:
             async with session.get(self.apiurl + "{}/heroes/{}".format(name, hname), headers=self.header) as response:
                 if response.status == 404:
-                    return "Couldn't find that battletag."
+                    await self.bot.send_message(message.channel, "Couldn't find that battletag.")
                 elif response.status == 500:
-                    return "Server under heavy load. Please try again later."
+                    await self.bot.send_message(message.channel, "Server under heavy load. Please try again later.")
                 else:
                     jsd = await response.json()
                     messages = []
@@ -103,4 +96,4 @@ class OWAPI:
                     for stat in [x for x in jsd['hero_stats'] if 'guid' not in x]:
                         msg += "   {}: {}\n".format(stat, jsd['hero_stats'][stat])
                     messages.append(msg)
-                    return messages
+                    await self.bot.send_message(message.channel, "\n".join(messages))
