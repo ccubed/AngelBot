@@ -34,9 +34,6 @@ auser
 asuer [username or id]
     Pulls the details of another user
 
-anotifications
-    **OAUTH Required**: Pulls up to 10 notifications off your profile
-
 apeople [query]
     Searches AniList for users with names that match query
 

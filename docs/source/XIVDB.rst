@@ -4,11 +4,10 @@ XIVDB
 This is the API interface to XIVDB's API. Keep in mind that all of these commands should be prefaced with the command prefix defined for your server or the global command prefix of $.
 With the advent of XIVDB 2 and some changes to their Database, the way information is being returned has changed drastically. W(here) D(o) I F(ind) may not be possible anymore. I'm still investigating this. For now it has been removed.
 
+**The search command has been removed in favor of using the categorical searches. In exchange, these searches are now vastly improved.**
+
 Commands
 --------
-search [term]
-    Search for an item across all available data categories. Will return the number of results matching in each category.
-
 item [name or id]
     Retrieve the details of an item. Name is the name of an item you wish to search for. ID, if you have it, is the numeric ID assigned to the item by XIVDB.
 

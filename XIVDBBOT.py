@@ -12,28 +12,11 @@ class DBParser:
                            'ALC': 'Alchemist', 'ARM': 'Armorer', 'BSM': 'Blacksmith', 'CRP': 'Carpenter',
                            'CUL': 'Culinerian', 'GSM': 'Goldsmith', 'LTW': 'Leatherworker', 'WVR': 'Weaver',
                            'BTN': 'Botanist', 'FSH': 'Fisher', 'MIN': 'Miner'}
-        self.commands = [['search', self.searchall], ['item', self.searchitem], ['quest', self.searchquest],
+        self.commands = [['item', self.searchitem], ['quest', self.searchquest],
                          ['recipe', self.searchrecipe], ['action', self.searchaction],
                          ['mats', self.searchmats], ['npc', self.searchnpc], ['effect', self.searchstatus],
-                         ['minion', self.searchminion], ['achievement', self.searchachievement],
-                         ['hdim', self.parsehdim]]
+                         ['minion', self.searchminion], ['achievement', self.searchachievement]]
         self.bot = client
-
-    async def searchall(self, message):
-        data = {'string': " ".join(message.content.split(' ')[1:])}
-        url = self.apiurl + '/search'
-        with aiohttp.ClientSession() as session:
-            async with session.get(url, params=data, headers={'User-Agent': 'AngelBot ( aiohttp 0.26.1 python 3.5.1 )'}) as response:
-                jsd = await response.json()
-                embed = embeds.Embed()
-                embed.title = "Search Results"
-                for key in jsd:
-                    if jsd[key]['total'] > 0:
-                        msg = ""
-                        for item in jsd[key]['results']:
-                            msg += "{0[name]} [ID:*{0[id]}*]\n".format(item)
-                        embed.add_field(name=key if key != "gathering" else "mats", value=msg)
-                await self.bot.send_message(message.channel, embed=embed)
 
     async def searchid(self, name):
         isid = None
@@ -63,13 +46,23 @@ class DBParser:
                     await self.bot.send_message(message.channel, "No results for {0} in items.".format(" ".join(message.content.split(" ")[1:])))
                 elif jsd['items']['total'] == 1:
                     await self.bot.send_message(message.channel, await self.parseitem(str(jsd['items']['results'][0]['id'])))
-                elif jsd['items']['total'] <= 5:
-                    msg = "Matched more than one item. Try searching by ID.\n"
-                    for items in jsd['items']['results']:
-                        msg += "{0} (ID: {1})\n".format(items['name'], items['id'])
-                        await self.bot.send_message(message.channel, msg)
                 else:
-                    await self.bot.send_message(message.channel, "Returned {0} results. Add more words to search.".format(jsd['items']['total']))
+                    embed = embeds.Embed(description="Search results for {} in items.".format(" ".join(message.content.split()[1:])))
+                    embed.set_thumbnail(url="http://i.imgur.com/zkqe2nw.jpg")
+                    msgs = [["", ""], ["", ""], ["", ""]]
+                    for idx, item in enumerate(jsd['items']['results']):
+                        if len(msgs[idx%3][0]) + len("[{}]({})\n".format(item['name'], item['url_xivdb'])) < 1024:
+                            msgs[idx%3][0] += "[{}]({})\n".format(item['name'], item['url_xivdb'])
+                            msgs[idx%3][1] += "ID: {}\n".format(item['id'])
+                    embed.add_field(name="\u200b", value=msgs[0][0])
+                    embed.add_field(name="\u200b", value=msgs[0][1])
+                    embed.add_field(name="\u200b", value=msgs[1][0])
+                    embed.add_field(name="\u200b", value=msgs[1][1])
+                    embed.add_field(name="\u200b", value=msgs[2][0])
+                    embed.add_field(name="\u200b", value=msgs[2][1])
+                    embed.set_footer(text="Some search terms return large result sets. Your results may have been paired down.")
+                    await self.bot.send_message(message.channel, embed=embed)
+
 
     async def searchquest(self, message):
         data = {'string': " ".join(message.content.split(' ')[1:]), 'one': 'quests'}
@@ -81,13 +74,22 @@ class DBParser:
                     await self.bot.send_message(message.channel, "No results for {0} in quests.".format(" ".join(message.content.split(" ")[1:])))
                 elif jsd['quests']['total'] == 1:
                     await self.bot.send_message(message.channel, await self.parsequest(str(jsd['quests']['results'][0]['id'])))
-                elif jsd['quests']['total'] <= 5:
-                    msg = "Matched more than one quest. Try searching by ID.\n"
-                    for quests in jsd['quests']['results']:
-                        msg += "{0} (ID: {1})\n".format(quests['name'], quests['id'])
-                        await self.bot.send_message(message.channel, msg)
                 else:
-                    await self.bot.send_message(message.channel, "Returned {0} results. Add more words to search.".format(jsd['quests']['total']))
+                    embed = embeds.Embed(description="Search results for {} in quests.".format(" ".join(message.content.split()[1:])))
+                    embed.set_thumbnail(url="http://i.imgur.com/zkqe2nw.jpg")
+                    msgs = [["", ""], ["", ""], ["", ""]]
+                    for idx, item in enumerate(jsd['quests']['results']):
+                        if len(msgs[idx % 3][0]) + len("[{}]({})\n".format(item['name'], item['url_xivdb'])) < 1024:
+                            msgs[idx % 3][0] += "[{}]({})\n".format(item['name'], item['url_xivdb'])
+                            msgs[idx % 3][1] += "ID: {}\n".format(item['id'])
+                    embed.add_field(name="\u200b", value=msgs[0][0])
+                    embed.add_field(name="\u200b", value=msgs[0][1])
+                    embed.add_field(name="\u200b", value=msgs[1][0])
+                    embed.add_field(name="\u200b", value=msgs[1][1])
+                    embed.add_field(name="\u200b", value=msgs[2][0])
+                    embed.add_field(name="\u200b", value=msgs[2][1])
+                    embed.set_footer(text="Some search terms return large result sets. Your results may have been paired down.")
+                    await self.bot.send_message(message.channel, embed=embed)
 
     async def searchrecipe(self, message):
         data = {'string': " ".join(message.content.split(' ')[1:]), 'one': 'recipes'}
