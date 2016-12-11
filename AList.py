@@ -13,7 +13,7 @@ class AList:
         self.apiurl = "https://anilist.co/api"
         self.commands = [['awaifu', self.waifu], ['ahusbando', self.husbando], ['acharacter', self.searchcharacter],
                          ['acurrent', self.currentanime], ['aanime', self.searchanime], ['amanga', self.searchmanga],
-                         ['auser', self.get_user], ['anotifications', self.get_notifications], ['apeople', self.user_search],
+                         ['auser', self.get_user], ['apeople', self.user_search],
                          ['afollow', self.follow_user], ['anilist', self.get_anime_list], ['amangalist', self.get_manga_list],
                          ['awatch', self.mark_to_watch], ['anext', self.mark_one_up], ['awatching', self.get_watching],
                          ['areading', self.get_reading], ['aread', self.mark_to_read]]

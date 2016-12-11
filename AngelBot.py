@@ -10,7 +10,6 @@ import discord
 from datetime import timedelta
 
 
-
 class AngelBot(discord.Client):
     def __init__(self):
         super().__init__()
@@ -48,7 +47,7 @@ class AngelBot(discord.Client):
         elif self.user in message.mentions:
             if 'info' in message.content.lower():
                 await self.send_message(message.channel,
-                                        "```AngelBot\nVersion: 2.0\nLibrary: Discord.py\nURL: https://angelbot.vertinext.com\nOwner: 66257033204080640\nHelp: http://angelbot.rtfd.org\nServer: https://discord.gg/7uhFnxk\nReport Problems: https://git.vertinext.com/ccubed/AngelBot```")
+                                        "```AngelBot\nVersion: 3.0\nLibrary: Discord.py with Bootleg Command Ext\nURL: https://angelbot.vertinext.com\nOwner: 66257033204080640\nHelp: http://angelbot.rtfd.org\nServer: https://discord.gg/7uhFnxk\nReport Problems: https://git.vertinext.com/ccubed/AngelBot```")
             elif 'help' in message.content.lower():
                 await self.send_message(message.channel,
                                         "```Usage: @AngelBot [category]\n\nCategory - Description\nconfig   - Help with setting angelbot up\nxivdb    - Help for searching XIVDB\nxkcd     - Help for grabbing XKCD Comics\nanilist  - Help with Anilist Commands\nriot  - Help with the Riot Games commands\now   - Help with the Overwatch commands\ncurrency   - Help with the currency commands\n\nAlso see our documentation at: http://angelbot.rtfd.io```")
@@ -122,13 +121,10 @@ class AngelBot(discord.Client):
                 test = await dbp.hexists(message.server.id, "Prefix")
                 if test:
                     prefix = await dbp.hget(message.server.id, "Prefix")
-                mods = await dbp.hgetall(message.server.id+"_Modules")
-                for item in mods.keys():
-                    if mods[item] == "None" or message.channel.name in mods[item].split("|"):
-                        check = message.content.split(" ")[0].lower()
-                        for command in self.references[item].commands:
-                            if check == prefix + command[0]:
-                                await command[1](message)
+                for item in self.references:
+                    for command in self.references[item].commands:
+                        if message.content.lower().startswith(prefix+command[0]):
+                            await command[1](message)
 
     async def on_server_remove(self, server):
         await self.references['Admin'].cleanconfig(server.name)
