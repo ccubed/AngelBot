@@ -26,14 +26,13 @@ Features
 
 - Discord Bot
 - Modular (It's easy for others to add functionality)
-- Per Server Permissions
-- Automated Error Reporting
+- Per Server Prefixes
 - Supports Oauth flows in various APIs
 
 What is this
 ============
 
-A discord bot called AngelBot. AngelBot started as a FFXIV bot but has steadily grown into a complicated, sophisticated API machine. Currently it supports AniList, XIVDB and obviously Discord through Discord.py. Hummingbird is coming soon with plans to add the LCBO Alcohol database next and a FF XIV Lodestone parser after that. It also currently supports a small bit of the Github API but only for adding issues to my github automatically upon encountering errors.
+A discord bot called AngelBot. AngelBot started as a FFXIV bot but has steadily grown into a complicated, sophisticated API machine. Currently it supports AniList, XIVDB, Overwatch Stats, Riot's League of Legends API, Fixer.io and XKCD.
 
 Running
 =======
@@ -44,7 +43,7 @@ Well with the new API you no longer need a locally running copy. If you DM the b
 Usage
 =====
 
-Usage has per server settings now. This is written. See configuration.
+Once the bot joins the server all commands are enabled by default with a prefix of $. You can define a prefix using the ardserver prefix:<prefix> command. AngelBot supports pretty much anything as a prefix, even emojis.
 
 Global Commands
 ===============
@@ -56,8 +55,3 @@ Global Commands
 
 
 PM AngelBot Oauth
-
-Where's Music
-=============
-
-I used to have a music portion, but it's gone now. There's a minor controversy over most of the music playing bots and for the moment it seems the best practice is to just not do it.
