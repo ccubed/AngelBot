@@ -102,6 +102,40 @@ class AngelBot(discord.Client):
                     await self.edit_profile(avatar=imgbd)
             elif message.content.lower().startswith("owlgame"):
                 await self.change_status(game=discord.Game(name=" ".join(message.content.split(" ")[1:])))
+            elif message.content.lower().startswith("owldebug"):
+                gist_data = {"description": "AngelBot Debug ran {}".format(time.strftime("%a, %d %b %Y %H:%M:%S", time.gmtime())),
+                             "public": True}
+                codeblock = message.content.split("owldebug")[1].strip()
+                if '`' in codeblock:
+                    codeblock = re.split(self.codeblock_regex, codeblock)[1]
+                result = None
+                try:
+                    result = eval(codeblock)
+                    gist_data['files'] = {
+                        "input.py": {
+                            "content": codeblock
+                        },
+                        "result.txt": {
+                            "content": str(result)
+                        }
+                    }
+                    gist_url = await self.create_gist(gist_data)
+                    await self.send_message(message.channel, "Execution of that code was completed.\nSee {}".format(gist_url))
+                except SyntaxError:
+                    # Get the real error
+                    try:
+                        exec(codeblock)
+                    except Exception as Ex:
+                        gist_data['files'] = {
+                            "input.py": {
+                                "content": codeblock
+                            },
+                            "Exception.txt": {
+                                "content": str(Ex)
+                            }
+                        }
+                        gist_url = await self.create_gist(gist_data)
+                        await self.send_message(message.channel, "Execution of that code encountered an error.\nSee {}".format(gist_url))
         elif message.content.startswith("ard"):
             async with self.redis.get() as dbp:
                 admin = await dbp.hget(message.server.id, "Admin")
@@ -170,6 +204,19 @@ class AngelBot(discord.Client):
             await dbp.hset('stats', 'servers', stats['servers'])
             await dbp.hset('stats', 'cmdssec', stats['cmdssec'])
             await dbp.hincrby('stats', 'totalcmds', stats['totalcmds'])
+            
+    async def create_gist(self, content):
+        headers = {'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json'}
+        async with self.redis.get() as dbp:
+            token = await dbp.get("GitToken")
+            headers['Authorization'] = 'Token {}'.format(token)
+            async with aiohttp.ClientSession() as sess:
+                async with sess.post('https://api.github.com/gists', data=json.dumps(content), headers=headers) as r:
+                    if r.status == 201:
+                        jsd = await r.json()
+                        return jsd['html_url']
+                    else:
+                        return None
 
 if __name__ == "__main__":
     try:
