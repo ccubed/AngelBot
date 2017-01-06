@@ -11,16 +11,16 @@ from datetime import timedelta
 
 
 class AngelBot(discord.Client):
-    def __init__(self):
-        super().__init__()
-        self.uptime = time.time()
-        self.commands = 0
+    def __init__(self, shard, shards, conn):
+        super().__init__(loop=None, shard_id=shard, shard_count=shards)
         self.redis = None
         self.btoken = None
         self.creator = None
         self.references = {}
-        self.testing = False
         self.cid = 0
+        self.ipc = conn
+        self.loop.run_until_complete(self.setup())
+        self.run(self.btoken)
 
     async def setup(self):
         self.redis = await aioredis.create_pool(('localhost', 6379), db=1, minsize=1, maxsize=10, encoding="utf-8")
@@ -33,9 +33,6 @@ class AngelBot(discord.Client):
                 globals()[mod] = importlib.import_module(mod)
             for mod in modules:
                 self.references[mod] = inspect.getmembers(globals()[mod], inspect.isclass)[0][1](self)
-            if not self.testing:
-                self.loop.call_later(1500, self.update_stats)  # It takes time to chunk
-                self.loop.call_later(1500, self.update_carbon)  # It takes time to chunk
 
     async def on_message(self, message):
         self.commands += 1
@@ -44,6 +41,7 @@ class AngelBot(discord.Client):
         elif message.content.lower() == "owlkill" and message.author.id == self.creator:
             await self.redis.clear()
             await self.logout()
+            self.ipc.send("QUIT:{}".format(self.shard_id))
         elif self.user in message.mentions:
             if 'info' in message.content.lower():
                 await self.send_message(message.channel,
@@ -166,44 +164,6 @@ class AngelBot(discord.Client):
     async def on_server_join(self, server):
         async with self.redis.get() as dbp:
             await self.references["Admin"].createnewserver(server.id, dbp)
-
-    def update_carbon(self):
-        self.loop.create_task(self._update_carbon())
-        self.loop.call_later(3000, self.update_carbon)
-
-    async def _update_carbon(self):
-        async with self.redis.get() as dbp:
-            ckey = await dbp.get("CarbonKey")
-            lbk = await dbp.get("ListBoat")
-            servc = len(self.servers)
-            with aiohttp.ClientSession() as session:
-                async with session.post("https://www.carbonitex.net/discord/data/botdata.php",
-                                        data=json.dumps({'key': ckey, 'servercount': servc}),
-                                        headers={'Content-Type': 'application/json'}) as resp:
-                    await resp.release()
-                async with session.post("https://bots.discord.pw/api/bots/168925517079248896/stats",
-                                        data=json.dumps({'server_count': servc}),
-                                        headers={'Authorization': lbk, 'Content-Type': 'application/json'}) as resp:
-                    await resp.release()
-
-    def update_stats(self):
-        stats = {}
-        stats['uptime'] = time.time() - self.uptime
-        stats['users'] = sum(x.member_count for x in self.servers)
-        stats['servers'] = len(self.servers)
-        stats['cmdssec'] = '{:.1f}'.format(self.commands/900)
-        stats['totalcmds'] = self.commands
-        self.commands = 0
-        self.loop.create_task(self._update_stats(stats))
-        self.loop.call_later(900, self.update_stats)
-
-    async def _update_stats(self, stats):
-        async with self.redis.get() as dbp:
-            await dbp.hset('stats', 'uptime', stats['uptime'])
-            await dbp.hset('stats', 'users', stats['users'])
-            await dbp.hset('stats', 'servers', stats['servers'])
-            await dbp.hset('stats', 'cmdssec', stats['cmdssec'])
-            await dbp.hincrby('stats', 'totalcmds', stats['totalcmds'])
             
     async def create_gist(self, content):
         headers = {'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json'}
@@ -217,14 +177,3 @@ class AngelBot(discord.Client):
                         return jsd['html_url']
                     else:
                         return None
-
-if __name__ == "__main__":
-    try:
-        bot = AngelBot()
-    except ImportError:
-        sys.exit(65)
-
-    bot.loop.run_until_complete(bot.setup())
-
-    # Run the bot.
-    bot.run(bot.btoken)
