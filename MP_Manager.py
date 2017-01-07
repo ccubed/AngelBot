@@ -2,6 +2,7 @@ import json
 import AngelBot
 import requests
 import discord
+import sys
 from multiprocessing import Process, Pipe
 from multiprocessing.connection import wait
 from discord.http import HTTPClient
