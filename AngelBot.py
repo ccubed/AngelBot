@@ -2,6 +2,7 @@ import asyncio
 import importlib
 import inspect
 import json
+import multiprocessing
 import sys
 import time
 import aiohttp
@@ -31,9 +32,9 @@ class AngelBot(discord.Client):
                 globals()[mod] = importlib.import_module(mod)
             for mod in modules:
                 self.references[mod] = inspect.getmembers(globals()[mod], inspect.isclass)[0][1](self)
+            self.loop.call_later(60, self._check_ipc)
 
     async def on_message(self, message):
-        self.commands += 1
         if message.author.id == self.user.id or message.author.bot:
             return
         elif message.content.lower() == "owlkill" and message.author.id == self.creator:
@@ -162,6 +163,13 @@ class AngelBot(discord.Client):
     async def on_server_join(self, server):
         async with self.redis.get() as dbp:
             await self.references["Admin"].createnewserver(server.id, dbp)
+
+    async def _check_ipc(self):
+        if self.ipc.poll():
+            msg = self.ipc.recv()
+            if msg == "STATUS":
+                self.ipc.send("STATUS:{}:{}:{}".format(self.shard_id, len(self.servers), sum(x.member_count for x in self.servers)))
+        self.loop.call_later(60, self._check_ipc)
             
     async def create_gist(self, content):
         headers = {'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json'}
