@@ -61,16 +61,17 @@ class MPManager:
                     self.r_pipes.remove(reader)
                 else:
                     if 'QUIT' in msg:
-                        del self.shards[int(msg.after(':'))]
-                        cprint("QUIT:Shard {0}: Shard {0} Exited.".format(msg.after(":")), "red")
-                        cprint("INFO:AngelBot Manager: Attempting to restart Shard {}".format(msg.after(':')), "yellow")
+                        shard = int(msg.split(":")[1])
+                        del self.shards[shard]
+                        cprint("QUIT:Shard {0}: Shard {0} Exited.".format(shard), "red")
+                        cprint("INFO:AngelBot Manager: Attempting to restart Shard {}".format(shard), "yellow")
                         r, w = Pipe(duplex=False)
                         self.r_pipes.append(r)
-                        cprint("INFO:AngelBot Manager: Starting Shard {}".format(msg.after(":")), "yellow")
-                        temp = Process(target=self._run, args=(int(msg.after(":")), self.shard_count, w))
+                        cprint("INFO:AngelBot Manager: Starting Shard {}".format(shard), "yellow")
+                        temp = Process(target=self._run, args=(shard, self.shard_count, w))
                         temp.start()
-                        self.shards[int(msg.after(":"))] = {'Pipe': r, 'Process': temp}
-                        cprint("STATUS:Shard {}: Shard restarted.".format(msg.after(":")), "green")
+                        self.shards[shard] = {'Pipe': r, 'Process': temp}
+                        cprint("STATUS:Shard {}: Shard restarted.".format(shard), "green")
                     elif 'STATUS' in msg:
                         _, sid, servs, members = msg.split(":")
                         cprint("UPDATE:Shard {0}: Shard {0} reporting stats. {1} servers. {2} members.".format(sid, servs, members),
