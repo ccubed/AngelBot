@@ -19,8 +19,6 @@ class AngelBot(discord.Client):
         self.references = {}
         self.cid = 0
         self.ipc = conn
-        self.loop.run_until_complete(self.setup())
-        self.run(self.btoken)
 
     async def setup(self):
         self.redis = await aioredis.create_pool(('localhost', 6379), db=1, minsize=1, maxsize=10, encoding="utf-8")

@@ -36,24 +36,29 @@ class MPManager:
             return r.json()['shards']+1
         else:
             return None
-    
-    
+
+    def _run(self, sid, count, conn):
+        bot = AngelBot(sid, count, conn)
+        bot.loop.run_until_complete(bot.setup())
+        bot.run(bot.btoken)
+
     def start_shards(self):
         for number in range(self.shard_count):
             r,w = Pipe(duplex=False)
             self.r_pipes.append(r)
-            temp = Process(target=AngelBot, args=(number, self.shard_count, w))
+            temp = Process(target=self._run, args=(number, self.shard_count, w))
             temp.start()
-            self.shards[number] = {'Pipe': r, 'Bot': temp}
+            self.shards[number] = {'Pipe': r, 'Process': temp}
         
         while self.shards.keys():
             for reader in wait(self.r_pipes):
                 try:
-                    msg = r.recv()
+                    msg = reader.recv()
                 except EOFError:
                     self.r_pipes.remove(reader)
                 else:
-                    print(msg)
+                    if 'QUIT' in msg:
+                        del self.shards[int(msg.after(':'))]
                     
         
         print("Going down. No more shards.")
