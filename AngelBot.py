@@ -164,7 +164,7 @@ class AngelBot(discord.Client):
         async with self.redis.get() as dbp:
             await self.references["Admin"].createnewserver(server.id, dbp)
 
-    async def _check_ipc(self):
+    def _check_ipc(self):
         if self.ipc.poll():
             msg = self.ipc.recv()
             if msg == "STATUS":
