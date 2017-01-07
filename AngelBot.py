@@ -32,7 +32,6 @@ class AngelBot(discord.Client):
                 globals()[mod] = importlib.import_module(mod)
             for mod in modules:
                 self.references[mod] = inspect.getmembers(globals()[mod], inspect.isclass)[0][1](self)
-            self.loop.call_later(60, self._check_ipc)
 
     async def on_message(self, message):
         if message.author.id == self.user.id or message.author.bot:
@@ -82,11 +81,8 @@ class AngelBot(discord.Client):
                 await self.send_message(message.author, "Assuming you want a join link: https://discordapp.com/oauth2/authorize?client_id={0}&scope=bot&permissions=0".format(self.cid))
         elif message.content.startswith("owl") and message.author.id == self.creator:
             if message.content.lower().startswith("owlstats"):
-                up = timedelta(seconds=(time.time() - self.uptime))
-                await self.send_message(message.channel,
-                                        "```AngelBot Statistics\n{} Servers\n{} Users\nUptime: {}\n{} commands total\n{:.1f} commands a second```".format(
-                                            len(self.servers), sum(x.member_count for x in self.servers), str(up).split(".")[0], self.commands,
-                                            self.commands / (up.total_seconds() % 900)))
+                self.ipc.send("STATUS:{}:{}:{}".format(self.shard_id, len(self.servers), sum(x.member_count for x in self.servers if not x.unavailable)))
+                await self.send_message(message.channel, "Sent an IPC message.")
             elif message.content.lower().startswith("owlavatar"):
                 file = message.content[10:]
                 try:
@@ -163,13 +159,6 @@ class AngelBot(discord.Client):
     async def on_server_join(self, server):
         async with self.redis.get() as dbp:
             await self.references["Admin"].createnewserver(server.id, dbp)
-
-    def _check_ipc(self):
-        if self.ipc.poll():
-            msg = self.ipc.recv()
-            if msg == "STATUS":
-                self.ipc.send("STATUS:{}:{}:{}".format(self.shard_id, len(self.servers), sum(x.member_count for x in self.servers)))
-        self.loop.call_later(60, self._check_ipc)
             
     async def create_gist(self, content):
         headers = {'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json'}
