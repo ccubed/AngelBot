@@ -8,6 +8,7 @@ import time
 import aiohttp
 import aioredis
 import discord
+import re
 from datetime import timedelta
 
 
@@ -32,6 +33,7 @@ class AngelBot(discord.Client):
                 globals()[mod] = importlib.import_module(mod)
             for mod in modules:
                 self.references[mod] = inspect.getmembers(globals()[mod], inspect.isclass)[0][1](self)
+            self.loop.call_later(1500, self.update_stats)
 
     async def on_message(self, message):
         if message.author.id == self.user.id or message.author.bot:
@@ -80,10 +82,7 @@ class AngelBot(discord.Client):
             else:
                 await self.send_message(message.author, "Assuming you want a join link: https://discordapp.com/oauth2/authorize?client_id={0}&scope=bot&permissions=0".format(self.cid))
         elif message.content.startswith("owl") and message.author.id == self.creator:
-            if message.content.lower().startswith("owlstats"):
-                self.ipc.send("STATUS:{}:{}:{}".format(self.shard_id, len(self.servers), sum(x.member_count for x in self.servers if not x.unavailable)))
-                await self.send_message(message.channel, "Sent an IPC message.")
-            elif message.content.lower().startswith("owlavatar"):
+            if message.content.lower().startswith("owlavatar"):
                 file = message.content[10:]
                 try:
                     fstream = open(file, 'rb')
@@ -172,3 +171,8 @@ class AngelBot(discord.Client):
                         return jsd['html_url']
                     else:
                         return None
+
+    def update_stats(self):
+        self.ipc.send("STATUS:{}:{}:{}".format(self.shard_id, len(self.guilds),
+                                               sum(x.member_count for x in self.guilds if not x.unavailable)))
+        self.loop.call_later(1500, self.update_stats)

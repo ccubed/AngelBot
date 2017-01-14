@@ -1,8 +1,10 @@
 import json
-import AngelBot
-import requests
-import discord
 import sys
+import time
+import AngelBot
+import discord
+import redis
+import requests
 from multiprocessing import Process, Pipe
 from multiprocessing.connection import wait
 from systemd import journal
@@ -18,6 +20,7 @@ class MPManager:
         self.shard_count = 0
         self.r_pipes = []
         self.setup()
+        self.last_update = None
         
     def setup(self):
         self.shard_count = self.get_shard_count()
@@ -74,7 +77,39 @@ class MPManager:
                         journal.send("STATUS:Shard {}: Shard restarted.".format(shard))
                     elif 'STATUS' in msg:
                         _, sid, servs, members = msg.split(":")
-                        journal.send("UPDATE:Shard {0}: Shard {0} reporting stats. {1} servers. {2} members.".format(sid, servs, members))
+                        journal.send("UPDATE:Shard {0}: Shard {0} reporting stats. {1} servers. {2} members.".format(sid,
+                                                                                                                     servs,
+                                                                                                                     members))
+                        self.shards[sid]['stats'] = {'servers': servs, 'users': members}
+
+                        if all(self.shards[x].has_key('stats') for x in range(self.shard_count)) and (self.last_update is None or time.time() - self.last_update > 1500):
+                            total_stats = {'Servers': sum(self.shards[x]['stats']['servers'] for x in range(self.shard_count)),
+                                           'Users': sum(self.shards[x]['stats']['users'] for x in range(self.shard_count))}
+
+                            rdb = redis.StrictRedis(host='localhost', port=6379, db=0)
+                            ckey = rdb.get("CarbonKey")
+                            lkey = rdb.get("CarbonKey")
+
+                            r = requests.post("https://www.carbonitex.net/discord/data/botdata.php",
+                                              data=json.dumps({'key': ckey, 'servercount': total_stats['Servers']}),
+                                              headers={'Content-Type': 'application/json'})
+                            if r.status_code != 200:
+                                journal.send("ERROR:AngelBot Manager: Attempted to update carbonitex but got {}".format(r.status_code))
+                                journal.send("ERROR DETAILS: {}".format(r.text))
+
+                            r = requests.post("https://bots.discord.pw/api/bots/168925517079248896/stats",
+                                              data=json.dumps({'server_count': total_stats['Servers']}),
+                                              headers={"Authorization": lkey, "Content-Type": "application/json"})
+                            if r.status_code != 200:
+                                journal.send("ERROR:AngelBot Manager: Attempted to update bots.discord.pw but got {}".format(r.status_code))
+                                journal.send("ERROR DETAILS: {}".format(r.text))
+
+                            rdb.hset("stats", "users", total_stats['Users'])
+                            rdb.hset("stats", "servers", total_stats['Servers'])
+                            journal.send("INFO:AngelBot Manager: Finished updating stats.")
+                            self.last_update = time.time()
+                            for shard in range(self.shard_count):
+                                del self.shards[shard]['stats']
 
         journal.send("INFO:AngelBot Manager: Shards Exhausted. Shutting down.")
         
