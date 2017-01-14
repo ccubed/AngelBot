@@ -23,7 +23,7 @@ class MPManager:
         self.last_update = None
         
     def setup(self):
-        rdb = redis.StrictRedis(host='localhost', port=6379, db=1)
+        rdb = redis.StrictRedis(host='localhost', port=6379, db=1, decode_responses=True)
         self.token = rdb.get("BotToken")
         del rdb
         self.shard_count = self.get_shard_count()
@@ -89,7 +89,7 @@ class MPManager:
                             total_stats = {'Servers': sum(self.shards[x]['stats']['servers'] for x in range(self.shard_count)),
                                            'Users': sum(self.shards[x]['stats']['users'] for x in range(self.shard_count))}
 
-                            rdb = redis.StrictRedis(host='localhost', port=6379, db=1)
+                            rdb = redis.StrictRedis(host='localhost', port=6379, db=1, decode_responses=True)
                             ckey = rdb.get("CarbonKey")
                             lkey = rdb.get("CarbonKey")
 
