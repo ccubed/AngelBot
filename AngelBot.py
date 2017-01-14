@@ -173,6 +173,6 @@ class AngelBot(discord.Client):
                         return None
 
     def update_stats(self):
-        self.ipc.send("STATUS:{}:{}:{}".format(self.shard_id, len(self.guilds),
-                                               sum(x.member_count for x in self.guilds if not x.unavailable)))
+        self.ipc.send("STATUS:{}:{}:{}".format(self.shard_id, len(self.servers),
+                                               sum(x.member_count for x in self.servers if not x.unavailable)))
         self.loop.call_later(1500, self.update_stats)
