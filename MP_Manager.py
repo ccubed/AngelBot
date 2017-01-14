@@ -58,6 +58,8 @@ class MPManager:
             temp.start()
             self.shards[number] = {'Pipe': r, 'Process': temp}
             journal.send("STATUS:Shard {}: Shard Started.".format(number))
+            del r
+            del w
 
         while self.shards.keys():
             for reader in wait(self.r_pipes):
