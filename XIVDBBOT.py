@@ -93,7 +93,7 @@ class DBParser:
                     embed.add_field(name="\u200b", value=msgs[2][0])
                     embed.add_field(name="\u200b", value=msgs[2][1])
                     embed.set_footer(text="Some search terms return large result sets. Your results may have been paired down.")
-                    print(embed)
+                    print(embed.to_dict())
                     await self.bot.send_message(message.channel, embed=embed)
 
     async def searchrecipe(self, message):
