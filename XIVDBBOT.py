@@ -79,22 +79,22 @@ class DBParser:
                 elif jsd['quests']['total'] == 1:
                     await self.bot.send_message(message.channel, await self.parsequest(str(jsd['quests']['results'][0]['id'])))
                 else:
-                    embed = embeds.Embed(description="Search results for {} in quests.".format(" ".join(message.content.split()[1:])))
-                    embed.set_thumbnail(url="http://i.imgur.com/zkqe2nw.jpg")
+                    out = embeds.Embed(description="Search results for {} in quests.".format(" ".join(message.content.split()[1:])))
+                    out.set_thumbnail(url="http://i.imgur.com/zkqe2nw.jpg")
                     msgs = [["", ""], ["", ""], ["", ""]]
                     for idx, item in enumerate(jsd['quests']['results']):
                         if len(msgs[idx % 3][0]) + len("[{}]({})\n".format(item['name'], "http://www.xivdb.com/{}".format(item['url']))) < 1024:
                             msgs[idx % 3][0] += "[{}]({})\n".format(item['name'], "http://www.xivdb.com/{}".format(item['url']))
                             msgs[idx % 3][1] += "ID: {}\n".format(item['id'])
-                    embed.add_field(name="\u200b", value=msgs[0][0])
-                    embed.add_field(name="\u200b", value=msgs[0][1])
-                    embed.add_field(name="\u200b", value=msgs[1][0])
-                    embed.add_field(name="\u200b", value=msgs[1][1])
-                    embed.add_field(name="\u200b", value=msgs[2][0])
-                    embed.add_field(name="\u200b", value=msgs[2][1])
-                    embed.set_footer(text="Some search terms return large result sets. Your results may have been paired down.")
-                    print(embed.to_dict())
-                    await self.bot.send_message(message.channel, embed=embed)
+                    out.add_field(name="\u200b", value=msgs[0][0])
+                    out.add_field(name="\u200b", value=msgs[0][1])
+                    out.add_field(name="\u200b", value=msgs[1][0])
+                    out.add_field(name="\u200b", value=msgs[1][1])
+                    out.add_field(name="\u200b", value=msgs[2][0])
+                    out.add_field(name="\u200b", value=msgs[2][1])
+                    out.set_footer(text="Some search terms return large result sets. Your results may have been paired down.")
+                    print(out.to_dict())
+                    await self.bot.send_message(message.channel, embed=out)
 
     async def searchrecipe(self, message):
         data = {'string': " ".join(message.content.split(' ')[1:]), 'one': 'recipes'}
