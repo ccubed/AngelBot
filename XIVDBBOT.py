@@ -79,7 +79,7 @@ class DBParser:
                     embed.set_thumbnail(url="http://i.imgur.com/zkqe2nw.jpg")
                     msgs = [["", ""], ["", ""], ["", ""]]
                     for idx, item in enumerate(jsd['quests']['results']):
-                        if len(msgs[idx % 3][0]) + len("[{}]({})\n".format(item['name'], item['url_xivdb'])) < 1024:
+                        if len(msgs[idx % 3][0]) + len("[{}]({})\n".format(item['name'], "http://www.xivdb.com/{}".format(item['url']))) < 1024:
                             msgs[idx % 3][0] += "[{}]({})\n".format(item['name'], item['url_xivdb'])
                             msgs[idx % 3][1] += "ID: {}\n".format(item['id'])
                     embed.add_field(name="\u200b", value=msgs[0][0])
