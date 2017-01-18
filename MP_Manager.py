@@ -88,7 +88,7 @@ class MPManager:
                                                                                                               servs,
                                                                                                               members))
                         print(self.shards)
-                        self.shards[sid]['stats'] = {'servers': servs, 'users': members}
+                        self.shards[sid]['stats'] = {'servers': int(servs), 'users': int(members)}
 
                         if all('stats' in self.shards[x] for x in range(self.shard_count)):
                             total_stats = {'Servers': sum(self.shards[x]['stats']['servers'] for x in range(self.shard_count)),
