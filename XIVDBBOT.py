@@ -301,11 +301,10 @@ class DBParser:
                 message = "{0}\n".format(jd['name'])
                 if jd['classjob_category_1'] in self.shortnames:
                     message += "   Related Class: {0}\n".format(self.shortnames[jd['classjob_category_1']])
-                message += "   Start this quest with {0} in {1} at {2}x {3}y {4}z\n".format(jd['npc_start']['name'],
+                message += "   Start this quest with {0} in {1} at {2}x {3}y\n".format(jd['npc_start']['name'],
                                                                                     jd['npc_start']['placename']['name'],
-                                                                                    jd['npc_start']['zones'][0]['x'],
-                                                                                    jd['npc_start']['zones'][0]['y'],
-                                                                                    jd['npc_start']['zones'][0]['z'])
+                                                                                    jd['map_data']['points']['app_position']['ingame']['x'],
+                                                                                    jd['map_data']['points']['app_position']['ingame']['y'])
                 if 'pre_quests' in jd:
                     message += "Prerequisite Quests ->\n"
                     for item in jd['pre_quests']:
