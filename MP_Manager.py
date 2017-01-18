@@ -105,7 +105,7 @@ class MPManager:
                         print(self.shards)
                         self.shards[sid]['stats'] = {'servers': servs, 'users': members}
 
-                        if all(self.shards[x].has_key('stats') for x in range(self.shard_count)) and (self.last_update is None or time.time() - self.last_update > 1500):
+                        if all('stats' in self.shards[x] for x in range(self.shard_count)) and (self.last_update is None or time.time() - self.last_update > 1500):
                             total_stats = {'Servers': sum(self.shards[x]['stats']['servers'] for x in range(self.shard_count)),
                                            'Users': sum(self.shards[x]['stats']['users'] for x in range(self.shard_count))}
 
