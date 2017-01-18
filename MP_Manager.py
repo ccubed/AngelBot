@@ -95,9 +95,13 @@ class MPManager:
                         journal.send("STATUS:Shard {}: Shard restarted.".format(shard))
                     elif 'STATUS' in msg:
                         _, sid, servs, members = msg.split(":")
+                        sid = int(sid)
                         journal.send("UPDATE:Shard {0}: Shard {0} reporting stats. {1} servers. {2} members.".format(sid,
                                                                                                                      servs,
                                                                                                                      members))
+                        print("UPDATE:Shard {0}: Shard {0} reporting stats. {1} servers. {2} members.".format(sid,
+                                                                                                              servs,
+                                                                                                              members))
                         print(self.shards)
                         self.shards[sid]['stats'] = {'servers': servs, 'users': members}
 
