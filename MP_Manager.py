@@ -98,6 +98,7 @@ class MPManager:
                         journal.send("UPDATE:Shard {0}: Shard {0} reporting stats. {1} servers. {2} members.".format(sid,
                                                                                                                      servs,
                                                                                                                      members))
+                        print(self.shards)
                         self.shards[sid]['stats'] = {'servers': servs, 'users': members}
 
                         if all(self.shards[x].has_key('stats') for x in range(self.shard_count)) and (self.last_update is None or time.time() - self.last_update > 1500):
