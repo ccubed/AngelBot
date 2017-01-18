@@ -51,8 +51,8 @@ class DBParser:
                     embed.set_thumbnail(url="http://i.imgur.com/zkqe2nw.jpg")
                     msgs = [["", ""], ["", ""], ["", ""]]
                     for idx, item in enumerate(jsd['items']['results']):
-                        if len(msgs[idx%3][0]) + len("[{}]({})\n".format(item['name'], item['url_xivdb'])) < 1024:
-                            msgs[idx%3][0] += "[{}]({})\n".format(item['name'], item['url_xivdb'])
+                        if len(msgs[idx%3][0]) + len("[{}]({})\n".format(item['name'], "http://www.xivdb.com/{}".format(item['url']))) < 1024:
+                            msgs[idx%3][0] += "[{}]({})\n".format(item['name'], "http://www.xivdb.com/{}".format(item['url']))
                             msgs[idx%3][1] += "ID: {}\n".format(item['id'])
                     embed.add_field(name="\u200b", value=msgs[0][0])
                     embed.add_field(name="\u200b", value=msgs[0][1])
@@ -106,8 +106,8 @@ class DBParser:
                     embed.set_thumbnail(url="http://i.imgur.com/zkqe2nw.jpg")
                     msgs = [["", ""], ["", ""], ["", ""]]
                     for idx, item in enumerate(jsd['recipes']['results']):
-                        if len(msgs[idx % 3][0]) + len("[{}]({})\n".format(item['name'], item['url_xivdb'])) < 1024:
-                            msgs[idx % 3][0] += "[{}]({})\n".format(item['name'], item['url_xivdb'])
+                        if len(msgs[idx % 3][0]) + len("[{}]({})\n".format(item['name'], "http://www.xivdb.com/{}".format(item['url']))) < 1024:
+                            msgs[idx % 3][0] += "[{}]({})\n".format(item['name'], "http://www.xivdb.com/{}".format(item['url']))
                             msgs[idx % 3][1] += "ID: {}\n".format(item['id'])
                     embed.add_field(name="\u200b", value=msgs[0][0])
                     embed.add_field(name="\u200b", value=msgs[0][1])
@@ -134,8 +134,8 @@ class DBParser:
                     embed.set_thumbnail(url="http://i.imgur.com/zkqe2nw.jpg")
                     msgs = [["", ""], ["", ""], ["", ""]]
                     for idx, item in enumerate(jsd['actions']['results']):
-                        if len(msgs[idx % 3][0]) + len("[{}]({})\n".format(item['name'], item['url_xivdb'])) < 1024:
-                            msgs[idx % 3][0] += "[{}]({})\n".format(item['name'], item['url_xivdb'])
+                        if len(msgs[idx % 3][0]) + len("[{}]({})\n".format(item['name'], "http://www.xivdb.com/{}".format(item['url']))) < 1024:
+                            msgs[idx % 3][0] += "[{}]({})\n".format(item['name'], "http://www.xivdb.com/{}".format(item['url']))
                             msgs[idx % 3][1] += "ID: {}\n".format(item['id'])
                     embed.add_field(name="\u200b", value=msgs[0][0])
                     embed.add_field(name="\u200b", value=msgs[0][1])
@@ -162,8 +162,8 @@ class DBParser:
                     embed.set_thumbnail(url="http://i.imgur.com/zkqe2nw.jpg")
                     msgs = [["", ""], ["", ""], ["", ""]]
                     for idx, item in enumerate(jsd['gathering']['results']):
-                        if len(msgs[idx % 3][0]) + len("[{}]({})\n".format(item['name'], item['url_xivdb'])) < 1024:
-                            msgs[idx % 3][0] += "[{}]({})\n".format(item['name'], item['url_xivdb'])
+                        if len(msgs[idx % 3][0]) + len("[{}]({})\n".format(item['name'], "http://www.xivdb.com/{}".format(item['url']))) < 1024:
+                            msgs[idx % 3][0] += "[{}]({})\n".format(item['name'], "http://www.xivdb.com/{}".format(item['url']))
                             msgs[idx % 3][1] += "ID: {}\n".format(item['id'])
                     embed.add_field(name="\u200b", value=msgs[0][0])
                     embed.add_field(name="\u200b", value=msgs[0][1])
@@ -189,8 +189,8 @@ class DBParser:
                     embed.set_thumbnail(url="http://i.imgur.com/zkqe2nw.jpg")
                     msgs = [["", ""], ["", ""], ["", ""]]
                     for idx, item in enumerate(jsd['npcs']['results']):
-                        if len(msgs[idx % 3][0]) + len("[{}]({})\n".format(item['name'], item['url_xivdb'])) < 1024:
-                            msgs[idx % 3][0] += "[{}]({})\n".format(item['name'], item['url_xivdb'])
+                        if len(msgs[idx % 3][0]) + len("[{}]({})\n".format(item['name'], "http://www.xivdb.com/{}".format(item['url']))) < 1024:
+                            msgs[idx % 3][0] += "[{}]({})\n".format(item['name'], "http://www.xivdb.com/{}".format(item['url']))
                             msgs[idx % 3][1] += "ID: {}\n".format(item['id'])
                     embed.add_field(name="\u200b", value=msgs[0][0])
                     embed.add_field(name="\u200b", value=msgs[0][1])
@@ -216,8 +216,8 @@ class DBParser:
                     embed.set_thumbnail(url="http://i.imgur.com/zkqe2nw.jpg")
                     msgs = [["", ""], ["", ""], ["", ""]]
                     for idx, item in enumerate(jsd['status']['results']):
-                        if len(msgs[idx % 3][0]) + len("[{}]({})\n".format(item['name'], item['url_xivdb'])) < 1024:
-                            msgs[idx % 3][0] += "[{}]({})\n".format(item['name'], item['url_xivdb'])
+                        if len(msgs[idx % 3][0]) + len("[{}]({})\n".format(item['name'], "http://www.xivdb.com/{}".format(item['url']))) < 1024:
+                            msgs[idx % 3][0] += "[{}]({})\n".format(item['name'], "http://www.xivdb.com/{}".format(item['url']))
                             msgs[idx % 3][1] += "ID: {}\n".format(item['id'])
                     embed.add_field(name="\u200b", value=msgs[0][0])
                     embed.add_field(name="\u200b", value=msgs[0][1])
@@ -243,8 +243,8 @@ class DBParser:
                     embed.set_thumbnail(url="http://i.imgur.com/zkqe2nw.jpg")
                     msgs = [["", ""], ["", ""], ["", ""]]
                     for idx, item in enumerate(jsd['minions']['results']):
-                        if len(msgs[idx % 3][0]) + len("[{}]({})\n".format(item['name'], item['url_xivdb'])) < 1024:
-                            msgs[idx % 3][0] += "[{}]({})\n".format(item['name'], item['url_xivdb'])
+                        if len(msgs[idx % 3][0]) + len("[{}]({})\n".format(item['name'], "http://www.xivdb.com/{}".format(item['url']))) < 1024:
+                            msgs[idx % 3][0] += "[{}]({})\n".format(item['name'], "http://www.xivdb.com/{}".format(item['url']))
                             msgs[idx % 3][1] += "ID: {}\n".format(item['id'])
                     embed.add_field(name="\u200b", value=msgs[0][0])
                     embed.add_field(name="\u200b", value=msgs[0][1])
@@ -270,8 +270,8 @@ class DBParser:
                     embed.set_thumbnail(url="http://i.imgur.com/zkqe2nw.jpg")
                     msgs = [["", ""], ["", ""], ["", ""]]
                     for idx, item in enumerate(jsd['achievements']['results']):
-                        if len(msgs[idx % 3][0]) + len("[{}]({})\n".format(item['name'], item['url_xivdb'])) < 1024:
-                            msgs[idx % 3][0] += "[{}]({})\n".format(item['name'], item['url_xivdb'])
+                        if len(msgs[idx % 3][0]) + len("[{}]({})\n".format(item['name'], "http://www.xivdb.com/{}".format(item['url']))) < 1024:
+                            msgs[idx % 3][0] += "[{}]({})\n".format(item['name'], "http://www.xivdb.com/{}".format(item['url']))
                             msgs[idx % 3][1] += "ID: {}\n".format(item['id'])
                     embed.add_field(name="\u200b", value=msgs[0][0])
                     embed.add_field(name="\u200b", value=msgs[0][1])
@@ -303,8 +303,8 @@ class DBParser:
                     message += "   Related Class: {0}\n".format(self.shortnames[jd['classjob_category_1']])
                 message += "   Start this quest with {0} in {1} at {2}x {3}y\n".format(jd['npc_start']['name'],
                                                                                     jd['npc_start']['placename']['name'],
-                                                                                    jd['map_data']['points']['app_position']['ingame']['x'],
-                                                                                    jd['map_data']['points']['app_position']['ingame']['y'])
+                                                                                    jd['npc_start']['map_data']['points']['app_position']['ingame']['x'],
+                                                                                    jd['npc_start']['map_data']['points']['app_position']['ingame']['y'])
                 if 'pre_quests' in jd:
                     message += "Prerequisite Quests ->\n"
                     for item in jd['pre_quests']:
