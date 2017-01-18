@@ -313,7 +313,7 @@ class DBParser:
                 if 'pre_quests' in jd:
                     message += "Prerequisite Quests ->\n"
                     for item in jd['pre_quests']:
-                        message += "   {0} (ID: {1})\n".format(jd['pre_quests'][item]['name'], jd['pre_quests'][item]['id'])
+                        message += "   {0} (ID: {1})\n".format(item['name'], item['id'])
                 message += jd['url_xivdb']
                 return message
 
