@@ -2,6 +2,7 @@ import json
 import sys
 import time
 import AngelBot
+import IPC_Test
 import discord
 import redis
 import requests
@@ -49,17 +50,29 @@ class MPManager:
         bot.loop.run_until_complete(bot.setup())
         bot.run(bot.btoken)
 
+    def _runtest(self, sid, count, conn):
+        bot = IPC_Test.AngelBot(sid, count, conn)
+        bot.loop.run_until_complete(bot.setup())
+        bot.run(bot.btoken)
+
     def start_shards(self):
         for number in range(self.shard_count):
-            r, w = Pipe(duplex=False)
-            self.r_pipes.append(r)
-            journal.send("INFO:AngelBot Manager: Starting Shard {}".format(number))
-            temp = Process(target=self._run, args=(number, self.shard_count, w))
-            temp.start()
-            self.shards[number] = {'Pipe': r, 'Process': temp}
-            journal.send("STATUS:Shard {}: Shard Started.".format(number))
-            del r
-            del w
+            if number != 1:
+                r, w = Pipe(duplex=False)
+                self.r_pipes.append(r)
+                journal.send("INFO:AngelBot Manager: Starting Shard {}".format(number))
+                temp = Process(target=self._run, args=(number, self.shard_count, w))
+                temp.start()
+                self.shards[number] = {'Pipe': r, 'Process': temp}
+                journal.send("STATUS:Shard {}: Shard Started.".format(number))
+            else:
+                r, w = Pipe(duplex=False)
+                self.r_pipes.append(r)
+                journal.send("INFO:AngelBot Manager: Starting Shard {}".format(number))
+                temp = Process(target=self._runtest, args=(number, self.shard_count, w))
+                temp.start()
+                self.shards[number] = {'Pipe': r, 'Process': temp}
+                journal.send("STATUS:Shard {}: Shard Started.".format(number))
 
         while self.shards.keys():
             for reader in wait(self.r_pipes):
