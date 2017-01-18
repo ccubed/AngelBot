@@ -69,6 +69,10 @@ class DBParser:
         url = self.apiurl + '/search'
         with aiohttp.ClientSession() as session:
             async with session.get(url, params=data, headers={'User-Agent': 'AngelBot ( aiohttp 0.26.1 python 3.5.1 )'}) as response:
+                if response.status != 200:
+                    print(response.status)
+                    print(await response.text())
+                    return
                 jsd = await response.json()
                 if jsd['quests']['total'] == 0:
                     await self.bot.send_message(message.channel, "No results for {0} in quests.".format(" ".join(message.content.split(" ")[1:])))
