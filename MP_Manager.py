@@ -21,7 +21,6 @@ class MPManager:
         self.shard_count = 0
         self.r_pipes = []
         self.setup()
-        self.last_update = None
         
     def setup(self):
         rdb = redis.StrictRedis(host='localhost', port=6379, db=1, decode_responses=True)
@@ -50,29 +49,15 @@ class MPManager:
         bot.loop.run_until_complete(bot.setup())
         bot.run(bot.btoken)
 
-    def _runtest(self, sid, count, conn):
-        bot = IPC_Test.AngelBot(sid, count, conn)
-        bot.loop.run_until_complete(bot.setup())
-        bot.run(bot.btoken)
-
     def start_shards(self):
         for number in range(self.shard_count):
-            if number != 1:
-                r, w = Pipe(duplex=False)
-                self.r_pipes.append(r)
-                journal.send("INFO:AngelBot Manager: Starting Shard {}".format(number))
-                temp = Process(target=self._run, args=(number, self.shard_count, w))
-                temp.start()
-                self.shards[number] = {'Pipe': r, 'Process': temp}
-                journal.send("STATUS:Shard {}: Shard Started.".format(number))
-            else:
-                r, w = Pipe(duplex=False)
-                self.r_pipes.append(r)
-                journal.send("INFO:AngelBot Manager: Starting Shard {}".format(number))
-                temp = Process(target=self._runtest, args=(number, self.shard_count, w))
-                temp.start()
-                self.shards[number] = {'Pipe': r, 'Process': temp}
-                journal.send("STATUS:Shard {}: Shard Started.".format(number))
+            r, w = Pipe(duplex=False)
+            self.r_pipes.append(r)
+            journal.send("INFO:AngelBot Manager: Starting Shard {}".format(number))
+            temp = Process(target=self._run, args=(number, self.shard_count, w))
+            temp.start()
+            self.shards[number] = {'Pipe': r, 'Process': temp}
+            journal.send("STATUS:Shard {}: Shard Started.".format(number))
 
         while self.shards.keys():
             for reader in wait(self.r_pipes):
@@ -105,7 +90,7 @@ class MPManager:
                         print(self.shards)
                         self.shards[sid]['stats'] = {'servers': servs, 'users': members}
 
-                        if all('stats' in self.shards[x] for x in range(self.shard_count)) and (self.last_update is None or time.time() - self.last_update > 1500):
+                        if all('stats' in self.shards[x] for x in range(self.shard_count)):
                             total_stats = {'Servers': sum(self.shards[x]['stats']['servers'] for x in range(self.shard_count)),
                                            'Users': sum(self.shards[x]['stats']['users'] for x in range(self.shard_count))}
 
