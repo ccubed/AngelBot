@@ -84,10 +84,6 @@ class MPManager:
                         journal.send("UPDATE:Shard {0}: Shard {0} reporting stats. {1} servers. {2} members.".format(sid,
                                                                                                                      servs,
                                                                                                                      members))
-                        print("UPDATE:Shard {0}: Shard {0} reporting stats. {1} servers. {2} members.".format(sid,
-                                                                                                              servs,
-                                                                                                              members))
-                        print(self.shards)
                         self.shards[sid]['stats'] = {'servers': int(servs), 'users': int(members)}
 
                         if all('stats' in self.shards[x] for x in range(self.shard_count)):
@@ -96,7 +92,7 @@ class MPManager:
 
                             rdb = redis.StrictRedis(host='localhost', port=6379, db=1, decode_responses=True)
                             ckey = rdb.get("CarbonKey")
-                            lkey = rdb.get("CarbonKey")
+                            lkey = rdb.get("ListBoat")
 
                             r = requests.post("https://www.carbonitex.net/discord/data/botdata.php",
                                               data=json.dumps({'key': ckey, 'servercount': total_stats['Servers']}),
@@ -115,7 +111,6 @@ class MPManager:
                             rdb.hset("stats", "users", total_stats['Users'])
                             rdb.hset("stats", "servers", total_stats['Servers'])
                             journal.send("INFO:AngelBot Manager: Finished updating stats.")
-                            self.last_update = time.time()
                             for shard in range(self.shard_count):
                                 del self.shards[shard]['stats']
 
