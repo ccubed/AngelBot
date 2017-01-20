@@ -9,8 +9,7 @@ Welcome to AngelBot's documentation!
 .. toctree::
    Configuration
    APIs
-   Code
-   Modules
+   Misc
    Security
 
 

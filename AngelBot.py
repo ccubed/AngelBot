@@ -72,6 +72,9 @@ class AngelBot(discord.Client):
                                         '```Remember to put your server prefix before these commands. The default is $.\n\ncurrencies - Show a list of currencies available in the data and their identifiers. When using the functions in this module use the identifiers. IE: USD or GBP.\nrates [currency] - Show a list of the latest exchange rates against a given base currency. If a currency is not provided then Euro is the default.\nconvert [amt] [currency] to [other currency] - Convert an amount of currency into another. Amount must be a number but can be prepended by a symbol. Make sure to type this command exactly, the to is important. Not all currency combinations work for some reason.```')
             elif 'oi cunt' in message.content.lower():
                 await self.send_message(message.channel, "{} oi, you 'avin a giggle there mate. I'll bash your fooking head in I will.".format(message.author.mention))
+            elif 'misc' in message.content.lower():
+                await self.send_message(message.channel,
+                                        '```Remember to put your server prefix before these commands. The default is $.\n\nroll <x>d<y> <reason> - Roll x dice with y sides for reason. Reason is optional. You can omit x and it will default to 1. y is not optional.')
         elif message.server is None:
             if 'oauth' in message.content.lower():
                 await self.send_message(message.author, "Angelbot can use an Oauth flow to connect to your logins on other platforms. This allows Angelbot to take actions it may not otherwise be able to. If you'd like to begin this process, please respond with one of the following providers: github")
