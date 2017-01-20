@@ -48,6 +48,6 @@ class Misc:
         embed.title = "Rolled dice for {}".format(message.author)
         embed.add_field(name="Number Rolled", value=dice)
         embed.add_field(name="Type of Dice", value="d{}".format(sides))
-        embed.add_field(name="Dice Rolls", value=" ".join(results))
+        embed.add_field(name="Dice Rolls", value=" ".join(str(x) for x in results))
         embed.add_field(name="Sum of Rolls", value=sum(results))
         await self.bot.send_message(message.channel, embed=embed)
