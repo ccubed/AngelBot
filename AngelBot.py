@@ -74,7 +74,7 @@ class AngelBot(discord.Client):
                 await self.send_message(message.channel, "{} oi, you 'avin a giggle there mate. I'll bash your fooking head in I will.".format(message.author.mention))
             elif 'misc' in message.content.lower():
                 await self.send_message(message.channel,
-                                        '```Remember to put your server prefix before these commands. The default is $.\n\nroll <x>d<y> <reason> - Roll x dice with y sides for reason. Reason is optional. You can omit x and it will default to 1. y is not optional.')
+                                        '```Remember to put your server prefix before these commands. The default is $.\n\nroll <x>d<y> <reason> - Roll x dice with y sides for reason. Reason is optional. You can omit x and it will default to 1. y is not optional.```')
         elif message.server is None:
             if 'oauth' in message.content.lower():
                 await self.send_message(message.author, "Angelbot can use an Oauth flow to connect to your logins on other platforms. This allows Angelbot to take actions it may not otherwise be able to. If you'd like to begin this process, please respond with one of the following providers: github")
