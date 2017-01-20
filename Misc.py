@@ -39,7 +39,7 @@ class Misc:
 
         reason_msg = None
         if len(message.split()) > 2:
-            reason_msg = " ".join(message.split()[2:])
+            reason_msg = " ".join(message.content.split()[2:])
 
         if reason_msg:
             embed = embeds.Embed(description=reason_msg)
