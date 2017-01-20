@@ -38,7 +38,7 @@ class Misc:
             results.append(randint(1, sides))
 
         reason_msg = None
-        if len(message.split()) > 2:
+        if len(message.content.split()) > 2:
             reason_msg = " ".join(message.content.split()[2:])
 
         if reason_msg:
