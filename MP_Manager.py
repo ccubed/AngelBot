@@ -2,7 +2,6 @@ import json
 import sys
 import time
 import AngelBot
-import IPC_Test
 import discord
 import redis
 import requests
