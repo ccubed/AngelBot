@@ -9,7 +9,8 @@ import aiohttp
 import aioredis
 import discord
 import re
-from datetime import timedelta
+from datetime import timedelta, date
+from systemd import journal
 
 
 class AngelBot(discord.Client):
@@ -153,6 +154,7 @@ class AngelBot(discord.Client):
                 for item in self.references:
                     for command in self.references[item].commands:
                         if message.content.lower().startswith(prefix+command[0]):
+                            await dbp.incr("COMMANDS.{}.{}.{}.{}".format(date.today().year, date.today().month, date.today().day, command[0]))
                             await command[1](message)
 
     async def on_server_remove(self, server):
@@ -161,7 +163,7 @@ class AngelBot(discord.Client):
     async def on_server_join(self, server):
         async with self.redis.get() as dbp:
             await self.references["Admin"].createnewserver(server.id, dbp)
-            
+
     async def create_gist(self, content):
         headers = {'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json'}
         async with self.redis.get() as dbp:
@@ -174,6 +176,12 @@ class AngelBot(discord.Client):
                         return jsd['html_url']
                     else:
                         return None
+
+    async def on_error(self, event, *args, **kwargs):
+        if event == "on_message":
+            journal.send("Encountered an exception in a command.\nCommand: {}\nArguments: {}\nEntire Line: {}\n{}".format(args[0].content.split(" ")[0], args[0].content.split(" ")[:1], args[0].content, traceback.print_exc()))
+        else:
+            journal.send("Ignoring exception in {}:\n{}".format(event, traceback.print_exc()))
 
     def update_stats(self):
         self.ipc.send("STATUS:{}:{}:{}".format(self.shard_id, len(self.servers),
