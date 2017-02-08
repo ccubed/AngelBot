@@ -21,7 +21,8 @@ class AList:
         self.bot = client
         self.enc = encryption.AESCipher(cryptokey)
         self.headers = {'Content-Type': 'application/x-www-form-urlencoded', 'User-Agent': 'AngelBot (aiohttp 0.21.6 python 3.5.1)'}
-        self.bot.loop.call_soon_threadsafe(self.get_readonly, self.bot.loop)
+        if self.bot.shard_id == 0:
+            self.bot.loop.call_soon_threadsafe(self.get_readonly, self.bot.loop)
 
     def get_readonly(self, loop):
         loop.create_task(self._get_readonly())
@@ -178,7 +179,7 @@ class AList:
                     else:
                         jsd = json.loads(text)
                         if 'error' in jsd:
-                            await self.bot.send_message(message.channel, "[ANILIST] No results found on Anilist for Anime {0}".format(name.replace("%20", " ")))    
+                            await self.bot.send_message(message.channel, "[ANILIST] No results found on Anilist for Anime {0}".format(name.replace("%20", " ")))
                         else:
                             if len(jsd) > 1:
                                 msg = "Found these Anime ->\n"

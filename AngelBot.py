@@ -154,6 +154,8 @@ class AngelBot(discord.Client):
                 for item in self.references:
                     for command in self.references[item].commands:
                         if message.content.lower().startswith(prefix+command[0]):
+                            journal.send("Command Tracking Encountered")
+                            await dbp.incr("COMMANDS")
                             await dbp.incr("COMMANDS.{}.{}.{}.{}".format(date.today().year, date.today().month, date.today().day, command[0]))
                             await command[1](message)
 
@@ -178,6 +180,7 @@ class AngelBot(discord.Client):
                         return None
 
     async def on_error(self, event, *args, **kwargs):
+        journal.send("We entered on_error")
         if event == "on_message":
             journal.send("Encountered an exception in a command.\nCommand: {}\nArguments: {}\nEntire Line: {}\n{}".format(args[0].content.split(" ")[0], args[0].content.split(" ")[:1], args[0].content, traceback.print_exc()))
         else:
