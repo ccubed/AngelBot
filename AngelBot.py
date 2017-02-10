@@ -23,7 +23,7 @@ class AngelBot(discord.Client):
         self.references = {}
         self.cid = 0
         self.ipc = conn
-        self.log = open("shard{}.{}.{}.{}".format(shard, date.today().month, date.today().day, date.today().year), "a")
+        self.log = open("/home/gizmo/AngelBot/shard{}.{}.{}.{}".format(shard, date.today().month, date.today().day, date.today().year), "a")
 
     async def setup(self):
         self.redis = await aioredis.create_pool(('localhost', 6379), db=1, minsize=1, maxsize=10, encoding="utf-8")
