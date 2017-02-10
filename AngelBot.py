@@ -9,7 +9,8 @@ import aiohttp
 import aioredis
 import discord
 import re
-from datetime import timedelta, date, datetime
+import traceback
+from datetime import timedelta, date
 from systemd import journal
 
 
@@ -22,7 +23,6 @@ class AngelBot(discord.Client):
         self.references = {}
         self.cid = 0
         self.ipc = conn
-        self.log = open("shard{}.{}.{}.{}".format(shard, date.today().month, date.today().day, date.today().year), "a")
 
     async def setup(self):
         self.redis = await aioredis.create_pool(('localhost', 6379), db=1, minsize=1, maxsize=10, encoding="utf-8")
@@ -38,7 +38,6 @@ class AngelBot(discord.Client):
             self.loop.call_later(1500, self.update_stats)
 
     async def on_message(self, message):
-        self.log.write("[{}]<{}> {}".format(datetime.now(), message.server.name else "DM", message.content))
         if message.author.id == self.user.id or message.author.bot:
             return
         elif message.content.lower() == "owlkill" and message.author.id == self.creator:
