@@ -39,7 +39,7 @@ class AngelBot(discord.Client):
             self.loop.call_later(1500, self.update_stats)
 
     async def on_message(self, message):
-        self.log.write("[{}]<{}> {}".format(datetime.now(), message.server.name else "DM", message.content))
+        self.log.write("[{}]<{}> {}".format(datetime.now(), message.server.name if message.server.name else "DM", message.content))
         if message.author.id == self.user.id or message.author.bot:
             return
         elif message.content.lower() == "owlkill" and message.author.id == self.creator:
