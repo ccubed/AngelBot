@@ -154,7 +154,7 @@ class AngelBot(discord.Client):
                     prefix = await dbp.hget(message.server.id, "Prefix")
                 for item in self.references:
                     for command in self.references[item].commands:
-                        if message.content.lower().startswith(prefix+command[0]):
+                        if message.content[:re.search("\s", message.content).start()].lower().startswith(prefix+command[0]):
                             await dbp.incr("COMMANDS.{}.{}.{}.{}".format(date.today().year, date.today().month, date.today().day, command[0]))
                             await command[1](message)
 
@@ -180,9 +180,9 @@ class AngelBot(discord.Client):
 
     async def on_error(self, event, *args, **kwargs):
         if event == "on_message":
-            journal.send("Encountered an exception in a command.\nCommand: {}\nArguments: {}\nEntire Line: {}\n{}".format(args[0].content.split(" ")[0], args[0].content.split(" ")[1:], args[0].content, '\n'.join(traceback.format_tb(sys.exc_info()[2]))))
+            journal.send("Encountered an exception in a command.\nException Type: {}\nCommand: {}\nArguments: {}\nEntire Line: {}\n{}".format(sys.exc_info()[0], args[0].content[:re.search("\s",args[0].content).start()], args[0].content[re.search("\s",args[0].content).end():], args[0].content, '\n'.join(traceback.format_tb(sys.exc_info()[2]))))
         else:
-            journal.send("Ignoring exception in {}:\n{}".format(event, traceback.format_tb(sys.exc_info()[2])))
+            journal.send("Ignoring exception in {}:{}\n{}".format(event, sys.exc_info()[0], traceback.format_tb(sys.exc_info()[2])))
 
     def update_stats(self):
         self.ipc.send("STATUS:{}:{}:{}".format(self.shard_id, len(self.servers),
