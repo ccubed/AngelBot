@@ -670,23 +670,24 @@ class AList:
                         await self.bot.send_message(message.channel, "No user by that name or ID.")
                     elif response.status in [403, 401]:
                         await self.bot.send_message(message.channel, "Not authorized to access that user's list.")
-                    jsd = await response.json()
-                    jsd = jsd['lists']['watching']
-                    pids = []
-                    msg = "{} is currently watching ->\n".format(name.replace("%20", " "))
-                    if len(jsd) > 20:
-                        while len(pids) < 20:
-                            randid = random.randint(0, len(jsd)-1)
-                            if randid not in pids:
-                                pids.append(randid)
-                        for x in pids:
-                            msg += "    {}({}) - Last Episode watched was {}\n".format(jsd[x]['anime']['title_english'], jsd[x]['anime']['id'], jsd[x]['episodes_watched'])
-                            await self.bot.send_message(message.channel, msg)
-                    elif len(jsd) == 0:
-                        await self.bot.send_message(message.channel, "Not watching any Anime.")
                     else:
-                        for x in jsd:
-                            msg += "    {}({}) - Last Episode watched was {}\n".format(x['anime']['title_english'], x['anime']['id'], x['episodes_watched'])
+                        jsd = await response.json()
+                        jsd = jsd['lists']['watching']
+                        pids = []
+                        msg = "{} is currently watching ->\n".format(name.replace("%20", " "))
+                        if len(jsd) > 20:
+                            while len(pids) < 20:
+                                randid = random.randint(0, len(jsd)-1)
+                                if randid not in pids:
+                                    pids.append(randid)
+                            for x in pids:
+                                msg += "    {}({}) - Last Episode watched was {}\n".format(jsd[x]['anime']['title_english'], jsd[x]['anime']['id'], jsd[x]['episodes_watched'])
+                            await self.bot.send_message(message.channel, msg)
+                        elif len(jsd) == 0:
+                            await self.bot.send_message(message.channel, "Not watching any Anime.")
+                        else:
+                            for x in jsd:
+                                msg += "    {}({}) - Last Episode watched was {}\n".format(x['anime']['title_english'], x['anime']['id'], x['episodes_watched'])
                             await self.bot.send_message(message.channel, msg)
 
     async def get_reading(self, message):
@@ -702,21 +703,22 @@ class AList:
                         await self.bot.send_message(message.channel, "No user by that name or ID.")
                     elif response.status in [403, 401]:
                         await self.bot.send_message(message.channel, "Not authorized to access that user's list.")
-                    jsd = await response.json()
-                    jsd = jsd['lists']['reading']
-                    pids = []
-                    msg = "{} is currently reading ->\n".format(name.replace("%20", " "))
-                    if len(jsd) > 20:
-                        while len(pids) < 20:
-                            randid = random.randint(0, len(jsd) - 1)
-                            if randid not in pids:
-                                pids.append(randid)
-                        for x in pids:
-                            msg += "    {}({}) - Last Chapter read was {}\n".format(jsd[x]['manga']['title_english'], jsd[x]['manga']['id'], jsd[x]['chapters_read'])
-                            await self.bot.send_message(message.channel, msg)
-                    elif len(jsd) == 0:
-                        await self.bot.send_message(message.channel, "Not reading any Manga.")
                     else:
-                        for x in jsd:
-                            msg += "    {}({}) - Last Chapter read was {}\n".format(x['manga']['title_english'], x['manga']['id'], x['chapters_read'])
+                        jsd = await response.json()
+                        jsd = jsd['lists']['reading']
+                        pids = []
+                        msg = "{} is currently reading ->\n".format(name.replace("%20", " "))
+                        if len(jsd) > 20:
+                            while len(pids) < 20:
+                                randid = random.randint(0, len(jsd) - 1)
+                                if randid not in pids:
+                                    pids.append(randid)
+                            for x in pids:
+                                msg += "    {}({}) - Last Chapter read was {}\n".format(jsd[x]['manga']['title_english'], jsd[x]['manga']['id'], jsd[x]['chapters_read'])
+                            await self.bot.send_message(message.channel, msg)
+                        elif len(jsd) == 0:
+                            await self.bot.send_message(message.channel, "Not reading any Manga.")
+                        else:
+                            for x in jsd:
+                                msg += "    {}({}) - Last Chapter read was {}\n".format(x['manga']['title_english'], x['manga']['id'], x['chapters_read'])
                             await self.bot.send_message(message.channel, msg)
