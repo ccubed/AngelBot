@@ -10,7 +10,7 @@ import aioredis
 import discord
 import re
 import traceback
-from datetime import timedelta, date, datetime
+from datetime import timedelta, date
 from systemd import journal
 
 
@@ -23,7 +23,6 @@ class AngelBot(discord.Client):
         self.references = {}
         self.cid = 0
         self.ipc = conn
-        self.log = open("/home/gizmo/AngelBot/shard{}.{}.{}.{}".format(shard, date.today().month, date.today().day, date.today().year), "a")
 
     async def setup(self):
         self.redis = await aioredis.create_pool(('localhost', 6379), db=1, minsize=1, maxsize=10, encoding="utf-8")
@@ -39,7 +38,6 @@ class AngelBot(discord.Client):
             self.loop.call_later(1500, self.update_stats)
 
     async def on_message(self, message):
-        self.log.write("[{}]<{}> {}".format(datetime.now(), message.server.name if message.server.name else "DM", message.content))
         if message.author.id == self.user.id or message.author.bot:
             return
         elif message.content.lower() == "owlkill" and message.author.id == self.creator:
@@ -157,8 +155,6 @@ class AngelBot(discord.Client):
                 for item in self.references:
                     for command in self.references[item].commands:
                         if message.content.lower().startswith(prefix+command[0]):
-                            journal.send("Command Tracking Encountered")
-                            await dbp.incr("COMMANDS")
                             await dbp.incr("COMMANDS.{}.{}.{}.{}".format(date.today().year, date.today().month, date.today().day, command[0]))
                             await command[1](message)
 
@@ -183,11 +179,10 @@ class AngelBot(discord.Client):
                         return None
 
     async def on_error(self, event, *args, **kwargs):
-        journal.send("We entered on_error")
         if event == "on_message":
-            journal.send("Encountered an exception in a command.\nCommand: {}\nArguments: {}\nEntire Line: {}\n{}".format(args[0].content.split(" ")[0], args[0].content.split(" ")[:1], args[0].content, traceback.print_exc()))
+            journal.send("Encountered an exception in a command.\nCommand: {}\nArguments: {}\nEntire Line: {}\n{}".format(args[0].content.split(" ")[0], args[0].content.split(" ")[1:], args[0].content, '\n'.join(traceback.format_tb(sys.exc_info()[2]))))
         else:
-            journal.send("Ignoring exception in {}:\n{}".format(event, traceback.print_exc()))
+            journal.send("Ignoring exception in {}:\n{}".format(event, traceback.format_tb(sys.exc_info()[2])))
 
     def update_stats(self):
         self.ipc.send("STATUS:{}:{}:{}".format(self.shard_id, len(self.servers),
