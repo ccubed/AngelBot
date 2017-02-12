@@ -155,7 +155,7 @@ class AngelBot(discord.Client):
                         prefix = await dbp.hget(message.server.id, "Prefix")
                         for item in self.references:
                             for command in self.references[item].commands:
-                                if message.content[:re.search("\s", message.content).start()].lower().startswith(prefix+command[0]):
+                                if message.content[:re.search("\s", message.content).start()].lower() == str.lower(prefix+command[0]):
                                     await dbp.incr("COMMANDS.{}.{}.{}.{}".format(date.today().year, date.today().month, date.today().day, command[0]))
                                     await command[1](message)
 
