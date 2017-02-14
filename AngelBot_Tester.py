@@ -159,7 +159,7 @@ class AngelBot(discord.Client):
                     prefix = await dbp.hget(message.server.id, "Prefix")
                 for item in self.references:
                     for command in self.references[item].commands:
-                        if message.content[:len(prefix+command[0])].lower() == str.lower(prefix+command[0]) and len(prefix+command[0]) == len(message.content) or not str.isalpha(message.content[len(prefix+command[0])+1]):
+                        if message.content.split(" ")[0].lower() == str.lower(prefix+command[0]):
                             await command[1](message)
 
     async def on_server_remove(self, server):
