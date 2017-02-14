@@ -26,7 +26,7 @@ class AngelBot(discord.Client):
         self.redis = await aioredis.create_pool(('localhost', 6379), db=1, minsize=1, maxsize=10, encoding="utf-8")
         async with self.redis.get() as dbp:
             modules = await dbp.lrange("BotModules", 0, -1)
-            self.btoken = await dbp.get("BotToken")
+            self.btoken = await dbp.get("BotTester")
             self.creator = await dbp.get("Creator")
             self.cid = await dbp.get("DiscordCID")
             for mod in modules:
