@@ -20,18 +20,23 @@ class AngelBot(discord.Client):
         self.creator = None
         self.references = {}
         self.cid = 0
+        self.command_map = {}
 
     async def setup(self):
         self.redis = await aioredis.create_pool(('localhost', 6379), db=1, minsize=1, maxsize=10, encoding="utf-8")
         async with self.redis.get() as dbp:
             modules = await dbp.lrange("BotModules", 0, -1)
-            self.btoken = await dbp.get("BotTester")
+            self.btoken = await dbp.get("BotToken")
             self.creator = await dbp.get("Creator")
             self.cid = await dbp.get("DiscordCID")
             for mod in modules:
                 globals()[mod] = importlib.import_module(mod)
             for mod in modules:
                 self.references[mod] = inspect.getmembers(globals()[mod], inspect.isclass)[0][1](self)
+            for mod in self.references:
+                for command in self.references[mod].commands:
+                    self.command_map[commands[0].lower()] = commands[1]
+            self.loop.call_later(1500, self.update_stats)
 
     async def on_message(self, message):
         if message.author.id == self.user.id or message.author.bot:
@@ -63,30 +68,24 @@ class AngelBot(discord.Client):
                                         '```Remember to put your server prefix before these commands. The default is $.\n\nislolup - Check the status of the LoL servers in all regions\nlolstatus [region] - Check the status of a specific region. Region should be one of na1, jp1, la1, la2, oc1, eu or eun1.\nlolfree - Display current free rotation\nlolfeatures - Display current featured games. This now supports the BR region. Simply add BR after lolfeatures.\nlolrecent [summoner] - Display a summoners recent games. Summoner can be a name or id. NA and BR only. For BR add BR after summoner name.\nlolstats [summoner] - Display a summary of stats for a summoner. Summoner can be a name or id. NA and BR only. For BR add BR after summoner name.```')
             elif 'ow' in message.content.lower():
                 await self.send_message(message.channel,
-                                        '```Remember to put your server prefix before these commands. The default is $.\n\now [battletag] - Pull stats for a battletag. EU or US only.\nowheroes [battletag] - Show hero win statistics for a battletag.\nowhero [battletag]:[hero] - Pull stats for a specific hero for a batteltag. I gave the heroes funny names, see if you can guess them. Has to be a hero name, not id.```')
+                                        '```Remember to put your server prefix before these commands. The default is $.\n\now [battletag] - Pull stats for a battletag. EU or US only.\nowheroes [battletag] - Show hero win statistics for a battletag.```')
             elif 'currency' in message.content.lower():
                 await self.send_message(message.channel,
                                         '```Remember to put your server prefix before these commands. The default is $.\n\ncurrencies - Show a list of currencies available in the data and their identifiers. When using the functions in this module use the identifiers. IE: USD or GBP.\nrates [currency] - Show a list of the latest exchange rates against a given base currency. If a currency is not provided then Euro is the default.\nconvert [amt] [currency] to [other currency] - Convert an amount of currency into another. Amount must be a number but can be prepended by a symbol. Make sure to type this command exactly, the to is important. Not all currency combinations work for some reason.```')
             elif 'oi cunt' in message.content.lower():
+                await self.send_message(message.channel, "{} oi, you 'avin a giggle there mate. I'll bash your fooking head in I will.".format(message.author.mention))
+            elif 'misc' in message.content.lower():
                 await self.send_message(message.channel,
-                                        "{} oi, you 'avin a giggle there mate. I'll bash your fooking head in I will.".format(
-                                            message.author.mention))
+                                        '```Remember to put your server prefix before these commands. The default is $.\n\nroll <x>d<y> <reason> - Roll x dice with y sides for reason. Reason is optional. You can omit x and it will default to 1. y is not optional.```')
         elif message.server is None:
             if 'oauth' in message.content.lower():
-                await self.send_message(message.author,
-                                        "Angelbot can use an Oauth flow to connect to your logins on other platforms. This allows Angelbot to take actions it may not otherwise be able to. If you'd like to begin this process, please respond with one of the following providers: github")
+                await self.send_message(message.author, "Angelbot can use an Oauth flow to connect to your logins on other platforms. This allows Angelbot to take actions it may not otherwise be able to. If you'd like to begin this process, please respond with one of the following providers: github")
             elif 'github' in message.content.lower():
-                await self.send_message(message.author,
-                                        "To begin this process visit the following link:\nhttps://angelbot.vertinext.com/oauth/Github/{0}".format(
-                                            message.author.id))
+                await self.send_message(message.author, "To begin this process visit the following link:\nhttps://angelbot.vertinext.com/oauth/Github/{0}".format(message.author.id))
             elif 'anilist' in message.content.lower():
-                await self.send_message(message.author,
-                                        "To begin this process visit the following link:\nhttps://angelbot.vertinext.com/oauth/AniList/{0}".format(
-                                            message.author.id))
+                await self.send_message(message.author, "To begin this process visit the following link:\nhttps://angelbot.vertinext.com/oauth/AniList/{0}".format(message.author.id))
             else:
-                await self.send_message(message.author,
-                                        "Assuming you want a join link: https://discordapp.com/oauth2/authorize?client_id={0}&scope=bot&permissions=0".format(
-                                            self.cid))
+                await self.send_message(message.author, "Assuming you want a join link: https://discordapp.com/oauth2/authorize?client_id={0}&scope=bot&permissions=0".format(self.cid))
         elif message.content.startswith("owl") and message.author.id == self.creator:
             if message.content.lower().startswith("owlavatar"):
                 file = message.content[10:]
@@ -101,8 +100,7 @@ class AngelBot(discord.Client):
             elif message.content.lower().startswith("owlgame"):
                 await self.change_status(game=discord.Game(name=" ".join(message.content.split(" ")[1:])))
             elif message.content.lower().startswith("owldebug"):
-                gist_data = {"description": "AngelBot Debug ran {}".format(
-                    time.strftime("%a, %d %b %Y %H:%M:%S", time.gmtime())),
+                gist_data = {"description": "AngelBot Debug ran {}".format(time.strftime("%a, %d %b %Y %H:%M:%S", time.gmtime())),
                              "public": True}
                 codeblock = message.content.split("owldebug")[1].strip()
                 if '`' in codeblock:
@@ -119,8 +117,7 @@ class AngelBot(discord.Client):
                         }
                     }
                     gist_url = await self.create_gist(gist_data)
-                    await self.send_message(message.channel,
-                                            "Execution of that code was completed.\nSee {}".format(gist_url))
+                    await self.send_message(message.channel, "Execution of that code was completed.\nSee {}".format(gist_url))
                 except SyntaxError:
                     # Get the real error
                     try:
@@ -135,14 +132,12 @@ class AngelBot(discord.Client):
                             }
                         }
                         gist_url = await self.create_gist(gist_data)
-                        await self.send_message(message.channel,
-                                                "Execution of that code encountered an error.\nSee {}".format(gist_url))
+                        await self.send_message(message.channel, "Execution of that code encountered an error.\nSee {}".format(gist_url))
         elif message.content.startswith("ard"):
             async with self.redis.get() as dbp:
                 admin = await dbp.hget(message.server.id, "Admin")
                 if admin != "None":
-                    if message.author.id in admin.split("|") or message.channel.permissions_for(
-                            message.author).manage_server:
+                    if message.author.id in admin.split("|") or message.channel.permissions_for(message.author).manage_server:
                         for command in self.references['Admin'].commands:
                             if message.content.lower().startswith("ard" + command[0]):
                                 await command[1](message)
@@ -157,10 +152,9 @@ class AngelBot(discord.Client):
                 test = await dbp.hexists(message.server.id, "Prefix")
                 if test:
                     prefix = await dbp.hget(message.server.id, "Prefix")
-                for item in self.references:
-                    for command in self.references[item].commands:
-                        if message.content.split(" ")[0].lower() == str.lower(prefix+command[0]):
-                            await command[1](message)
+                if message.content.split()[0].lower().startswith(prefix):
+                    await dbp.incr("COMMANDS.{}.{}.{}.{}".format(date.today().year, date.today().month, date.today().day, message.content.split()[0].lower()[1:]))
+                    await self.command_map[message.content.split()[0].lower()](message)
 
     async def on_server_remove(self, server):
         await self.references['Admin'].cleanconfig(server.name)
