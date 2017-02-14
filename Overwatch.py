@@ -21,13 +21,13 @@ class OWAPI:
                     region = "us" if jsd['us'] is not None else "eu" if jsd['eu'] is not None else "kr"
                     embed = embeds.Embed(description="Overwatch Stat Summary")
                     embed.title = name.replace("-", "#")
-                    if jsd[region]['quickplay']['overall_stats']['avatar']:
-                        embed.set_thumbnail(url=jsd[region]['quickplay']['overall_stats']['avatar'])
-                    embed.add_field(name="Rank and Level", value="**Level:** {}\n**Rank:** {}\n".format(jsd[region]['quickplay']['overall_stats']['level'], jsd[region]['quickplay']['overall_stats']['comprank'] or 0))
-                    embed.add_field(name="Pain Caused", value="**{}**".format(jsd[region]['quickplay']['overall_stats']['game_stats']['damage_done']))
-                    embed.add_field(name="Sad Endings", value="**{}**".format(jsd[region]['quickplay']['overall_stats']['game_stats']['deaths']))
-                    embed.add_field(name="Eliminations", value="**{}**".format(jsd[region]['quickplay']['overall_stats']['game_stats']['eliminations']))
-                    embed.add_field(name="Killshots", value="**{}**".format(jsd[region]['quickplay']['overall_stats']['game_stats']['final_blows']))
+                    if jsd[region]['stats']['quickplay']['overall_stats']['avatar']:
+                        embed.set_thumbnail(url=jsd[region]['stats']['quickplay']['overall_stats']['avatar'])
+                    embed.add_field(name="Rank and Level", value="**Level:** {}\n**Rank:** {}\n".format(jsd[region]['stats']['quickplay']['overall_stats']['level'], jsd[region]['stats']['quickplay']['overall_stats']['comprank'] or 0))
+                    embed.add_field(name="Pain Caused", value="**{}**".format(jsd[region]['stats']['quickplay']['overall_stats']['game_stats']['damage_done']))
+                    embed.add_field(name="Sad Endings", value="**{}**".format(jsd[region]['stats']['quickplay']['overall_stats']['game_stats']['deaths']))
+                    embed.add_field(name="Eliminations", value="**{}**".format(jsd[region]['stats']['quickplay']['overall_stats']['game_stats']['eliminations']))
+                    embed.add_field(name="Killshots", value="**{}**".format(jsd[region]['stats']['quickplay']['overall_stats']['game_stats']['final_blows']))
                     await self.bot.send_message(message.channel, embed=embed)
 
     async def owheroes(self, message):
