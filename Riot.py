@@ -18,10 +18,10 @@ class Riot:
         """
         # API Endpoints: Global is used for static data. NA is North America NA1. Status is for Shard Status endpoints. BR is for Brazil.
         self.apiurls = {'global': 'https://global.api.pvp.net/api/lol', 'na': 'https://na.api.pvp.net/api/lol',
-                        'status': 'http://status.leagueoflegends.com/', 'observer': 'https://na.api.pvp.net/observer-mode', 
+                        'status': 'http://status.leagueoflegends.com/', 'observer': 'https://na.api.pvp.net/observer-mode',
                         'brobserver': 'https://br.api.pvp.net/observer-mode', 'br': 'https://br.api.pvp.net/api/lol'}
         # API Endpoitns for lolking. replay - region, game id. players - region, player id. champs - name.
-        self.exturls = {'lkreplay': 'http://www.lolking.net/replay/{}/{}', 'lkplayer': 'http://www.lolking.net/summoner/{}/{}', 
+        self.exturls = {'lkreplay': 'http://www.lolking.net/replay/{}/{}', 'lkplayer': 'http://www.lolking.net/summoner/{}/{}',
                         'lkchampions': 'http://www.lolking.net/champions/{}'}
         self.pools = client.redis
         self.commands = [['islolup', self.status], ['lolfree', self.free_rotation], ['lolstatus', self.region_status],
@@ -31,7 +31,8 @@ class Riot:
         self.maps = {1: "Summoner's Rift (Original Summer)", 2: "Summoner's Rift (Original Autumn)", 4: 'Twisted Treeline (Original)',
                      8: 'The Crystal Scar', 10: 'Twisted Treeline', 11: "Summoner's Rift", 12: 'Howling Abyss', 14: "Butcher's Bridge"}
         self.bot = client
-        self.bot.loop.call_soon_threadsafe(self.update_freerotation, self.bot.loop)
+        if self.bot.shard_id == 0:
+            self.bot.loop.call_soon_threadsafe(self.update_freerotation, self.bot.loop)
 
     def update_freerotation(self, loop):
         """
