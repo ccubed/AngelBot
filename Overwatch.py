@@ -41,7 +41,7 @@ class OWAPI:
                 else:
                     jsd = await response.json()
                     region = 'us' if 'us' in jsd and jsd['us'] is not None else 'eu' if 'eu' in jsd and jsd['eu'] is not None else 'kr'
-                    embed = embeds.Embed(description="Hero Playtime Summary")
+                    embed = embeds.Embed(description="Hero Playtime in Hours")
                     embed.title = name.replace("-", "#")
                     for hero in [x for x in jsd[region]['heroes']['playtime']['quickplay'] if jsd[region]['heroes']['playtime']['quickplay'][x] > 0]:
                         embed.add_field(name=hero, value=round(jsd[region]['heroes']['playtime']['quickplay'][hero], 2))
