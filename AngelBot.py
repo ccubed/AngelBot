@@ -23,6 +23,7 @@ class AngelBot(discord.Client):
         self.references = {}
         self.cid = 0
         self.ipc = conn
+        self.command_map = {}
 
     async def setup(self):
         self.redis = await aioredis.create_pool(('localhost', 6379), db=1, minsize=1, maxsize=10, encoding="utf-8")
@@ -35,6 +36,9 @@ class AngelBot(discord.Client):
                 globals()[mod] = importlib.import_module(mod)
             for mod in modules:
                 self.references[mod] = inspect.getmembers(globals()[mod], inspect.isclass)[0][1](self)
+            for mod in self.references:
+                for command in self.references[mod].commands:
+                    self.command_map[commands[0].lower()] = commands[1]
             self.loop.call_later(1500, self.update_stats)
 
     async def on_message(self, message):
@@ -152,11 +156,9 @@ class AngelBot(discord.Client):
                 test = await dbp.hexists(message.server.id, "Prefix")
                 if test:
                     prefix = await dbp.hget(message.server.id, "Prefix")
-                    for item in self.references:
-                        for command in self.references[item].commands:
-                            if message.content[:len(prefix+command[0])].lower() == str.lower(prefix+command[0]) and len(prefix+command[0]) == len(message.content[:len(prefix+command[0])]):
-                                await dbp.incr("COMMANDS.{}.{}.{}.{}".format(date.today().year, date.today().month, date.today().day, command[0]))
-                                await command[1](message)
+                if message.content.split()[0].lower().startswith(prefix):
+                    await dbp.incr("COMMANDS.{}.{}.{}.{}".format(date.today().year, date.today().month, date.today().day, message.content.split()[0].lower()[1:]))
+                    await self.command_map[message.content.split()[0].lower()](message)
 
     async def on_server_remove(self, server):
         await self.references['Admin'].cleanconfig(server.name)
