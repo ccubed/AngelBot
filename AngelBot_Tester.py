@@ -35,8 +35,7 @@ class AngelBot(discord.Client):
                 self.references[mod] = inspect.getmembers(globals()[mod], inspect.isclass)[0][1](self)
             for mod in self.references:
                 for command in self.references[mod].commands:
-                    self.command_map[commands[0].lower()] = commands[1]
-            self.loop.call_later(1500, self.update_stats)
+                    self.command_map[command[0].lower()] = command[1]
 
     async def on_message(self, message):
         if message.author.id == self.user.id or message.author.bot:
