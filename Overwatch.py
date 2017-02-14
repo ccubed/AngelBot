@@ -18,7 +18,7 @@ class OWAPI:
                     return "Server under heavy load. Please try again later."
                 else:
                     jsd = await response.json()
-                    region = "us" if jsd['us'] is not None else "eu" if jsd['eu'] is not None else "kr"
+                    region = 'us' if 'us' in jsd and jsd['us'] is not None else 'eu' if 'eu' in jsd and jsd['eu'] is not None else 'kr'
                     embed = embeds.Embed(description="Overwatch Stat Summary")
                     embed.title = name.replace("-", "#")
                     if jsd[region]['stats']['quickplay']['overall_stats']['avatar']:
@@ -40,7 +40,7 @@ class OWAPI:
                     await self.bot.send_message(message.channel, "Server under heavy load. Please try again later.")
                 else:
                     jsd = await response.json()
-                    region = "us" if jsd['us'] is not None else "eu" if jsd['eu'] is not None else "kr"
+                    region = 'us' if 'us' in jsd and jsd['us'] is not None else 'eu' if 'eu' in jsd and jsd['eu'] is not None else 'kr'
                     embed = embeds.Embed(description="Hero Playtime Summary")
                     embed.title = name.replace("-", "#")
                     for hero in [x for x in jsd[region]['heroes']['playtime']['quickplay'] if jsd[region]['heroes']['playtime']['quickplay'][x] > 0]:
