@@ -38,7 +38,7 @@ class AngelBot(discord.Client):
                 self.references[mod] = inspect.getmembers(globals()[mod], inspect.isclass)[0][1](self)
             for mod in self.references:
                 for command in self.references[mod].commands:
-                    self.command_map[commands[0].lower()] = commands[1]
+                    self.command_map[command[0].lower()] = command[1]
             self.loop.call_later(1500, self.update_stats)
 
     async def on_message(self, message):
@@ -158,7 +158,7 @@ class AngelBot(discord.Client):
                     prefix = await dbp.hget(message.server.id, "Prefix")
                 if message.content.split()[0].lower().startswith(prefix):
                     await dbp.incr("COMMANDS.{}.{}.{}.{}".format(date.today().year, date.today().month, date.today().day, message.content.split()[0].lower()[1:]))
-                    await self.command_map[message.content.split()[0].lower()](message)
+                    await self.command_map[message.content.split()[0].lower()[1:]](message)
 
     async def on_server_remove(self, server):
         await self.references['Admin'].cleanconfig(server.name)
