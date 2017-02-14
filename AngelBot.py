@@ -147,17 +147,16 @@ class AngelBot(discord.Client):
                         if message.content.lower().startswith("ard" + command[0]):
                             await command[1](message)
         else:
-            if re.search("\s", message.content):
-                prefix = "$"
-                async with self.redis.get() as dbp:
-                    test = await dbp.hexists(message.server.id, "Prefix")
-                    if test:
-                        prefix = await dbp.hget(message.server.id, "Prefix")
-                        for item in self.references:
-                            for command in self.references[item].commands:
-                                if message.content[:re.search("\s", message.content).start()].lower() == str.lower(prefix+command[0]):
-                                    await dbp.incr("COMMANDS.{}.{}.{}.{}".format(date.today().year, date.today().month, date.today().day, command[0]))
-                                    await command[1](message)
+            prefix = "$"
+            async with self.redis.get() as dbp:
+                test = await dbp.hexists(message.server.id, "Prefix")
+                if test:
+                    prefix = await dbp.hget(message.server.id, "Prefix")
+                    for item in self.references:
+                        for command in self.references[item].commands:
+                            if message.content[:len(prefix+command[0])].lower() == str.lower(prefix+command[0]):
+                                await dbp.incr("COMMANDS.{}.{}.{}.{}".format(date.today().year, date.today().month, date.today().day, command[0]))
+                                await command[1](message)
 
     async def on_server_remove(self, server):
         await self.references['Admin'].cleanconfig(server.name)
