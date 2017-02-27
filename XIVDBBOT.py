@@ -51,8 +51,8 @@ class DBParser:
                     embed.set_thumbnail(url="http://i.imgur.com/zkqe2nw.jpg")
                     msgs = [["", ""], ["", ""], ["", ""]]
                     for idx, item in enumerate(jsd['items']['results']):
-                        if len(msgs[idx%3][0]) + len("[{}]({})\n".format(item['name'], "http://xivdb.com".format(item['url']))) < 1024:
-                            msgs[idx%3][0] += "[{}]({})\n".format(item['name'], "http://xivdb.com".format(item['url']))
+                        if len(msgs[idx%3][0]) + len("[{}]({})\n".format(item['name'], "http://xivdb.com{}".format(item['url']))) < 1024:
+                            msgs[idx%3][0] += "[{}]({})\n".format(item['name'], "http://xivdb.com{}".format(item['url']))
                             msgs[idx%3][1] += "ID: {}\n".format(item['id'])
                     embed.add_field(name="\u200b", value=msgs[0][0])
                     embed.add_field(name="\u200b", value=msgs[0][1])
@@ -83,8 +83,8 @@ class DBParser:
                     out.set_thumbnail(url="http://i.imgur.com/zkqe2nw.jpg")
                     msgs = [["", ""], ["", ""], ["", ""]]
                     for idx, item in enumerate(jsd['quests']['results']):
-                        if len(msgs[idx % 3][0]) + len("[{}]({})\n".format(item['name'], "http://xivdb.com".format(item['url']))) < 1024:
-                            msgs[idx % 3][0] += "[{}]({})\n".format(item['name'], "http://xivdb.com".format(item['url']))
+                        if len(msgs[idx % 3][0]) + len("[{}]({})\n".format(item['name'], "http://xivdb.com{}".format(item['url']))) < 1024:
+                            msgs[idx % 3][0] += "[{}]({})\n".format(item['name'], "http://xivdb.com{}".format(item['url']))
                             msgs[idx % 3][1] += "ID: {}\n".format(item['id'])
                     out.add_field(name="\u200b", value=msgs[0][0])
                     out.add_field(name="\u200b", value=msgs[0][1])
@@ -111,8 +111,8 @@ class DBParser:
                     embed.set_thumbnail(url="http://i.imgur.com/zkqe2nw.jpg")
                     msgs = [["", ""], ["", ""], ["", ""]]
                     for idx, item in enumerate(jsd['recipes']['results']):
-                        if len(msgs[idx % 3][0]) + len("[{}]({})\n".format(item['name'], "http://xivdb.com".format(item['url']))) < 1024:
-                            msgs[idx % 3][0] += "[{}]({})\n".format(item['name'], "http://xivdb.com".format(item['url']))
+                        if len(msgs[idx % 3][0]) + len("[{}]({})\n".format(item['name'], "http://xivdb.com{}".format(item['url']))) < 1024:
+                            msgs[idx % 3][0] += "[{}]({})\n".format(item['name'], "http://xivdb.com{}".format(item['url']))
                             msgs[idx % 3][1] += "ID: {}\n".format(item['id'])
                     embed.add_field(name="\u200b", value=msgs[0][0])
                     embed.add_field(name="\u200b", value=msgs[0][1])
@@ -139,8 +139,8 @@ class DBParser:
                     embed.set_thumbnail(url="http://i.imgur.com/zkqe2nw.jpg")
                     msgs = [["", ""], ["", ""], ["", ""]]
                     for idx, item in enumerate(jsd['actions']['results']):
-                        if len(msgs[idx % 3][0]) + len("[{}]({})\n".format(item['name'], "http://xivdb.com".format(item['url']))) < 1024:
-                            msgs[idx % 3][0] += "[{}]({})\n".format(item['name'], "http://xivdb.com".format(item['url']))
+                        if len(msgs[idx % 3][0]) + len("[{}]({})\n".format(item['name'], "http://xivdb.com{}".format(item['url']))) < 1024:
+                            msgs[idx % 3][0] += "[{}]({})\n".format(item['name'], "http://xivdb.com{}".format(item['url']))
                             msgs[idx % 3][1] += "ID: {}\n".format(item['id'])
                     embed.add_field(name="\u200b", value=msgs[0][0])
                     embed.add_field(name="\u200b", value=msgs[0][1])
@@ -167,8 +167,8 @@ class DBParser:
                     embed.set_thumbnail(url="http://i.imgur.com/zkqe2nw.jpg")
                     msgs = [["", ""], ["", ""], ["", ""]]
                     for idx, item in enumerate(jsd['gathering']['results']):
-                        if len(msgs[idx % 3][0]) + len("[{}]({})\n".format(item['name'], "http://xivdb.com".format(item['url']))) < 1024:
-                            msgs[idx % 3][0] += "[{}]({})\n".format(item['name'], "http://xivdb.com".format(item['url']))
+                        if len(msgs[idx % 3][0]) + len("[{}]({})\n".format(item['name'], "http://xivdb.com{}".format(item['url']))) < 1024:
+                            msgs[idx % 3][0] += "[{}]({})\n".format(item['name'], "http://xivdb.com{}".format(item['url']))
                             msgs[idx % 3][1] += "ID: {}\n".format(item['id'])
                     embed.add_field(name="\u200b", value=msgs[0][0])
                     embed.add_field(name="\u200b", value=msgs[0][1])
@@ -194,8 +194,8 @@ class DBParser:
                     embed.set_thumbnail(url="http://i.imgur.com/zkqe2nw.jpg")
                     msgs = [["", ""], ["", ""], ["", ""]]
                     for idx, item in enumerate(jsd['npcs']['results']):
-                        if len(msgs[idx % 3][0]) + len("[{}]({})\n".format(item['name'], "http://xivdb.com".format(item['url']))) < 1024:
-                            msgs[idx % 3][0] += "[{}]({})\n".format(item['name'], "http://xivdb.com".format(item['url']))
+                        if len(msgs[idx % 3][0]) + len("[{}]({})\n".format(item['name'], "http://xivdb.com{}".format(item['url']))) < 1024:
+                            msgs[idx % 3][0] += "[{}]({})\n".format(item['name'], "http://xivdb.com{}".format(item['url']))
                             msgs[idx % 3][1] += "ID: {}\n".format(item['id'])
                     embed.add_field(name="\u200b", value=msgs[0][0])
                     embed.add_field(name="\u200b", value=msgs[0][1])
@@ -221,8 +221,8 @@ class DBParser:
                     embed.set_thumbnail(url="http://i.imgur.com/zkqe2nw.jpg")
                     msgs = [["", ""], ["", ""], ["", ""]]
                     for idx, item in enumerate(jsd['status']['results']):
-                        if len(msgs[idx % 3][0]) + len("[{}]({})\n".format(item['name'], "http://xivdb.com".format(item['url']))) < 1024:
-                            msgs[idx % 3][0] += "[{}]({})\n".format(item['name'], "http://xivdb.com".format(item['url']))
+                        if len(msgs[idx % 3][0]) + len("[{}]({})\n".format(item['name'], "http://xivdb.com{}".format(item['url']))) < 1024:
+                            msgs[idx % 3][0] += "[{}]({})\n".format(item['name'], "http://xivdb.com{}".format(item['url']))
                             msgs[idx % 3][1] += "ID: {}\n".format(item['id'])
                     embed.add_field(name="\u200b", value=msgs[0][0])
                     embed.add_field(name="\u200b", value=msgs[0][1])
@@ -248,8 +248,8 @@ class DBParser:
                     embed.set_thumbnail(url="http://i.imgur.com/zkqe2nw.jpg")
                     msgs = [["", ""], ["", ""], ["", ""]]
                     for idx, item in enumerate(jsd['minions']['results']):
-                        if len(msgs[idx % 3][0]) + len("[{}]({})\n".format(item['name'], "http://xivdb.com".format(item['url']))) < 1024:
-                            msgs[idx % 3][0] += "[{}]({})\n".format(item['name'], "http://xivdb.com".format(item['url']))
+                        if len(msgs[idx % 3][0]) + len("[{}]({})\n".format(item['name'], "http://xivdb.com{}".format(item['url']))) < 1024:
+                            msgs[idx % 3][0] += "[{}]({})\n".format(item['name'], "http://xivdb.com{}".format(item['url']))
                             msgs[idx % 3][1] += "ID: {}\n".format(item['id'])
                     embed.add_field(name="\u200b", value=msgs[0][0])
                     embed.add_field(name="\u200b", value=msgs[0][1])
@@ -275,8 +275,8 @@ class DBParser:
                     embed.set_thumbnail(url="http://i.imgur.com/zkqe2nw.jpg")
                     msgs = [["", ""], ["", ""], ["", ""]]
                     for idx, item in enumerate(jsd['achievements']['results']):
-                        if len(msgs[idx % 3][0]) + len("[{}]({})\n".format(item['name'], "http://xivdb.com".format(item['url']))) < 1024:
-                            msgs[idx % 3][0] += "[{}]({})\n".format(item['name'], "http://xivdb.com".format(item['url']))
+                        if len(msgs[idx % 3][0]) + len("[{}]({})\n".format(item['name'], "http://xivdb.com{}".format(item['url']))) < 1024:
+                            msgs[idx % 3][0] += "[{}]({})\n".format(item['name'], "http://xivdb.com{}".format(item['url']))
                             msgs[idx % 3][1] += "ID: {}\n".format(item['id'])
                     embed.add_field(name="\u200b", value=msgs[0][0])
                     embed.add_field(name="\u200b", value=msgs[0][1])
