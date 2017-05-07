@@ -53,12 +53,25 @@ class MPManager:
             r, w = Pipe(duplex=False)
             self.r_pipes.append(r)
             journal.send("INFO:AngelBot Manager: Starting Shard {}".format(number))
-            temp = Process(target=self._run, args=(number, self.shard_count, w))
+            temp = Process(target=self._run, args=(number, self.shard_count, w), daemon=False)
             temp.start()
             self.shards[number] = {'Pipe': r, 'Process': temp}
             journal.send("STATUS:Shard {}: Shard Started.".format(number))
 
         while self.shards.keys():
+            for shard in self.shards.keys():
+                if not self.shards[shard]['Process'].is_alive():
+                    del self.shards[shard]
+                    journal.send("QUIT:Shard {0}: Shard {0} Exited.".format(shard))
+                    journal.send("INFO:AngelBot Manage: Attempting to restart Shard {}".format(shard))
+                    r, w = Pipe(duplex=False)
+                    self.r_pipes.append(r)
+                    journal.send("INFO:AngelBot Manager: Starting Shard {}".format(shard))
+                    temp = Process(target=self._run, args=(shard, self.shard_count, w), daemon=False)
+                    temp.start()
+                    self.shards[shard] = {'Pipe': r, 'Process': temp}
+                    journal.send("STATUS:Shard {}: Shard restarted.".format(shard))
+                    
             for reader in wait(self.r_pipes):
                 try:
                     msg = reader.recv()
@@ -67,16 +80,17 @@ class MPManager:
                 else:
                     if 'QUIT' in msg:
                         shard = int(msg.split(":")[1])
-                        del self.shards[shard]
-                        journal.send("QUIT:Shard {0}: Shard {0} Exited.".format(shard))
-                        journal.send("INFO:AngelBot Manager: Attempting to restart Shard {}".format(shard))
-                        r, w = Pipe(duplex=False)
-                        self.r_pipes.append(r)
-                        journal.send("INFO:AngelBot Manager: Starting Shard {}".format(shard))
-                        temp = Process(target=self._run, args=(shard, self.shard_count, w))
-                        temp.start()
-                        self.shards[shard] = {'Pipe': r, 'Process': temp}
-                        journal.send("STATUS:Shard {}: Shard restarted.".format(shard))
+                        if shard in self.shards:
+                            del self.shards[shard]
+                            journal.send("QUIT:Shard {0}: Shard {0} Exited.".format(shard))
+                            journal.send("INFO:AngelBot Manager: Attempting to restart Shard {}".format(shard))
+                            r, w = Pipe(duplex=False)
+                            self.r_pipes.append(r)
+                            journal.send("INFO:AngelBot Manager: Starting Shard {}".format(shard))
+                            temp = Process(target=self._run, args=(shard, self.shard_count, w), daemon=False)
+                            temp.start()
+                            self.shards[shard] = {'Pipe': r, 'Process': temp}
+                            journal.send("STATUS:Shard {}: Shard restarted.".format(shard))
                     elif 'STATUS' in msg:
                         _, sid, servs, members = msg.split(":")
                         sid = int(sid)
